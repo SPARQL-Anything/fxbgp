@@ -1,4 +1,29 @@
-# Experiment files
+# Experiments
+## Algorithms
+Top down / Search: [AnalyserAsSearch](src/main/java/io/github/sparqlanything/fxbgp/AnalyserAsSearch.java)
+Bottom up / CSP: [AnalyserGrounder](src/main/java/io/github/sparqlanything/fxbgp/AnalyserGrounder.java)
+
+## Files
+
+Each file tests a single BGP
+
+File names are informative:
+
+ - S: the bgp is satisfiable
+ - N: the bgp is not satisfiable
+ - [number]: the number of triples in the bgp
+ - T: the bgp contains only variables without joins
+ - J: the bgp contains one or more joins
+ - P: the bgp contains a join on an object and must satisfy the single-path-to-root condition
+ - R: the bgp contains a join on an object that is fx:root
+ - C: the bgp contains a join on an object that is a container
+
+
+Examples:
+
+ - S_5T: a satisfiable bgp of 5 triples with only variables without joins
+ - E.g. N_3P_C: a not satisfiable bgp of 3 triples that has multiple paths to an object container
+
 ## File N_1T
 Satisfiable: false
 Number of triples: 1
@@ -222,37 +247,38 @@ Number of triples: 5
 
 ```
 
-## Bottom up, only satisfiability
+## Bottom up / CSP
+### Bottom up, only satisfiability
 The algorithm stops when 1 satisfiable annotation is found
 
 | name | satisfiable? | annotations found | type | size | ms |
 | ---- | ------------ | ----------------- | ---- | ---- | -- |
-| S_1T | true | (1) | T | 1 | 28 |
+| S_1T | true | (1) | T | 1 | 14 |
 | S_2T | true | (1) | T | 2 | 1 |
 | S_3T | true | (1) | T | 3 | 1 |
-| S_4T | true | (1) | T | 4 | 39 |
-| S_5T | true | (1) | T | 5 | 353 |
+| S_4T | true | (1) | T | 4 | 38 |
+| S_5T | true | (1) | T | 5 | 250 |
 | N_1T | false | (0) | T | 1 | 2 |
 | N_2T | false | (0) | T | 2 | 7 |
-| N_3T | false | (0) | T | 3 | 59 |
-| N_4T | false | (0) | T | 4 | 266 |
-| N_5T | false | (0) | T | 5 | 1572 |
-| S_2J | true | (1) | J | 2 | 0 |
+| N_3T | false | (0) | T | 3 | 56 |
+| N_4T | false | (0) | T | 4 | 225 |
+| N_5T | false | (0) | T | 5 | 1522 |
+| S_2J | true | (1) | J | 2 | 1 |
 | S_3J | true | (1) | J | 3 | 0 |
-| S_4J | true | (1) | J | 4 | 30 |
-| N_2J | false | (0) | J | 2 | 1 |
+| S_4J | true | (1) | J | 4 | 24 |
+| N_2J | false | (0) | J | 2 | 0 |
 | N_3J | false | (0) | J | 3 | 0 |
 | N_4J | false | (0) | J | 4 | 0 |
 | N_5J | false | (0) | J | 5 | 0 |
 | S_3P_C | true | (1) | P | 3 | 1 |
-| S_4P_C | true | (1) | P | 4 | 0 |
-| S_5P_C | true | (1) | P | 5 | 51 |
+| S_4P_C | true | (1) | P | 4 | 1 |
+| S_5P_C | true | (1) | P | 5 | 48 |
 | N_3P_C | false | (0) | P | 3 | 3 |
-| N_3P_R | false | (0) | P | 3 | 4 |
-| N_4P_C | false | (0) | P | 4 | 62 |
-| N_5P_C | false | (0) | P | 5 | 531 |
+| N_3P_R | false | (0) | P | 3 | 5 |
+| N_4P_C | false | (0) | P | 4 | 60 |
+| N_5P_C | false | (0) | P | 5 | 542 |
 
-## Bottom up, all annotations (only satisfiable bgps)
+### Bottom up, all annotations (only satisfiable bgps)
 The algorithm proceeds to find all possible satisfiable annotations
 
 | name | satisfiable? | annotations found | type | size | ms |
@@ -260,34 +286,35 @@ The algorithm proceeds to find all possible satisfiable annotations
 | S_1T | true | (6) | T | 1 | 0 |
 | S_2T | true | (36) | T | 2 | 0 |
 | S_3T | true | (216) | T | 3 | 7 |
-| S_4T | true | (1296) | T | 4 | 94 |
-| S_5T | true | (7776) | T | 5 | 1255 |
-| S_2J | true | (36) | J | 2 | 0 |
+| S_4T | true | (1296) | T | 4 | 101 |
+| S_5T | true | (7776) | T | 5 | 1257 |
+| S_2J | true | (36) | J | 2 | 1 |
 | S_3J | true | (60) | J | 3 | 3 |
-| S_4J | true | (300) | J | 4 | 55 |
+| S_4J | true | (300) | J | 4 | 54 |
 | S_3P_C | true | (4) | P | 3 | 1 |
-| S_4P_C | true | (8) | P | 4 | 15 |
-| S_5P_C | true | (16) | P | 5 | 215 |
+| S_4P_C | true | (8) | P | 4 | 13 |
+| S_5P_C | true | (16) | P | 5 | 204 |
 
 
-## Top down, only satisfiability
+## Top down / Search
+### Top down, only satisfiability
 The algorithm stops when 1 satisfiable annotation is found
 
 | name | satisfiable? | annotations found | type | size | ms |
 | ---- | ------------ | ----------------- | ---- | ---- | -- |
-| S_1T | true | (1) | T | 1 | 2	(4) |
-| S_2T | true | (1) | T | 2 | 1	(6) |
+| S_1T | true | (1) | T | 1 | 3	(4) |
+| S_2T | true | (1) | T | 2 | 0	(6) |
 | S_3T | true | (1) | T | 3 | 1	(10) |
 | S_4T | true | (1) | T | 4 | 2	(14) |
 | S_5T | true | (1) | T | 5 | 2	(18) |
-| N_1T | false | (0) | T | 1 | 0	(12) |
-| N_2T | false | (0) | T | 2 | 508	(16364) |
+| N_1T | false | (0) | T | 1 | 1	(12) |
+| N_2T | false | (0) | T | 2 | 490	(16364) |
 
-## Top down, all satisfiable annotations
+### Top down, all satisfiable annotations
 The algorithm proceeds to find all possible satisfiable annotations
 
 | name | satisfiable? | annotations found | type | size | ms |
 | ---- | ------------ | ----------------- | ---- | ---- | -- |
-| S_1T | true | (6) | T | 1 | 3	(60) |
-| S_2T | true | (36) | T | 2 | 2212	(193237) |
+| S_1T | true | (6) | T | 1 | 2	(60) |
+| S_2T | true | (36) | T | 2 | 2164	(193237) |
 

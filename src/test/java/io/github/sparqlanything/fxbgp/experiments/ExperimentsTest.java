@@ -73,8 +73,26 @@ public class ExperimentsTest extends BGPTestAbstract {
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
-
-        println("# Experiment files");
+        println("# Experiments");
+        println("## Algorithms");
+        println("Top down / Search: [AnalyserAsSearch](src/main/java/io/github/sparqlanything/fxbgp/AnalyserAsSearch.java)");
+        println("Bottom up / CSP: [AnalyserGrounder](src/main/java/io/github/sparqlanything/fxbgp/AnalyserGrounder.java)");
+        println("");
+        println("## Files");
+        println("\nEach file tests a single BGP");
+        println("\nFile names are informative:");
+        println("\n - S: the bgp is satisfiable");
+        println(" - N: the bgp is not satisfiable");
+        println(" - [number]: the number of triples in the bgp");
+        println(" - T: the bgp contains only variables without joins");
+        println(" - J: the bgp contains one or more joins");
+        println(" - P: the bgp contains a join on an object and must satisfy the single-path-to-root condition");
+        println(" - R: the bgp contains a join on an object that is fx:root");
+        println(" - C: the bgp contains a join on an object that is a container");
+        println("\n\nExamples:");
+        println("\n - S_5T: a satisfiable bgp of 5 triples with only variables without joins");
+        println(" - E.g. N_3P_C: a not satisfiable bgp of 3 triples that has multiple paths to an object container");
+        println("");
         for( File file : files ){
             String name = file.getName();
             String[] aboutArr =  name.split("\\.")[0].split("_");
@@ -120,8 +138,9 @@ public class ExperimentsTest extends BGPTestAbstract {
         AnalyserAsSearch topDown = new AnalyserAsSearch(properties, FXM());
         Analyser bottomUp = new AnalyserGrounder(properties, FXM());
         println("");
+        println("## Top down / Search");
 
-        println("## Top down, only satisfiability");
+        println("### Top down, only satisfiability");
         println("The algorithm stops when 1 satisfiable annotation is found");
         thead();
         run(topDown,true, 1, "T", false);
@@ -134,7 +153,7 @@ public class ExperimentsTest extends BGPTestAbstract {
 //        run(topDown,false, 3, "T", false);
         tfoot();
 
-        println("## Top down, all satisfiable annotations");
+        println("### Top down, all satisfiable annotations");
         println("The algorithm proceeds to find all possible satisfiable annotations");
         thead();
         run(topDown,true, 1, "T", true);
@@ -157,7 +176,9 @@ public class ExperimentsTest extends BGPTestAbstract {
     public void BottomUp() throws IOException {
         Analyser bottomUp = new AnalyserGrounder(properties, FXM());
         println("");
-        println("## Bottom up, only satisfiability");
+        println("## Bottom up / CSP");
+
+        println("### Bottom up, only satisfiability");
         println("The algorithm stops when 1 satisfiable annotation is found");
         thead();
         run(bottomUp,true, 1, "T", false);
@@ -189,7 +210,7 @@ public class ExperimentsTest extends BGPTestAbstract {
         run(bottomUp, false, 4, "P", false);
         run(bottomUp, false, 5, "P", false);
         tfoot();
-        println("## Bottom up, all annotations (only satisfiable bgps)");
+        println("### Bottom up, all annotations (only satisfiable bgps)");
         println("The algorithm proceeds to find all possible satisfiable annotations");
         thead();
         run(bottomUp,true, 1, "T", true);
