@@ -102,9 +102,19 @@ public class ExperimentsTest extends BGPTestAbstract {
             fileData.putIfAbsent(file, new Object[]{satisfiable, size, type});
             groupedBySize.putIfAbsent(size, new HashSet<>());
             groupedBySize.get(size).add(file);
-            println("## File " + name.replace(".easybgp",""));
-            println("Satisfiable: " + satisfiable);
-            println("Number of triples: " + size);
+            println("### " + name.replace(".easybgp",""));
+            println("\nThe bgp is " + (satisfiable?"":"not ") +"satisfiable." );
+            println("\nThe bgp has " + size + " number of triples");
+            if(name.contains("P")){
+                println("\nThe bgp has  multiple paths to an object");
+            }
+            if(name.contains("C")){
+                println("\nThe bgp has multiple paths to a container");
+            }
+
+            if(name.contains("R")){
+                println("\nThe bgp has multiple paths to fx:root");
+            }
             println("```");
             String str = null;
             try {
