@@ -9,14 +9,14 @@ import org.junit.rules.TestName;
 
 import java.io.IOException;
 
-public class InterpretationFactoryTest extends BGPTestAbstract {
+public class annotationFactoryTest extends BGPTestAbstract {
 
 	protected FXAnnotationFactory IF;
 
 	@Rule
 	public TestName name = new TestName();
 
-	public InterpretationFactoryTest() {
+	public annotationFactoryTest() {
 		super(FXModel.getFXModel());
 	}
 
@@ -34,7 +34,7 @@ public class InterpretationFactoryTest extends BGPTestAbstract {
 		Assert.assertTrue(ibgp.isStart());
 		Assert.assertFalse(ibgp.isGrounded());
 
-		Assert.assertTrue(ibgp.getInterpretationOfNodes().size() == 3);
+		Assert.assertTrue(ibgp.getannotationOfNodes().size() == 3);
 	}
 
 	@Test
@@ -44,7 +44,7 @@ public class InterpretationFactoryTest extends BGPTestAbstract {
 
 		Assert.assertTrue(ibgp.isStart());
 		Assert.assertFalse(ibgp.isGrounded());
-		Assert.assertTrue(ibgp.getInterpretationOfNodes().size() == 5);
+		Assert.assertTrue(ibgp.getannotationOfNodes().size() == 5);
 
 		// Let's interpret the first subject as a container
 		Node s = ibgp.getOpBGP().getPattern().getList().iterator().next().getSubject();

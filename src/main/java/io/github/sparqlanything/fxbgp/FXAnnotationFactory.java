@@ -21,19 +21,19 @@ public class FXAnnotationFactory {
 	}
 
 	/**
-	 * This method generates a different interpretation from an existing one.
+	 * This method generates a different annotation from an existing one.
 	 * It keeps node and bgp but modifies the FX element.
 	 *
-	 * @param interpretation
+	 * @param annotation
 	 * @param element
 	 * @return
 	 */
-	public FXNodeAnnotation makeFrom(final FXNodeAnnotation interpretation, final FX element){
-		return make(interpretation.getOpBGP(), interpretation.getNode(), element);
+	public FXNodeAnnotation makeFrom(final FXNodeAnnotation annotation, final FX element){
+		return make(annotation.getOpBGP(), annotation.getNode(), element);
 	}
 
 	/**
-	 * This method generates a starting interpretation of a BGP.
+	 * This method generates a starting annotation of a BGP.
 	 * All nodes are interpreated as Subject, Predicate, or Object.
 	 *
 	 * @param bgp
@@ -50,19 +50,19 @@ public class FXAnnotationFactory {
 	}
 
 	/**
-	 * We make a new interpretation of a BGP by setting the interpretation of a single node.
+	 * We make a new annotation of a BGP by setting the annotation of a single node.
 	 * We don't do any verification (consistency).
 	 *
 	 * @param previous
-	 * @param newInterpretation
+	 * @param newannotation
 	 * @return
 	 */
-	public FXBGPAnnotation make(final FXBGPAnnotation previous, FXNodeAnnotation newInterpretation){
-		return new OfBGP(previous, newInterpretation);
+	public FXBGPAnnotation make(final FXBGPAnnotation previous, FXNodeAnnotation newannotation){
+		return new OfBGP(previous, newannotation);
 	}
 
-	public FXBGPAnnotation make(OpBGP bgp, Set<FXNodeAnnotation> interpretations){
-		return new OfBGP(bgp, interpretations);
+	public FXBGPAnnotation make(OpBGP bgp, Set<FXNodeAnnotation> annotations){
+		return new OfBGP(bgp, annotations);
 	}
 
 	private class OfBGP implements FXBGPAnnotation {
@@ -99,13 +99,13 @@ public class FXAnnotationFactory {
 			hashCode = Objects.hash(bgp,nodeInderpretations);
 		}
 
-		OfBGP(final FXBGPAnnotation previous, FXNodeAnnotation newInterpretation){
+		OfBGP(final FXBGPAnnotation previous, FXNodeAnnotation newannotation){
 			this.previous = previous;
 			this.bgp = previous.getOpBGP();
-			// Inherit all previous interpretations
-			nodeInderpretations.putAll(previous.getInterpretationOfNodes());
+			// Inherit all previous annotations
+			nodeInderpretations.putAll(previous.getannotationOfNodes());
 			// ... except for this node
-			nodeInderpretations.put(newInterpretation.getNode(),newInterpretation);
+			nodeInderpretations.put(newannotation.getNode(),newannotation);
 			// Compute if this is grounded
 			isGrounded = true;
 			for(Map.Entry<Node, FXNodeAnnotation> ion: nodeInderpretations.entrySet()){
@@ -120,7 +120,7 @@ public class FXAnnotationFactory {
 		}
 
 		@Override
-		public Map<Node, FXNodeAnnotation>  getInterpretationOfNodes() {
+		public Map<Node, FXNodeAnnotation>  getannotationOfNodes() {
 			return Collections.unmodifiableMap(nodeInderpretations);
 		}
 
@@ -135,7 +135,7 @@ public class FXAnnotationFactory {
 		}
 
 		@Override
-		public FXNodeAnnotation getInterpretation(Node node) {
+		public FXNodeAnnotation getannotation(Node node) {
 			return nodeInderpretations.get(node);
 		}
 
@@ -158,7 +158,7 @@ public class FXAnnotationFactory {
 		public boolean equals(Object obj) {
 			if(obj instanceof FXBGPAnnotation){
 				boolean samebgp = ((FXBGPAnnotation)obj).getOpBGP().getPattern().equals(this.getOpBGP().getPattern());
-				boolean sameint = ((FXBGPAnnotation)obj).getInterpretationOfNodes().equals(this.getInterpretationOfNodes());
+				boolean sameint = ((FXBGPAnnotation)obj).getannotationOfNodes().equals(this.getannotationOfNodes());
 				return sameint && samebgp;
 			}
 			return false;
@@ -169,9 +169,9 @@ public class FXAnnotationFactory {
 			StringBuilder sb = new StringBuilder();
 			sb.append(Integer.toString(hashCode())).append("@( ");
 			for(Triple t: getOpBGP().getPattern()){
-					sb.append(getInterpretation(t.getSubject()))
-					.append(getInterpretation(t.getPredicate()))
-					.append(getInterpretation(t.getObject())).append(" . ");
+					sb.append(getannotation(t.getSubject()))
+					.append(getannotation(t.getPredicate()))
+					.append(getannotation(t.getObject())).append(" . ");
 			}
 			return sb.append(" ) ").toString();
 		}

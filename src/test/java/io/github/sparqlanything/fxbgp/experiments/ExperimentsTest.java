@@ -237,22 +237,22 @@ public class ExperimentsTest extends BGPTestAbstract {
             if(satisfiable.equals(data[0]) && size.equals(data[1]) && type.equals(data[2])){
                 run(analyser, file, complete);
                 if(analyser instanceof AnalyserAsSearch) {
-                    println("| " + name + " | " + satisfiable +" | ("+ (lastInterpretations.size()) + ") | " + type + " | " + size + " | " + lastDuration + "\t(" + ((AnalyserAsSearch)analyser).getLastIterationsCount() + ") |");
+                    println("| " + name + " | " + satisfiable +" | ("+ (lastannotations.size()) + ") | " + type + " | " + size + " | " + lastDuration + "\t(" + ((AnalyserAsSearch)analyser).getLastIterationsCount() + ") |");
                 }else {
-                    println("| " + name + " | " + satisfiable +" | ("+ (lastInterpretations.size()) + ") | " + type + " | " + size + " | " + lastDuration + " |");
+                    println("| " + name + " | " + satisfiable +" | ("+ (lastannotations.size()) + ") | " + type + " | " + size + " | " + lastDuration + " |");
                 }
             }
         }
     }
 
     private long lastDuration;
-    private Set<FXBGPAnnotation> lastInterpretations;
+    private Set<FXBGPAnnotation> lastannotations;
     public void run(Analyser analyser, File file, boolean complete) throws IOException {
         // Preparation
         bp = new BasicPattern();
         readBGP(file.toURI().toURL());
         long start = System.currentTimeMillis();
-        lastInterpretations = analyser.interpret(new OpBGP(bp()), complete);
+        lastannotations = analyser.annotate(new OpBGP(bp()), complete);
         long end = System.currentTimeMillis();
         lastDuration = end - start;
     }

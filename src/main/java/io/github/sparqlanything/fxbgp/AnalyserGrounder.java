@@ -30,7 +30,7 @@ public class AnalyserGrounder implements Analyser {
 		this.properties = properties;
 	}
 
-	public Set<FXBGPAnnotation> interpret(OpBGP bgp, boolean complete) {
+	public Set<FXBGPAnnotation> annotate(OpBGP bgp, boolean complete) {
 		// Precondition...
 
 		// No cycles are allowed
@@ -47,7 +47,7 @@ public class AnalyserGrounder implements Analyser {
 			}
 		}
 
-		// Generate all possible grounded interpretations
+		// Generate all possible grounded annotations
 		Set<FX> subjectTerms = FXM.groundedSpecialisations(FX.Subject);
 		L.debug("subject terms: {}", subjectTerms);
 		Set<FX> predicateTerms = FXM.groundedSpecialisations(FX.Predicate);
@@ -81,7 +81,7 @@ public class AnalyserGrounder implements Analyser {
 				possible.get(t.getObject()).add(FXM.getIF().make(bgp, t.getObject(), objectTerm));
 			}
 
-			// For each node, if possible interpretations include both Predicate and either Subject or Object, there is no solution
+			// For each node, if possible annotations include both Predicate and either Subject or Object, there is no solution
 			if(possible.get(t.getSubject()).contains(FXM.getIF().make(bgp, t.getSubject(), FX.TypeProperty)) ||
 				possible.get(t.getObject()).contains(FXM.getIF().make(bgp, t.getObject(), FX.TypeProperty)) ||
 				possible.get(t.getPredicate()).contains(FXM.getIF().make(bgp, t.getPredicate(), FX.Container)) ){
@@ -98,7 +98,7 @@ public class AnalyserGrounder implements Analyser {
 		input.addAll(possible.values());
 
 		Set<List<FXNodeAnnotation>> output = Sets.cartesianProduct(input.toArray(new Set[input.size()]));
-		L.debug("possible BGP interpretations hypotheses: {}", output.size());
+		L.debug("possible BGP annotation hypotheses: {}", output.size());
 		Set<FXBGPAnnotation> results = new HashSet<>();
 		// Check if any is consistent and discard the rest
 		for(List<FXNodeAnnotation> list: output){

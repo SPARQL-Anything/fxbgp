@@ -6,13 +6,13 @@ import java.util.Map;
 import java.util.Set;
 
 public interface FXBGPAnnotation extends FXAnnotation {
-	Map<Node, FXNodeAnnotation> getInterpretationOfNodes();
+	Map<Node, FXNodeAnnotation> getannotationOfNodes();
 
 	public boolean isGrounded();
 
 	public boolean isStart();
 
-	public FXNodeAnnotation getInterpretation(Node node);
+	public FXNodeAnnotation getannotation(Node node);
 
 	public FXBGPAnnotation previous();
 

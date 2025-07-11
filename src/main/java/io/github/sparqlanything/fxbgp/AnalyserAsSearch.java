@@ -27,12 +27,12 @@ public class AnalyserAsSearch implements Analyser {
 
 
 	@Override
-	public Set<FXBGPAnnotation> interpret(OpBGP bgp, boolean complete){
+	public Set<FXBGPAnnotation> annotate(OpBGP bgp, boolean complete){
 
 		// To collect the solutions
 		Set<FXBGPAnnotation> finalStates = new HashSet<>();
 
-		// We make a starting interpretation. This is the root of the search space.
+		// We make a starting annotation. This is the root of the search space.
 		FXBGPAnnotation start = FXM.getIF().make(bgp);
 
 		// For any triple, s, p, o are all different
@@ -50,9 +50,9 @@ public class AnalyserAsSearch implements Analyser {
 		}
 
 		iteration = 0;
-		Set<FXBGPAnnotation> interpretations = interpret(start, new HashSet<>(), complete);
+		Set<FXBGPAnnotation> annotations = annotate(start, new HashSet<>(), complete);
 		//L.info("{} iterations",iteration);
-		return interpretations;
+		return annotations;
 	}
 
 	public int getLastIterationsCount(){
@@ -60,16 +60,16 @@ public class AnalyserAsSearch implements Analyser {
 	}
 
 	private int iteration = 0;
-	private Set<FXBGPAnnotation> interpret(FXBGPAnnotation ibgp, Set<FXBGPAnnotation> results, boolean complete){
+	private Set<FXBGPAnnotation> annotate(FXBGPAnnotation ibgp, Set<FXBGPAnnotation> results, boolean complete){
 		iteration += 1;
-		// The incoming interpretation is always consistent
+		// The incoming annotation is always consistent
 
 		// It is never final (otherwise it would not be the first parameter)
 		if(ibgp.isGrounded()){
 			throw new RuntimeException("This must never happen");
 		}
 
-		// For any new interpretation
+		// For any new annotation
 		Set<FXBGPAnnotation> hypotheses = specialise(ibgp);
 		for(FXBGPAnnotation nibgp: hypotheses){
 			boolean inconsistent = false;
@@ -79,7 +79,7 @@ public class AnalyserAsSearch implements Analyser {
 					// For each node, run inference rules
 				Set<FXNodeRule> rules = FXM.getInferenceRules();
 				for(FXNodeRule rule: rules){
-					// For each rule that resolves, check if interpretation is consistent
+					// For each rule that resolves, check if annotation is consistent
 					boolean resolves = rule.when(focus, nibgp);
 					if(resolves){
 						if(rule.failure()){
@@ -90,17 +90,17 @@ public class AnalyserAsSearch implements Analyser {
 						FXNodeAnnotation nni = rule.infer();
 
 						// Is it redundant?
-						FXNodeAnnotation prev = nibgp.getInterpretation(focus);
+						FXNodeAnnotation prev = nibgp.getannotation(focus);
 						if(nni.equals(prev)){
 							// Ignore redundant inferences, move to the next rule
 							continue;
 						}
-						// Verify consistency with previous interpretation
+						// Verify consistency with previous annotation
 						if(FXM.consistent(nni.getTerm(),prev.getTerm())){
 							// Check next rule
 							continue;
 						}else{
-							// If it is not consistent, discard the current interpretation 'nibgp'
+							// If it is not consistent, discard the current annotation 'nibgp'
 							// It means that the hypothesised specialisation cannot be!
 							// And stop executing rules!
 							L.trace(" -- inconsistency -- {} % {} vs {}",focus, nni.getTerm(),prev.getTerm());
@@ -125,12 +125,12 @@ public class AnalyserAsSearch implements Analyser {
 				// discard hypothesis
 			}else{
 				if(nibgp.isGrounded()){
-					//  If the new inferred interpretation is grounded, add to the return set
+					//  If the new inferred annotation is grounded, add to the return set
 					L.trace(" -- grounded -- {}",nibgp.toString());
 					results.add(nibgp);
 				}else{
 					// if not, keep interpreting it
-					results.addAll(interpret(nibgp, results, complete));
+					results.addAll(annotate(nibgp, results, complete));
 				}
 				if(!complete && results.size()>0){
 					return results;
@@ -143,39 +143,39 @@ public class AnalyserAsSearch implements Analyser {
 	}
 
 	/**
-	 * This method returns the set of possible interpretations of a Node, starting from a previous interpretation.
-	 * The method returns an empty set if the interpretation is 'grounded', meaning no other, more specific interpretations are possible.
-	 * @param interpretation
+	 * This method returns the set of possible annotations of a Node, starting from a previous annotation.
+	 * The method returns an empty set if the annotation is 'grounded', meaning no other, more specific annotations are possible.
+	 * @param annotation
 	 * @return
 	 */
-	public Set<FXNodeAnnotation> specialise(FXNodeAnnotation interpretation){
-		if(interpretation.isGrounded()){
+	public Set<FXNodeAnnotation> specialise(FXNodeAnnotation annotation){
+		if(annotation.isGrounded()){
 			return Collections.emptySet();
 		}else{
-			Set<FXNodeAnnotation> interpretations = new HashSet<>();
-			for(FX el : FXM.getSpecialisedBy(interpretation.getTerm())){
-				interpretations.add(FXM.getIF().makeFrom(interpretation, el));
+			Set<FXNodeAnnotation> annotations = new HashSet<>();
+			for(FX el : FXM.getSpecialisedBy(annotation.getTerm())){
+				annotations.add(FXM.getIF().makeFrom(annotation, el));
 			}
-			return interpretations;
+			return annotations;
 		}
 	}
 
-	public Set<FXBGPAnnotation> specialise(FXBGPAnnotation interpretation){
-		if(interpretation.isGrounded()){
+	public Set<FXBGPAnnotation> specialise(FXBGPAnnotation annotation){
+		if(annotation.isGrounded()){
 			return Collections.emptySet();
 		}else{
-			Set<FXBGPAnnotation> interpretations = new HashSet<>();
+			Set<FXBGPAnnotation> annotations = new HashSet<>();
 			boolean hasSpecialisations = false;
-			for(FXNodeAnnotation ni: interpretation.getInterpretationOfNodes().values()){
+			for(FXNodeAnnotation ni: annotation.getannotationOfNodes().values()){
 				for(FXNodeAnnotation in: specialise(ni) ) {
-					interpretations.add(FXM.getIF().make(interpretation, in));
+					annotations.add(FXM.getIF().make(annotation, in));
 					hasSpecialisations = true;
 				}
 			}
 			if(!hasSpecialisations){
 				throw new RuntimeException("This should never happen");
 			}
-			return interpretations;
+			return annotations;
 		}
 	}
 }

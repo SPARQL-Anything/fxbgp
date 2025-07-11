@@ -43,12 +43,12 @@ public class RDBAnalyserTest extends BGPTestAbstract {
 			v("b"), FXRDB.SlotRow,
 			v("c"), FXRDB.ContainerEntity
 		);
-		Assert.assertTrue(interpretations().contains(i1));
-		Assert.assertTrue(interpretations().contains(i2));
-		Assert.assertTrue(interpretations().contains(i3));
-		Assert.assertTrue(interpretations().contains(i4));
-		L.error("{}", interpretations());
-		Assert.assertEquals(4, interpretations().size());
+		Assert.assertTrue(annotations().contains(i1));
+		Assert.assertTrue(annotations().contains(i2));
+		Assert.assertTrue(annotations().contains(i3));
+		Assert.assertTrue(annotations().contains(i4));
+		L.error("{}", annotations());
+		Assert.assertEquals(4, annotations().size());
 	}
 
 	@Test
@@ -59,8 +59,8 @@ public class RDBAnalyserTest extends BGPTestAbstract {
 			RDF.type.asNode(), FXRDB.TypeProperty,
 			xyz("table"), FXRDB.TypeTable
 		);
-		Assert.assertEquals(1, interpretations().size());
-		Assert.assertTrue(interpretations().contains(i1));
+		Assert.assertEquals(1, annotations().size());
+		Assert.assertTrue(annotations().contains(i1));
 	}
 
 	@Test
@@ -72,8 +72,8 @@ public class RDBAnalyserTest extends BGPTestAbstract {
 			RDF.type.asNode(), FXRDB.TypeProperty,
 			u(Triplifier.FACADE_X_TYPE_ROOT), FXRDB.Root
 		);
-		Assert.assertEquals(1, interpretations().size());
-		Assert.assertTrue(interpretations().contains(i1));
+		Assert.assertEquals(1, annotations().size());
+		Assert.assertTrue(annotations().contains(i1));
 	}
 
 	@Test
@@ -87,9 +87,9 @@ public class RDBAnalyserTest extends BGPTestAbstract {
 			RDF.li(1).asNode(), FXRDB.SlotRow,
 			n2, FXRDB.ContainerEntity
 		);
-		L.error("{}", interpretations());
-		Assert.assertEquals(1, interpretations().size());
-		Assert.assertTrue(interpretations().contains(i1));
+		L.error("{}", annotations());
+		Assert.assertEquals(1, annotations().size());
+		Assert.assertTrue(annotations().contains(i1));
 	}
 
 	@Test
@@ -102,9 +102,9 @@ public class RDBAnalyserTest extends BGPTestAbstract {
 			v("p"), FXRDB.SlotColumn,
 			l("12"), FXRDB.Cell
 		);
-		L.error("{}", interpretations());
-		Assert.assertEquals(1, interpretations().size());
-		Assert.assertTrue(interpretations().contains(i1));
+		L.error("{}", annotations());
+		Assert.assertEquals(1, annotations().size());
+		Assert.assertTrue(annotations().contains(i1));
 	}
 
 
@@ -116,8 +116,8 @@ public class RDBAnalyserTest extends BGPTestAbstract {
 			v("p"), FXRDB.SlotColumn,
 			l(12),  FXRDB.Cell
 		);
-		Assert.assertEquals(1, interpretations().size());
-		Assert.assertTrue(interpretations().contains(i1));
+		Assert.assertEquals(1, annotations().size());
+		Assert.assertTrue(annotations().contains(i1));
 	}
 
 	@Test
@@ -132,9 +132,9 @@ public class RDBAnalyserTest extends BGPTestAbstract {
 			v("p2"), FXRDB.SlotColumn,
 			l("a string"), FXRDB.Cell
 		);
-		L.error("{}", interpretations());
-		Assert.assertEquals(1, interpretations().size());
-		Assert.assertTrue(interpretations().contains(i1));
+		L.error("{}", annotations());
+		Assert.assertEquals(1, annotations().size());
+		Assert.assertTrue(annotations().contains(i1));
 	}
 
 	@Test
@@ -148,9 +148,9 @@ public class RDBAnalyserTest extends BGPTestAbstract {
 			v("s2"), FXRDB.ContainerEntity,
 			v("p2"), FXRDB.SlotColumn
 		);
-		L.error("{}", interpretations());
-		Assert.assertEquals(1, interpretations().size());
-		Assert.assertTrue(interpretations().contains(i1));
+		L.error("{}", annotations());
+		Assert.assertEquals(1, annotations().size());
+		Assert.assertTrue(annotations().contains(i1));
 	}
 
 	@Test
@@ -185,12 +185,12 @@ public class RDBAnalyserTest extends BGPTestAbstract {
 			v("s2"), FXRDB.ContainerEntity,
 			v("p2"), FXRDB.TypeProperty
 		);
-		L.error("{}", interpretations());
-		Assert.assertEquals(4, interpretations().size());
-		Assert.assertTrue(interpretations().contains(i1));
-		Assert.assertTrue(interpretations().contains(i2));
-		Assert.assertTrue(interpretations().contains(i3));
-		Assert.assertTrue(interpretations().contains(i4));
+		L.error("{}", annotations());
+		Assert.assertEquals(4, annotations().size());
+		Assert.assertTrue(annotations().contains(i1));
+		Assert.assertTrue(annotations().contains(i2));
+		Assert.assertTrue(annotations().contains(i3));
+		Assert.assertTrue(annotations().contains(i4));
 	}
 
 	@Test
@@ -223,12 +223,12 @@ public class RDBAnalyserTest extends BGPTestAbstract {
 			v("x"), FXRDB.ContainerEntity,
 			v("s2"), FXRDB.ContainerTable
 		);
-		L.error("{}", interpretations());
-		Assert.assertEquals(4, interpretations().size());
-		Assert.assertTrue(interpretations().contains(i1));
-		Assert.assertTrue(interpretations().contains(i2));
-		Assert.assertTrue(interpretations().contains(i3));
-		Assert.assertTrue(interpretations().contains(i4));
+		L.error("{}", annotations());
+		Assert.assertEquals(4, annotations().size());
+		Assert.assertTrue(annotations().contains(i1));
+		Assert.assertTrue(annotations().contains(i2));
+		Assert.assertTrue(annotations().contains(i3));
+		Assert.assertTrue(annotations().contains(i4));
 	}
 
 	@Test
@@ -242,9 +242,9 @@ public class RDBAnalyserTest extends BGPTestAbstract {
 			v("s2"), FXRDB.ContainerEntity,
 			v("p2"), FXRDB.SlotColumn
 		);
-		L.error("{}", interpretations());
-		Assert.assertEquals(1, interpretations().size());
-		Assert.assertTrue(interpretations().contains(i1));
+		L.error("{}", annotations());
+		Assert.assertEquals(1, annotations().size());
+		Assert.assertTrue(annotations().contains(i1));
 	}
 
 	@Test
@@ -272,12 +272,12 @@ public class RDBAnalyserTest extends BGPTestAbstract {
 			v("p"), FXRDB.TypeProperty,
 			v("o"), FXRDB.Root
 		);
-		L.error("{}", interpretations());
-		Assert.assertEquals(4, interpretations().size());
-		Assert.assertTrue(interpretations().contains(i1));
-		Assert.assertTrue(interpretations().contains(i2));
-		Assert.assertTrue(interpretations().contains(i3));
-		Assert.assertTrue(interpretations().contains(i4));
+		L.error("{}", annotations());
+		Assert.assertEquals(4, annotations().size());
+		Assert.assertTrue(annotations().contains(i1));
+		Assert.assertTrue(annotations().contains(i2));
+		Assert.assertTrue(annotations().contains(i3));
+		Assert.assertTrue(annotations().contains(i4));
 	}
 
 	@Test
@@ -302,10 +302,10 @@ public class RDBAnalyserTest extends BGPTestAbstract {
 			v("p2"), FXRDB.TypeProperty,
 			v("o"), FXRDB.TypeTable
 		);
-		L.error("{}", interpretations());
-		Assert.assertEquals(2, interpretations().size());
-		Assert.assertTrue(interpretations().contains(i1));
-		Assert.assertTrue(interpretations().contains(i2));
+		L.error("{}", annotations());
+		Assert.assertEquals(2, annotations().size());
+		Assert.assertTrue(annotations().contains(i1));
+		Assert.assertTrue(annotations().contains(i2));
 	}
 
 }

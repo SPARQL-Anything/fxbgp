@@ -45,7 +45,7 @@ public class FXRDBModel extends FXModel {
 			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getPredicate().equals(node)
-						&& previous.getInterpretation(t.getObject()).getTerm().equals(FX.Container)){
+						&& previous.getannotation(t.getObject()).getTerm().equals(FX.Container)){
 						set(getIF().make(previous.getOpBGP(), node, FXRDB.SlotRow));
 						return true;
 					}
@@ -63,7 +63,7 @@ public class FXRDBModel extends FXModel {
 			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getSubject().equals(node)
-						&& previous.getInterpretation(t.getObject()).getTerm().equals(FX.Container)){
+						&& previous.getannotation(t.getObject()).getTerm().equals(FX.Container)){
 						set(getIF().make(previous.getOpBGP(), node, FXRDB.ContainerTable));
 						return true;
 					}
@@ -119,7 +119,7 @@ public class FXRDBModel extends FXModel {
 			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getSubject().equals(node)
-						&& previous.getInterpretation(t.getObject()).getTerm().equals(FX.Root)
+						&& previous.getannotation(t.getObject()).getTerm().equals(FX.Root)
 					){
 						set(getIF().make(previous.getOpBGP(), node, FXRDB.ContainerTable));
 						return true;
@@ -137,8 +137,8 @@ public class FXRDBModel extends FXModel {
 			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getSubject().equals(node)
-						&& previous.getInterpretation(t.getPredicate()).getTerm().equals(FX.TypeProperty)
-						&& !previous.getInterpretation(t.getObject()).getTerm().equals(FX.Root)
+						&& previous.getannotation(t.getPredicate()).getTerm().equals(FX.TypeProperty)
+						&& !previous.getannotation(t.getObject()).getTerm().equals(FX.Root)
 						&& !t.getObject().equals(FXRoot)
 					){
 						set(getIF().make(previous.getOpBGP(), node, FXRDB.ContainerEntity));
@@ -157,8 +157,8 @@ public class FXRDBModel extends FXModel {
 			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getObject().equals(node)
-						&& previous.getInterpretation(t.getPredicate()).getTerm().equals(FX.TypeProperty)
-						&& !previous.getInterpretation(t.getObject()).getTerm().equals(FX.Root)
+						&& previous.getannotation(t.getPredicate()).getTerm().equals(FX.TypeProperty)
+						&& !previous.getannotation(t.getObject()).getTerm().equals(FX.Root)
 						&& !t.getObject().equals(FXRoot)
 					){
 						set(getIF().make(previous.getOpBGP(), node, FXRDB.TypeTable));
@@ -177,7 +177,7 @@ public class FXRDBModel extends FXModel {
 			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getPredicate().equals(node)
-						&& previous.getInterpretation(t.getPredicate()).getTerm().equals(FX.SlotNumber)
+						&& previous.getannotation(t.getPredicate()).getTerm().equals(FX.SlotNumber)
 					){
 						set(getIF().make(previous.getOpBGP(), node, FXRDB.SlotRow));
 						return true;
@@ -195,7 +195,7 @@ public class FXRDBModel extends FXModel {
 			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getSubject().equals(node)
-						&& previous.getInterpretation(t.getPredicate()).getTerm().equals(FXRDB.SlotRow)
+						&& previous.getannotation(t.getPredicate()).getTerm().equals(FXRDB.SlotRow)
 					){
 						set(getIF().make(previous.getOpBGP(), node, FXRDB.ContainerTable));
 						return true;
@@ -213,7 +213,7 @@ public class FXRDBModel extends FXModel {
 			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getObject().equals(node)
-						&& previous.getInterpretation(t.getPredicate()).getTerm().equals(FXRDB.SlotRow)
+						&& previous.getannotation(t.getPredicate()).getTerm().equals(FXRDB.SlotRow)
 					){
 						set(getIF().make(previous.getOpBGP(), node, FXRDB.ContainerEntity));
 						return true;
@@ -231,7 +231,7 @@ public class FXRDBModel extends FXModel {
 			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getPredicate().equals(node)
-						&& previous.getInterpretation(t.getPredicate()).getTerm().equals(FX.SlotString)
+						&& previous.getannotation(t.getPredicate()).getTerm().equals(FX.SlotString)
 					){
 						set(getIF().make(previous.getOpBGP(), node, FXRDB.SlotColumn));
 						return true;
@@ -249,7 +249,7 @@ public class FXRDBModel extends FXModel {
 			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getSubject().equals(node)
-						&& previous.getInterpretation(t.getPredicate()).getTerm().equals(FXRDB.SlotColumn)
+						&& previous.getannotation(t.getPredicate()).getTerm().equals(FXRDB.SlotColumn)
 					){
 						set(getIF().make(previous.getOpBGP(), node, FXRDB.ContainerEntity));
 						return true;
@@ -267,7 +267,7 @@ public class FXRDBModel extends FXModel {
 			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getObject().equals(node)
-						&& previous.getInterpretation(t.getPredicate()).getTerm().equals(FXRDB.SlotColumn)
+						&& previous.getannotation(t.getPredicate()).getTerm().equals(FXRDB.SlotColumn)
 					){
 						set(getIF().make(previous.getOpBGP(), node, FXRDB.Cell));
 						return true;

@@ -6,7 +6,7 @@ import java.util.Set;
 
 public interface Analyser {
 	/**
-	 * Returns all possible grounded interpretations of a BGP according to a FX model
+	 * Returns all possible grounded annotations of a BGP according to a FX model
 	 *
 	 * @param bgp
 	 * @return
@@ -14,13 +14,13 @@ public interface Analyser {
 
 
 	default boolean isSatisfiable(OpBGP bgp) {
-		return interpret(bgp, false).size()>0;
+		return annotate(bgp, false).size()>0;
 	}
 
-	default Set<FXBGPAnnotation> interpret(OpBGP bgp){
-		return interpret(bgp, true);
+	default Set<FXBGPAnnotation> annotate(OpBGP bgp){
+		return annotate(bgp, true);
 	}
 
-	Set<FXBGPAnnotation> interpret(OpBGP bgp, boolean complete);
+	Set<FXBGPAnnotation> annotate(OpBGP bgp, boolean complete);
 
 }

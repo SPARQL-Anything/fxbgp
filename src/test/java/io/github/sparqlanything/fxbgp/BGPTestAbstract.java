@@ -30,7 +30,7 @@ public abstract class BGPTestAbstract {
 	protected BasicPattern bp = null;
 	private FXModel FXM = null;
 	protected Analyser ANA = null;
-	private Set<FXBGPAnnotation> interpretations = null;
+	private Set<FXBGPAnnotation> annotations = null;
 
 	public BGPTestAbstract(FXModel FXM){
 		this.FXM = FXM;
@@ -44,13 +44,13 @@ public abstract class BGPTestAbstract {
 	}
 
 	protected void runAnalyser(){
-		interpretations = ANA.interpret(new OpBGP(bp()));
+		annotations = ANA.annotate(new OpBGP(bp()));
 	}
-	protected Set<FXBGPAnnotation> interpretations(){
-		if(interpretations == null){
+	protected Set<FXBGPAnnotation> annotations(){
+		if(annotations == null){
 			runAnalyser();
 		}
-		return interpretations;
+		return annotations;
 	}
 
 	protected FXAnnotationFactory IF(){

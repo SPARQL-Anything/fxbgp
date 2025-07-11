@@ -277,7 +277,7 @@ public class FXModel {
 				// Find object
 				for (Triple t : p.getOpBGP().getPattern().getList()) {
 					if (t.getPredicate().equals(n) &&
-						p.getInterpretation(t.getObject()).getTerm().equals(FX.Root)) {
+						p.getannotation(t.getObject()).getTerm().equals(FX.Root)) {
 						set(IF.make(p.getOpBGP(), n, FX.TypeProperty));
 						return true;
 					}
@@ -294,7 +294,7 @@ public class FXModel {
 				// Find object
 				for (Triple t : p.getOpBGP().getPattern().getList()) {
 					if (t.getPredicate().equals(n) &&
-						p.getInterpretation(t.getObject()).getTerm().equals(FX.Type)) {
+						p.getannotation(t.getObject()).getTerm().equals(FX.Type)) {
 						set(IF.make(p.getOpBGP(), n, FX.TypeProperty));
 						return true;
 					}
@@ -364,7 +364,7 @@ public class FXModel {
 					for(Triple t: p.getOpBGP().getPattern().getList()) {
 						if (t.getObject().equals(n)) {
 							Node r = t.getPredicate();
-							if(p.getInterpretation(r).getTerm().equals(FX.Slot)) {
+							if(p.getannotation(r).getTerm().equals(FX.Slot)) {
 								set(IF.make(p.getOpBGP(), n, FX.Container));
 								return true;
 							}
@@ -384,7 +384,7 @@ public class FXModel {
 					if (t.getPredicate().equals(n)) {
 						// If object is value
 						Node o = t.getObject();
-						if (p.getInterpretation(o).getTerm().equals(FX.Value)) {
+						if (p.getannotation(o).getTerm().equals(FX.Value)) {
 							set(IF.make(p.getOpBGP(), n, FX.Slot));
 							return true;
 						}
@@ -399,7 +399,7 @@ public class FXModel {
 
 			@Override
 			protected boolean when(Node node, FXBGPAnnotation previous) {
-				if(previous.getInterpretation(node).getTerm().equals(FX.Root)){
+				if(previous.getannotation(node).getTerm().equals(FX.Root)){
 					if(node.isURI() && !node.equals(FXRoot)){
 						setFailure();
 						return true;
@@ -414,7 +414,7 @@ public class FXModel {
 
 			@Override
 			protected boolean when(Node node, FXBGPAnnotation previous) {
-				if(previous.getInterpretation(node).getTerm().equals(FX.Type)){
+				if(previous.getannotation(node).getTerm().equals(FX.Type)){
 					if(node.equals(FXRoot)){
 						setFailure();
 						return true;
@@ -429,7 +429,7 @@ public class FXModel {
 
 			@Override
 			protected boolean when(Node node, FXBGPAnnotation previous) {
-				if(previous.getInterpretation(node).getTerm().equals(FX.Value)){
+				if(previous.getannotation(node).getTerm().equals(FX.Value)){
 					if(node.isURI()){
 						setFailure();
 						return true;
@@ -448,7 +448,7 @@ public class FXModel {
 					if (t.getPredicate().equals(n)) {
 						// If object is value
 						Node o = t.getObject();
-						if (p.getInterpretation(o).getTerm().equals(FX.Container)) {
+						if (p.getannotation(o).getTerm().equals(FX.Container)) {
 							set(IF.make(p.getOpBGP(), n, FX.Slot));
 							return true;
 						}
@@ -462,7 +462,7 @@ public class FXModel {
 		addInferenceRule(new FXNodeRule() {
 			@Override
 			protected boolean when(Node n, FXBGPAnnotation p) {
-				FX term = p.getInterpretation(n).getTerm();
+				FX term = p.getannotation(n).getTerm();
 				Set<FX> spec = getSpecialisedBy(FX.Slot);
 				if(term.equals(FX.Slot) || spec.contains(term)) {
 					List<Triple> havingNodeAsP = new ArrayList<>();
@@ -501,7 +501,7 @@ public class FXModel {
 			@Override
 			protected boolean when(Node n, FXBGPAnnotation p) {
 				// Object is root
-				if(p.getInterpretation(n).getTerm().equals(FX.Root)){
+				if(p.getannotation(n).getTerm().equals(FX.Root)){
 					for (Triple t : p.getOpBGP().getPattern().getList()) {
 						// If it is not the same node
 						if (t.getObject().equals(n) ){
@@ -526,8 +526,8 @@ public class FXModel {
 			protected boolean when(Node node, FXBGPAnnotation previous) {
 
 				// Only if node is a container or root
-				if(!previous.getInterpretation(node).getTerm().equals(FX.Container)
-					&& !previous.getInterpretation(node).getTerm().equals(FX.Root)){
+				if(!previous.getannotation(node).getTerm().equals(FX.Container)
+					&& !previous.getannotation(node).getTerm().equals(FX.Root)){
 					return false;
 				}
 
@@ -584,7 +584,7 @@ public class FXModel {
 						// Check that shorter cannot be a subject of a triple where object is FX.Root!
 						for(Triple t: previous.getOpBGP().getPattern().getList()){
 							if (t.getSubject().equals(shorterStart) &&
-								previous.getInterpretation(t.getObject()).getTerm().equals(FX.Root)
+								previous.getannotation(t.getObject()).getTerm().equals(FX.Root)
 							) {
 								setFailure();
 								return true;
@@ -725,7 +725,7 @@ public class FXModel {
 			// For each node, run inference rules
 			Set<FXNodeRule> rules = this.getInferenceRules();
 			for(FXNodeRule rule: rules){
-				// For each rule that resolves, check if interpretation is consistent
+				// For each rule that resolves, check if annotation is consistent
 				boolean resolves = rule.when(focus, nibgp);
 				if(resolves){
 					// Rule says a constraint hasn't been satisfied
@@ -734,17 +734,17 @@ public class FXModel {
 					}
 					FXNodeAnnotation nni = rule.infer();
 					// Is it redundant?
-					FXNodeAnnotation prev = nibgp.getInterpretation(focus);
+					FXNodeAnnotation prev = nibgp.getannotation(focus);
 					if(nni.equals(prev)){
 						// Ignore redundant inferences, move to the next rule
 						continue;
 					}
-					// Verify consistency with previous interpretation
+					// Verify consistency with previous annotation
 					if(this.consistent(nni.getTerm(), prev.getTerm())){
 						// Check next rule
 						continue;
 					}else{
-						// If it is not consistent, discard the current interpretation 'nibgp'
+						// If it is not consistent, discard the current annotation 'nibgp'
 						// It means that the hypothesised specialisation cannot be!
 						// And stop executing rules!
 						LOGGER.trace(" -- inconsistency -- {} % {} vs {}",focus, nni.getTerm(),prev.getTerm());
