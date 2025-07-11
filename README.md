@@ -1,6 +1,10 @@
 # Satisfiability of Façade-X BGP 
 
-Implementation of algorithms.
+Implementation of two algorithms for Façade-X BGP satisfiability.
+
+Top down / Search: [AnalyserAsSearch](src/main/java/io/github/sparqlanything/fxbgp/AnalyserAsSearch.java) (inefficient)
+
+Bottom up / CSP: [AnalyserGrounder](src/main/java/io/github/sparqlanything/fxbgp/AnalyserGrounder.java) (efficient)
 
 See [EXPERIMENTS.md](EXPERIMENTS.md)
 
