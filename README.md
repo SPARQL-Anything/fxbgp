@@ -2,7 +2,7 @@
 
 Implementation of algorithms.
 
-See [EXPERIMENTS.md]
+See [EXPERIMENTS.md](EXPERIMENTS.md)
 
 ## Build and run experiments
 Building or running tests with maven will also re-generate the file EXPERIMENTS.md
