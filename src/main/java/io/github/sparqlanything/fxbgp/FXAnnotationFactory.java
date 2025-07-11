@@ -7,17 +7,16 @@ import org.apache.jena.sparql.algebra.op.OpBGP;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public class InterpretationFactory {
+public class FXAnnotationFactory {
 	final FXModel FXM;
-	InterpretationFactory(FXModel model){
+	FXAnnotationFactory(FXModel model){
 		FXM = model;
 	}
-	public InterpretationOfNode make(final OpBGP bgp, final Node node, final FX element){
+	public FXNodeAnnotation make(final OpBGP bgp, final Node node, final FX element){
 		return new OfNode(bgp,node,element);
 	}
 
@@ -29,7 +28,7 @@ public class InterpretationFactory {
 	 * @param element
 	 * @return
 	 */
-	public InterpretationOfNode makeFrom(final InterpretationOfNode interpretation, final FX element){
+	public FXNodeAnnotation makeFrom(final FXNodeAnnotation interpretation, final FX element){
 		return make(interpretation.getOpBGP(), interpretation.getNode(), element);
 	}
 
@@ -40,13 +39,13 @@ public class InterpretationFactory {
 	 * @param bgp
 	 * @return
 	 */
-	public InterpretationOfBGP make(final OpBGP bgp){
-		final Map<Node,InterpretationOfNode> nodeInderpretations = new HashMap<>();
+	public FXBGPAnnotation make(final OpBGP bgp){
+		final Map<Node, FXNodeAnnotation> nodeInderpretations = new HashMap<>();
 		return new OfBGP(bgp);
 	}
 
 
-	public InterpretationOfBGP make(InterpretationOfBGP previous, Node n, FX element){
+	public FXBGPAnnotation make(FXBGPAnnotation previous, Node n, FX element){
 		return make(previous, make(previous.getOpBGP(), n, element));
 	}
 
@@ -58,18 +57,18 @@ public class InterpretationFactory {
 	 * @param newInterpretation
 	 * @return
 	 */
-	public InterpretationOfBGP make(final InterpretationOfBGP previous, InterpretationOfNode newInterpretation){
+	public FXBGPAnnotation make(final FXBGPAnnotation previous, FXNodeAnnotation newInterpretation){
 		return new OfBGP(previous, newInterpretation);
 	}
 
-	public InterpretationOfBGP make(OpBGP bgp, Set<InterpretationOfNode> interpretations){
+	public FXBGPAnnotation make(OpBGP bgp, Set<FXNodeAnnotation> interpretations){
 		return new OfBGP(bgp, interpretations);
 	}
 
-	private class OfBGP implements InterpretationOfBGP {
-		final Map<Node,InterpretationOfNode> nodeInderpretations = new HashMap<>();
+	private class OfBGP implements FXBGPAnnotation {
+		final Map<Node, FXNodeAnnotation> nodeInderpretations = new HashMap<>();
 		boolean isGrounded = false;
-		InterpretationOfBGP previous = null;
+		FXBGPAnnotation previous = null;
 		private OpBGP bgp = null;
 		private int hashCode;
 		OfBGP(OpBGP bgp){
@@ -88,10 +87,10 @@ public class InterpretationFactory {
 			hashCode = Objects.hash(bgp,nodeInderpretations);
 		}
 
-		OfBGP(OpBGP bgp, Set<InterpretationOfNode> nodeInderpretations){
+		OfBGP(OpBGP bgp, Set<FXNodeAnnotation> nodeInderpretations){
 			this.bgp = bgp;
 			this.isGrounded = true;
-			for (InterpretationOfNode n: nodeInderpretations){
+			for (FXNodeAnnotation n: nodeInderpretations){
 				if(isGrounded && !n.isGrounded()){
 					this.isGrounded = false;
 				}
@@ -100,7 +99,7 @@ public class InterpretationFactory {
 			hashCode = Objects.hash(bgp,nodeInderpretations);
 		}
 
-		OfBGP(final InterpretationOfBGP previous, InterpretationOfNode newInterpretation){
+		OfBGP(final FXBGPAnnotation previous, FXNodeAnnotation newInterpretation){
 			this.previous = previous;
 			this.bgp = previous.getOpBGP();
 			// Inherit all previous interpretations
@@ -109,7 +108,7 @@ public class InterpretationFactory {
 			nodeInderpretations.put(newInterpretation.getNode(),newInterpretation);
 			// Compute if this is grounded
 			isGrounded = true;
-			for(Map.Entry<Node,InterpretationOfNode> ion: nodeInderpretations.entrySet()){
+			for(Map.Entry<Node, FXNodeAnnotation> ion: nodeInderpretations.entrySet()){
 				if(!ion.getValue().isGrounded()){
 					isGrounded = false;
 					break;
@@ -121,7 +120,7 @@ public class InterpretationFactory {
 		}
 
 		@Override
-		public Map<Node,InterpretationOfNode>  getInterpretationOfNodes() {
+		public Map<Node, FXNodeAnnotation>  getInterpretationOfNodes() {
 			return Collections.unmodifiableMap(nodeInderpretations);
 		}
 
@@ -136,12 +135,12 @@ public class InterpretationFactory {
 		}
 
 		@Override
-		public InterpretationOfNode getInterpretation(Node node) {
+		public FXNodeAnnotation getInterpretation(Node node) {
 			return nodeInderpretations.get(node);
 		}
 
 		@Override
-		public InterpretationOfBGP previous() {
+		public FXBGPAnnotation previous() {
 			return previous;
 		}
 
@@ -157,9 +156,9 @@ public class InterpretationFactory {
 
 		@Override
 		public boolean equals(Object obj) {
-			if(obj instanceof InterpretationOfBGP){
-				boolean samebgp = ((InterpretationOfBGP)obj).getOpBGP().getPattern().equals(this.getOpBGP().getPattern());
-				boolean sameint = ((InterpretationOfBGP)obj).getInterpretationOfNodes().equals(this.getInterpretationOfNodes());
+			if(obj instanceof FXBGPAnnotation){
+				boolean samebgp = ((FXBGPAnnotation)obj).getOpBGP().getPattern().equals(this.getOpBGP().getPattern());
+				boolean sameint = ((FXBGPAnnotation)obj).getInterpretationOfNodes().equals(this.getInterpretationOfNodes());
 				return sameint && samebgp;
 			}
 			return false;
@@ -183,7 +182,7 @@ public class InterpretationFactory {
 		}
 	}
 
-	private class OfNode implements InterpretationOfNode {
+	private class OfNode implements FXNodeAnnotation {
 		FX element;
 		Node node;
 		OpBGP bgp;
@@ -193,7 +192,7 @@ public class InterpretationFactory {
 			this.element = element;
 		}
 		@Override
-		public boolean consistentWith(InterpretationOfNode node) {
+		public boolean consistentWith(FXNodeAnnotation node) {
 			return false;
 		}
 

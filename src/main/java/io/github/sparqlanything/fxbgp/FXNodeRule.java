@@ -1,16 +1,14 @@
 package io.github.sparqlanything.fxbgp;
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.sparql.algebra.op.OpBGP;
 
-public abstract class NodeInterpretationRule implements InterpretationRule {
-	private InterpretationOfNode interpretation = null;
+public abstract class FXNodeRule implements FXRule {
+	private FXNodeAnnotation interpretation = null;
 	private Boolean failure = null;
-	protected NodeInterpretationRule(){
+	protected FXNodeRule(){
 	}
-	protected abstract boolean when(Node node, InterpretationOfBGP previous);
-	public InterpretationOfNode infer(){
-		InterpretationOfNode toReturn = interpretation;
+	protected abstract boolean when(Node node, FXBGPAnnotation previous);
+	public FXNodeAnnotation infer(){
+		FXNodeAnnotation toReturn = interpretation;
 		clean();
 		return toReturn;
 
@@ -18,7 +16,7 @@ public abstract class NodeInterpretationRule implements InterpretationRule {
 	public boolean resolved(){
 		return interpretation != null || failure != null;
 	}
-	protected void set(InterpretationOfNode outcome){
+	protected void set(FXNodeAnnotation outcome){
 		failure = false;
 		this.interpretation = outcome;
 	}

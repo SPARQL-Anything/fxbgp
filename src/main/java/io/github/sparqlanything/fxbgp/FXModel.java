@@ -27,13 +27,13 @@ public class FXModel {
 	protected final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 	private static FXModel instance = null;
 
-	private InterpretationFactory IF = null;
+	private FXAnnotationFactory IF = null;
 	private Set<FX> terms;
 	private Map<FX,Set<FX>> specialisedBy;
 	private Map<FX,Set<FX>> specialisationOf;
 	private Map<FX,Set<FX>> inconsistentWith;
 
-	private Set<NodeInterpretationRule> inferenceRules;
+	private Set<FXNodeRule> inferenceRules;
 
 	// FIXME Use constant from model package
 	protected static final Node FXRoot = NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT);
@@ -44,12 +44,12 @@ public class FXModel {
 		specialisationOf = new HashMap<>();
 		inconsistentWith = new HashMap<>();
 		inferenceRules = new HashSet<>();
-		IF = new InterpretationFactory(this);
+		IF = new FXAnnotationFactory(this);
 		init();
 		extend();
 	}
 
-	protected InterpretationFactory getIF(){
+	protected FXAnnotationFactory getIF(){
 		return IF;
 	}
 
@@ -101,11 +101,11 @@ public class FXModel {
 		}
 	}
 
-	protected void addInferenceRule(NodeInterpretationRule rule){
+	protected void addInferenceRule(FXNodeRule rule){
 		inferenceRules.add(rule);
 	}
 
-	public Set<NodeInterpretationRule> getInferenceRules(){
+	public Set<FXNodeRule> getInferenceRules(){
 		return Collections.unmodifiableSet(inferenceRules);
 	}
 	public boolean elementExists(FX element){
@@ -192,9 +192,9 @@ public class FXModel {
 		// Add inference rules
 
 		// 1. If a Subject, then a Container
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node node, InterpretationOfBGP previous) {
+			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern().getList()) {
 					if (
 						node.equals(t.getSubject())
@@ -208,9 +208,9 @@ public class FXModel {
 		});
 
 		// 2. If node is fx:Root, then is Root
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node node, InterpretationOfBGP previous) {
+			protected boolean when(Node node, FXBGPAnnotation previous) {
 				if(node.equals(FXRoot)){
 					set(IF.make(previous.getOpBGP(), node, FX.Root));
 					return true;
@@ -220,9 +220,9 @@ public class FXModel {
 		});
 
 		// 3. If node is rdf:type, then is TypeProperty
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node node, InterpretationOfBGP previous) {
+			protected boolean when(Node node, FXBGPAnnotation previous) {
 				if(node.equals(RDF.type.asNode())){
 					set(IF.make(previous.getOpBGP(), node, FX.TypeProperty));
 					return true;
@@ -232,9 +232,9 @@ public class FXModel {
 		});
 
 		// 4. If a Property and not a variable nor rdf:type, then a Slot
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node n, InterpretationOfBGP p) {
+			protected boolean when(Node n, FXBGPAnnotation p) {
 				if(n.isConcrete()) {
 					// Find if predicate
 					for(Triple t: p.getOpBGP().getPattern().getList()) {
@@ -253,9 +253,9 @@ public class FXModel {
 
 
 		// 5. If Object not Var/Bnode and not fx:Root but Predicate rdf:type, then Type
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node n, InterpretationOfBGP p) {
+			protected boolean when(Node n, FXBGPAnnotation p) {
 				if(n.isConcrete() && !n.equals(FXRoot) ){
 					// Find the predicate
 					for(Triple t: p.getOpBGP().getPattern().getList()){
@@ -271,9 +271,9 @@ public class FXModel {
 		});
 
 		// 6. If Predicate is focus and Object is Root, then Predicate is TypeProperty
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node n, InterpretationOfBGP p) {
+			protected boolean when(Node n, FXBGPAnnotation p) {
 				// Find object
 				for (Triple t : p.getOpBGP().getPattern().getList()) {
 					if (t.getPredicate().equals(n) &&
@@ -288,9 +288,9 @@ public class FXModel {
 		});
 
 		// 7. If Predicate is focus and Object is Type, then Predicate is TypeProperty
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node n, InterpretationOfBGP p) {
+			protected boolean when(Node n, FXBGPAnnotation p) {
 				// Find object
 				for (Triple t : p.getOpBGP().getPattern().getList()) {
 					if (t.getPredicate().equals(n) &&
@@ -305,9 +305,9 @@ public class FXModel {
 		});
 
 		// 8. If Predicate is a CMP, then Predicate is SlotNumber
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node n, InterpretationOfBGP p) {
+			protected boolean when(Node n, FXBGPAnnotation p) {
 				String prefix = "http://www.w3.org/1999/02/22-rdf-syntax-ns#_";
 				if(n.isConcrete()){
 					for(Triple t: p.getOpBGP().getPattern().getList()) {
@@ -324,9 +324,9 @@ public class FXModel {
 		});
 
 		// 9. If Predicate is not Var and not rdf:type and not a CMP, then is SlotString
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node n, InterpretationOfBGP p) {
+			protected boolean when(Node n, FXBGPAnnotation p) {
 				String prefix = "http://www.w3.org/1999/02/22-rdf-syntax-ns#_";
 				if(n.isConcrete() && !n.equals(RDF.type.asNode())){
 					for(Triple t: p.getOpBGP().getPattern().getList()) {
@@ -343,9 +343,9 @@ public class FXModel {
 		});
 
 		// 10. If Object is Literal, then is Value
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node n, InterpretationOfBGP p) {
+			protected boolean when(Node n, FXBGPAnnotation p) {
 				if(n.isConcrete()
 					&& n.isLiteral()){
 						set(IF.make(p.getOpBGP(), n, FX.Value));
@@ -356,9 +356,9 @@ public class FXModel {
 		});
 
 		// 11. If Object is IRI and Predicate is Slot, then Object is Container
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node n, InterpretationOfBGP p) {
+			protected boolean when(Node n, FXBGPAnnotation p) {
 				if(n.isURI()){
 					// Find predicate
 					for(Triple t: p.getOpBGP().getPattern().getList()) {
@@ -376,9 +376,9 @@ public class FXModel {
 		});
 
 		// 12. On focus node is Predicate position: and Object is Value, then Predicate is Slot
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node n, InterpretationOfBGP p) {
+			protected boolean when(Node n, FXBGPAnnotation p) {
 				// Find object
 				for (Triple t : p.getOpBGP().getPattern().getList()) {
 					if (t.getPredicate().equals(n)) {
@@ -395,10 +395,10 @@ public class FXModel {
 		});
 
 		// 13. Object cannot be IRI, != Root, and Root
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 
 			@Override
-			protected boolean when(Node node, InterpretationOfBGP previous) {
+			protected boolean when(Node node, FXBGPAnnotation previous) {
 				if(previous.getInterpretation(node).getTerm().equals(FX.Root)){
 					if(node.isURI() && !node.equals(FXRoot)){
 						setFailure();
@@ -410,10 +410,10 @@ public class FXModel {
 		});
 
 		// 14. Type cannot be the primitive Root
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 
 			@Override
-			protected boolean when(Node node, InterpretationOfBGP previous) {
+			protected boolean when(Node node, FXBGPAnnotation previous) {
 				if(previous.getInterpretation(node).getTerm().equals(FX.Type)){
 					if(node.equals(FXRoot)){
 						setFailure();
@@ -425,10 +425,10 @@ public class FXModel {
 		});
 
 		// 15. Object cannot be IRI and Value
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 
 			@Override
-			protected boolean when(Node node, InterpretationOfBGP previous) {
+			protected boolean when(Node node, FXBGPAnnotation previous) {
 				if(previous.getInterpretation(node).getTerm().equals(FX.Value)){
 					if(node.isURI()){
 						setFailure();
@@ -440,9 +440,9 @@ public class FXModel {
 		});
 
 		// 16. On focus node is Predicate position: and Object is Container, then Predicate is Slot
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node n, InterpretationOfBGP p) {
+			protected boolean when(Node n, FXBGPAnnotation p) {
 				// Find object
 				for (Triple t : p.getOpBGP().getPattern().getList()) {
 					if (t.getPredicate().equals(n)) {
@@ -459,9 +459,9 @@ public class FXModel {
 		});
 
 		// 17. If node is predicate, and it is a slot, and is in two triples that have the same subject, they also need to have the same object
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node n, InterpretationOfBGP p) {
+			protected boolean when(Node n, FXBGPAnnotation p) {
 				FX term = p.getInterpretation(n).getTerm();
 				Set<FX> spec = getSpecialisedBy(FX.Slot);
 				if(term.equals(FX.Slot) || spec.contains(term)) {
@@ -497,9 +497,9 @@ public class FXModel {
 			}
 		});
 		// 18. No subject join when object is Root (no path to root...)
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node n, InterpretationOfBGP p) {
+			protected boolean when(Node n, FXBGPAnnotation p) {
 				// Object is root
 				if(p.getInterpretation(n).getTerm().equals(FX.Root)){
 					for (Triple t : p.getOpBGP().getPattern().getList()) {
@@ -520,10 +520,10 @@ public class FXModel {
 		});
 
 		// 19. Matching-path constraint when node is Object and (Container or Root)
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 
 			@Override
-			protected boolean when(Node node, InterpretationOfBGP previous) {
+			protected boolean when(Node node, FXBGPAnnotation previous) {
 
 				// Only if node is a container or root
 				if(!previous.getInterpretation(node).getTerm().equals(FX.Container)
@@ -718,13 +718,13 @@ public class FXModel {
 	 * @param nibgp
 	 * @return
 	 */
-	public final boolean isConsistent(InterpretationOfBGP nibgp){
+	public final boolean isConsistent(FXBGPAnnotation nibgp){
 
 		// Make inferences
 		for(Node focus: nibgp.nodes()) {
 			// For each node, run inference rules
-			Set<NodeInterpretationRule> rules = this.getInferenceRules();
-			for(NodeInterpretationRule rule: rules){
+			Set<FXNodeRule> rules = this.getInferenceRules();
+			for(FXNodeRule rule: rules){
 				// For each rule that resolves, check if interpretation is consistent
 				boolean resolves = rule.when(focus, nibgp);
 				if(resolves){
@@ -732,9 +732,9 @@ public class FXModel {
 					if(rule.failure()){
 						return false;
 					}
-					InterpretationOfNode nni = rule.infer();
+					FXNodeAnnotation nni = rule.infer();
 					// Is it redundant?
-					InterpretationOfNode prev = nibgp.getInterpretation(focus);
+					FXNodeAnnotation prev = nibgp.getInterpretation(focus);
 					if(nni.equals(prev)){
 						// Ignore redundant inferences, move to the next rule
 						continue;

@@ -12,9 +12,9 @@ import java.util.Properties;
 import java.util.Set;
 
 /**
- * This is very inefficient...
+ * XXX This is very inefficient and will be deprecated
  */
-@Deprecated
+//@Deprecated
 public class AnalyserAsSearch implements Analyser {
 	private static final Logger L = LoggerFactory.getLogger(AnalyserAsSearch.class);
 	private FXModel FXM;
@@ -27,13 +27,13 @@ public class AnalyserAsSearch implements Analyser {
 
 
 	@Override
-	public Set<InterpretationOfBGP> interpret(OpBGP bgp, boolean complete){
+	public Set<FXBGPAnnotation> interpret(OpBGP bgp, boolean complete){
 
 		// To collect the solutions
-		Set<InterpretationOfBGP> finalStates = new HashSet<>();
+		Set<FXBGPAnnotation> finalStates = new HashSet<>();
 
 		// We make a starting interpretation. This is the root of the search space.
-		InterpretationOfBGP start = FXM.getIF().make(bgp);
+		FXBGPAnnotation start = FXM.getIF().make(bgp);
 
 		// For any triple, s, p, o are all different
 		for(Triple t : bgp.getPattern()){
@@ -50,7 +50,7 @@ public class AnalyserAsSearch implements Analyser {
 		}
 
 		iteration = 0;
-		Set<InterpretationOfBGP> interpretations = interpret(start, new HashSet<>(), complete);
+		Set<FXBGPAnnotation> interpretations = interpret(start, new HashSet<>(), complete);
 		//L.info("{} iterations",iteration);
 		return interpretations;
 	}
@@ -60,7 +60,7 @@ public class AnalyserAsSearch implements Analyser {
 	}
 
 	private int iteration = 0;
-	private Set<InterpretationOfBGP> interpret(InterpretationOfBGP ibgp, Set<InterpretationOfBGP> results, boolean complete){
+	private Set<FXBGPAnnotation> interpret(FXBGPAnnotation ibgp, Set<FXBGPAnnotation> results, boolean complete){
 		iteration += 1;
 		// The incoming interpretation is always consistent
 
@@ -70,15 +70,15 @@ public class AnalyserAsSearch implements Analyser {
 		}
 
 		// For any new interpretation
-		Set<InterpretationOfBGP> hypotheses = specialise(ibgp);
-		for(InterpretationOfBGP nibgp: hypotheses){
+		Set<FXBGPAnnotation> hypotheses = specialise(ibgp);
+		for(FXBGPAnnotation nibgp: hypotheses){
 			boolean inconsistent = false;
 
 			// Make inferences
 			for(Node focus: nibgp.nodes()) {
 					// For each node, run inference rules
-				Set<NodeInterpretationRule> rules = FXM.getInferenceRules();
-				for(NodeInterpretationRule rule: rules){
+				Set<FXNodeRule> rules = FXM.getInferenceRules();
+				for(FXNodeRule rule: rules){
 					// For each rule that resolves, check if interpretation is consistent
 					boolean resolves = rule.when(focus, nibgp);
 					if(resolves){
@@ -87,10 +87,10 @@ public class AnalyserAsSearch implements Analyser {
 							break;
 						}
 
-						InterpretationOfNode nni = rule.infer();
+						FXNodeAnnotation nni = rule.infer();
 
 						// Is it redundant?
-						InterpretationOfNode prev = nibgp.getInterpretation(focus);
+						FXNodeAnnotation prev = nibgp.getInterpretation(focus);
 						if(nni.equals(prev)){
 							// Ignore redundant inferences, move to the next rule
 							continue;
@@ -148,11 +148,11 @@ public class AnalyserAsSearch implements Analyser {
 	 * @param interpretation
 	 * @return
 	 */
-	public Set<InterpretationOfNode> specialise(InterpretationOfNode interpretation){
+	public Set<FXNodeAnnotation> specialise(FXNodeAnnotation interpretation){
 		if(interpretation.isGrounded()){
 			return Collections.emptySet();
 		}else{
-			Set<InterpretationOfNode> interpretations = new HashSet<>();
+			Set<FXNodeAnnotation> interpretations = new HashSet<>();
 			for(FX el : FXM.getSpecialisedBy(interpretation.getTerm())){
 				interpretations.add(FXM.getIF().makeFrom(interpretation, el));
 			}
@@ -160,14 +160,14 @@ public class AnalyserAsSearch implements Analyser {
 		}
 	}
 
-	public Set<InterpretationOfBGP> specialise(InterpretationOfBGP interpretation){
+	public Set<FXBGPAnnotation> specialise(FXBGPAnnotation interpretation){
 		if(interpretation.isGrounded()){
 			return Collections.emptySet();
 		}else{
-			Set<InterpretationOfBGP> interpretations = new HashSet<>();
+			Set<FXBGPAnnotation> interpretations = new HashSet<>();
 			boolean hasSpecialisations = false;
-			for(InterpretationOfNode ni: interpretation.getInterpretationOfNodes().values()){
-				for(InterpretationOfNode in: specialise(ni) ) {
+			for(FXNodeAnnotation ni: interpretation.getInterpretationOfNodes().values()){
+				for(FXNodeAnnotation in: specialise(ni) ) {
 					interpretations.add(FXM.getIF().make(interpretation, in));
 					hasSpecialisations = true;
 				}

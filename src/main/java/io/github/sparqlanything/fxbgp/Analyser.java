@@ -17,10 +17,10 @@ public interface Analyser {
 		return interpret(bgp, false).size()>0;
 	}
 
-	default Set<InterpretationOfBGP> interpret(OpBGP bgp){
+	default Set<FXBGPAnnotation> interpret(OpBGP bgp){
 		return interpret(bgp, true);
 	}
 
-	Set<InterpretationOfBGP> interpret(OpBGP bgp, boolean complete);
+	Set<FXBGPAnnotation> interpret(OpBGP bgp, boolean complete);
 
 }

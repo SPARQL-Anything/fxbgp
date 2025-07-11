@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,7 +30,7 @@ public class AnalyserGrounder implements Analyser {
 		this.properties = properties;
 	}
 
-	public Set<InterpretationOfBGP> interpret(OpBGP bgp, boolean complete) {
+	public Set<FXBGPAnnotation> interpret(OpBGP bgp, boolean complete) {
 		// Precondition...
 
 		// No cycles are allowed
@@ -57,7 +56,7 @@ public class AnalyserGrounder implements Analyser {
 		L.debug("object terms: {}", objectTerms);
 
 		Set<Node> nodes = new HashSet<>();
-		Map<Node,Set<InterpretationOfNode>> possible = new HashMap<>();
+		Map<Node,Set<FXNodeAnnotation>> possible = new HashMap<>();
 		for(Triple t :bgp.getPattern().getList()){
 			nodes.add(t.getSubject());
 			if(!possible.containsKey(t.getSubject())){
@@ -91,19 +90,19 @@ public class AnalyserGrounder implements Analyser {
 		}
 
 		if(L.isTraceEnabled()) {
-			for (Map.Entry<Node, Set<InterpretationOfNode>> entry : possible.entrySet()) {
+			for (Map.Entry<Node, Set<FXNodeAnnotation>> entry : possible.entrySet()) {
 				L.trace(" -- possible {} > {} -- ", entry.getKey(), entry.getValue());
 			}
 		}
-		List<Set<InterpretationOfNode>> input = new ArrayList<>();
+		List<Set<FXNodeAnnotation>> input = new ArrayList<>();
 		input.addAll(possible.values());
 
-		Set<List<InterpretationOfNode>> output = Sets.cartesianProduct(input.toArray(new Set[input.size()]));
+		Set<List<FXNodeAnnotation>> output = Sets.cartesianProduct(input.toArray(new Set[input.size()]));
 		L.debug("possible BGP interpretations hypotheses: {}", output.size());
-		Set<InterpretationOfBGP> results = new HashSet<>();
+		Set<FXBGPAnnotation> results = new HashSet<>();
 		// Check if any is consistent and discard the rest
-		for(List<InterpretationOfNode> list: output){
-			InterpretationOfBGP nibgp = FXM.getIF().make(bgp, new HashSet<>(list));
+		for(List<FXNodeAnnotation> list: output){
+			FXBGPAnnotation nibgp = FXM.getIF().make(bgp, new HashSet<>(list));
 			// They must be all grounded
 			if(!nibgp.isGrounded()){
 				// We leave this here in case we mess up...

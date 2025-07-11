@@ -2,8 +2,8 @@ package io.github.sparqlanything.fxrdb;
 
 import io.github.sparqlanything.fxbgp.FX;
 import io.github.sparqlanything.fxbgp.FXModel;
-import io.github.sparqlanything.fxbgp.InterpretationOfBGP;
-import io.github.sparqlanything.fxbgp.NodeInterpretationRule;
+import io.github.sparqlanything.fxbgp.FXBGPAnnotation;
+import io.github.sparqlanything.fxbgp.FXNodeRule;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 
@@ -39,10 +39,10 @@ public class FXRDBModel extends FXModel {
 		/**
 		 * 1.1 Container(o) → SlotRow(p)
 		 */
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 
 			@Override
-			protected boolean when(Node node, InterpretationOfBGP previous) {
+			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getPredicate().equals(node)
 						&& previous.getInterpretation(t.getObject()).getTerm().equals(FX.Container)){
@@ -57,10 +57,10 @@ public class FXRDBModel extends FXModel {
 		/**
 		 * 1.1 Container(o) → ContainerTable(s)
 		 */
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 
 			@Override
-			protected boolean when(Node node, InterpretationOfBGP previous) {
+			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getSubject().equals(node)
 						&& previous.getInterpretation(t.getObject()).getTerm().equals(FX.Container)){
@@ -76,10 +76,10 @@ public class FXRDBModel extends FXModel {
 		/**
 		 * 2.1 Literal(o) → ContainerEntity(s)
 		 */
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 
 			@Override
-			protected boolean when(Node node, InterpretationOfBGP previous) {
+			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getSubject().equals(node)
 					&& t.getObject().isLiteral()){
@@ -94,10 +94,10 @@ public class FXRDBModel extends FXModel {
 		/**
 		 * 2.2 Literal(o) → SlotColumn(p)
 		 */
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 
 			@Override
-			protected boolean when(Node node, InterpretationOfBGP previous) {
+			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getPredicate().equals(node)
 						&& t.getObject().isLiteral()){
@@ -113,10 +113,10 @@ public class FXRDBModel extends FXModel {
 		/**
 		 * 3 Root(o) → ContainerTable(s)
 		 */
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 
 			@Override
-			protected boolean when(Node node, InterpretationOfBGP previous) {
+			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getSubject().equals(node)
 						&& previous.getInterpretation(t.getObject()).getTerm().equals(FX.Root)
@@ -132,9 +132,9 @@ public class FXRDBModel extends FXModel {
 		/**
 		 * 4.1 TypeProperty(p) ∧ !=Root(o) → ContainerEntity(s)
 		 */
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node node, InterpretationOfBGP previous) {
+			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getSubject().equals(node)
 						&& previous.getInterpretation(t.getPredicate()).getTerm().equals(FX.TypeProperty)
@@ -152,9 +152,9 @@ public class FXRDBModel extends FXModel {
 		/**
 		 * 4.2 TypeProperty(p) ∧ !=Root(o) → TypeTable(o)
 		 */
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node node, InterpretationOfBGP previous) {
+			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getObject().equals(node)
 						&& previous.getInterpretation(t.getPredicate()).getTerm().equals(FX.TypeProperty)
@@ -172,9 +172,9 @@ public class FXRDBModel extends FXModel {
 		/**
 		 * 5.1 SlotNumber(p) → SlotRow(p)
 		 */
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node node, InterpretationOfBGP previous) {
+			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getPredicate().equals(node)
 						&& previous.getInterpretation(t.getPredicate()).getTerm().equals(FX.SlotNumber)
@@ -190,9 +190,9 @@ public class FXRDBModel extends FXModel {
 		/**
 		 * 5.2 SlotRow(p) → ContainerTable(s)
 		 */
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node node, InterpretationOfBGP previous) {
+			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getSubject().equals(node)
 						&& previous.getInterpretation(t.getPredicate()).getTerm().equals(FXRDB.SlotRow)
@@ -208,9 +208,9 @@ public class FXRDBModel extends FXModel {
 		/**
 		 * 5.3 SlotNumber(p) → ContainerEntity(o)
 		 */
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node node, InterpretationOfBGP previous) {
+			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getObject().equals(node)
 						&& previous.getInterpretation(t.getPredicate()).getTerm().equals(FXRDB.SlotRow)
@@ -226,9 +226,9 @@ public class FXRDBModel extends FXModel {
 		/**
 		 * 6.1 SlotString(p) → SlotColumn(p)
 		 */
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node node, InterpretationOfBGP previous) {
+			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getPredicate().equals(node)
 						&& previous.getInterpretation(t.getPredicate()).getTerm().equals(FX.SlotString)
@@ -244,9 +244,9 @@ public class FXRDBModel extends FXModel {
 		/**
 		 * 6.2 SlotColumn(p) → ContainerEntity(s)
 		 */
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node node, InterpretationOfBGP previous) {
+			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getSubject().equals(node)
 						&& previous.getInterpretation(t.getPredicate()).getTerm().equals(FXRDB.SlotColumn)
@@ -262,9 +262,9 @@ public class FXRDBModel extends FXModel {
 		/**
 		 * 6.3 SlotColumn(p) → Cell(o)
 		 */
-		addInferenceRule(new NodeInterpretationRule() {
+		addInferenceRule(new FXNodeRule() {
 			@Override
-			protected boolean when(Node node, InterpretationOfBGP previous) {
+			protected boolean when(Node node, FXBGPAnnotation previous) {
 				for(Triple t: previous.getOpBGP().getPattern()){
 					if(t.getObject().equals(node)
 						&& previous.getInterpretation(t.getPredicate()).getTerm().equals(FXRDB.SlotColumn)

@@ -11,7 +11,7 @@ import java.io.IOException;
 
 public class InterpretationFactoryTest extends BGPTestAbstract {
 
-	protected InterpretationFactory IF;
+	protected FXAnnotationFactory IF;
 
 	@Rule
 	public TestName name = new TestName();
@@ -29,7 +29,7 @@ public class InterpretationFactoryTest extends BGPTestAbstract {
 	@Test
 	public void testIF1() throws IOException {
 		readBGP(name.getMethodName().substring(4));
-		InterpretationOfBGP ibgp = IF.make(new OpBGP(bp()));
+		FXBGPAnnotation ibgp = IF.make(new OpBGP(bp()));
 
 		Assert.assertTrue(ibgp.isStart());
 		Assert.assertFalse(ibgp.isGrounded());
@@ -40,7 +40,7 @@ public class InterpretationFactoryTest extends BGPTestAbstract {
 	@Test
 	public void testIF2() throws IOException {
 		readBGP(name.getMethodName().substring(4));
-		InterpretationOfBGP ibgp = IF.make(new OpBGP(bp()));
+		FXBGPAnnotation ibgp = IF.make(new OpBGP(bp()));
 
 		Assert.assertTrue(ibgp.isStart());
 		Assert.assertFalse(ibgp.isGrounded());
@@ -48,7 +48,7 @@ public class InterpretationFactoryTest extends BGPTestAbstract {
 
 		// Let's interpret the first subject as a container
 		Node s = ibgp.getOpBGP().getPattern().getList().iterator().next().getSubject();
-		InterpretationOfBGP ibgp2 = IF.make(ibgp, s, FX.Container);
+		FXBGPAnnotation ibgp2 = IF.make(ibgp, s, FX.Container);
 		Assert.assertFalse(ibgp2.isStart());
 		Assert.assertEquals(ibgp, ibgp2.previous());
 	}
@@ -57,8 +57,8 @@ public class InterpretationFactoryTest extends BGPTestAbstract {
 	@Test
 	public void equalsOfBGP() throws IOException {
 		readBGP("IF1");
-		InterpretationOfBGP ibgp = IF.make(new OpBGP(bp()));
-		InterpretationOfBGP ibgp2 = IF.make(new OpBGP(bp()));
+		FXBGPAnnotation ibgp = IF.make(new OpBGP(bp()));
+		FXBGPAnnotation ibgp2 = IF.make(new OpBGP(bp()));
 		Assert.assertEquals(ibgp, ibgp2);
 	}
 
@@ -66,16 +66,16 @@ public class InterpretationFactoryTest extends BGPTestAbstract {
 	@Test
 	public void equalsOfNode() throws IOException {
 		readBGP("IF1");
-		InterpretationOfNode in = IF.make(new OpBGP(bp()), new OpBGP(bp()).getPattern().getList().get(0).getSubject(), FX.Container);
-		InterpretationOfNode in2 = IF.make(new OpBGP(bp()), new OpBGP(bp()).getPattern().getList().get(0).getSubject(), FX.Container);
+		FXNodeAnnotation in = IF.make(new OpBGP(bp()), new OpBGP(bp()).getPattern().getList().get(0).getSubject(), FX.Container);
+		FXNodeAnnotation in2 = IF.make(new OpBGP(bp()), new OpBGP(bp()).getPattern().getList().get(0).getSubject(), FX.Container);
 		Assert.assertEquals(in, in2);
 	}
 
 	@Test
 	public void hashcodeOfBGP() throws IOException {
 		readBGP("IF1");
-		InterpretationOfBGP ibgp = IF.make(new OpBGP(bp()));
-		InterpretationOfBGP ibgp2 = IF.make(new OpBGP(bp()));
+		FXBGPAnnotation ibgp = IF.make(new OpBGP(bp()));
+		FXBGPAnnotation ibgp2 = IF.make(new OpBGP(bp()));
 		Assert.assertEquals(ibgp.hashCode(), ibgp2.hashCode());
 	}
 
@@ -83,8 +83,8 @@ public class InterpretationFactoryTest extends BGPTestAbstract {
 	@Test
 	public void hashcodeOfNode() throws IOException {
 		readBGP("IF1");
-		InterpretationOfNode in = IF.make(new OpBGP(bp()), new OpBGP(bp()).getPattern().getList().get(0).getSubject(), FX.Container);
-		InterpretationOfNode in2 = IF.make(new OpBGP(bp()), new OpBGP(bp()).getPattern().getList().get(0).getSubject(), FX.Container);
+		FXNodeAnnotation in = IF.make(new OpBGP(bp()), new OpBGP(bp()).getPattern().getList().get(0).getSubject(), FX.Container);
+		FXNodeAnnotation in2 = IF.make(new OpBGP(bp()), new OpBGP(bp()).getPattern().getList().get(0).getSubject(), FX.Container);
 		Assert.assertEquals(in, in2);
 	}
 

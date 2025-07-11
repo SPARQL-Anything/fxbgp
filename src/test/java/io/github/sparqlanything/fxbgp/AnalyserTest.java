@@ -1,13 +1,8 @@
 package io.github.sparqlanything.fxbgp;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.apache.jena.graph.Node;
-import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.vocabulary.RDF;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -15,9 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public class AnalyserTest extends BGPTestAbstract {
 	final protected static Logger L = LoggerFactory.getLogger(AnalyserTest.class);
@@ -39,7 +31,7 @@ public class AnalyserTest extends BGPTestAbstract {
 	public void AT1() throws IOException {
 		readBGP(name.getMethodName());
 		Assert.assertEquals(6,interpretations().size());
-		for(InterpretationOfBGP fi: interpretations()){
+		for(FXBGPAnnotation fi: interpretations()){
 			L.info("{}",fi.toString());
 			Assert.assertTrue(fi.isGrounded());
 		}
@@ -49,7 +41,7 @@ public class AnalyserTest extends BGPTestAbstract {
 	public void AT2() throws IOException {
 		readBGP(name.getMethodName());
 		Assert.assertEquals(36,interpretations().size());
-		for(InterpretationOfBGP fi: interpretations()){
+		for(FXBGPAnnotation fi: interpretations()){
 			L.info("AT2 -- {}",fi.toString());
 			Assert.assertTrue(fi.isGrounded());
 		}
@@ -59,7 +51,7 @@ public class AnalyserTest extends BGPTestAbstract {
 	public void AT3() throws IOException {
 		readBGP(name.getMethodName());
 		L.info("Size: {}",interpretations().size());
-		for(InterpretationOfBGP fi: interpretations()){
+		for(FXBGPAnnotation fi: interpretations()){
 			L.info("{}",fi.toString());
 			Assert.assertTrue(fi.isGrounded());
 		}
@@ -176,7 +168,7 @@ public class AnalyserTest extends BGPTestAbstract {
 	public void BGP_1_allGrounded() throws IOException {
 		readBGP("BGP_1");
 		L.info("size: {}",interpretations().size());
-		for(InterpretationOfBGP fi: interpretations()){
+		for(FXBGPAnnotation fi: interpretations()){
 			L.info("{}",fi.toString());
 			Assert.assertTrue(fi.isGrounded());
 		}
@@ -187,7 +179,7 @@ public class AnalyserTest extends BGPTestAbstract {
 		readBGP(name.getMethodName());
 		L.info("size: {}",interpretations().size());
 		Assert.assertEquals(2,interpretations().size());
-		InterpretationOfBGP i1 = make(
+		FXBGPAnnotation i1 = make(
 			v("s"), FX.Container,
 			u("http://www.example.org/address"), FX.SlotString,
 			v("address"), FX.Container,
@@ -196,7 +188,7 @@ public class AnalyserTest extends BGPTestAbstract {
 			u("http://www.example.org/id"), FX.SlotString,
 			v("addressId"), FX.Value
 		);
-		InterpretationOfBGP i2 = make(
+		FXBGPAnnotation i2 = make(
 			v("s"), FX.Container,
 			u("http://www.example.org/address"), FX.SlotString,
 			v("address"), FX.Container,
@@ -231,22 +223,22 @@ public class AnalyserTest extends BGPTestAbstract {
 		add(v("x"), v("p"), v("f"));
 		// We expect the following interpretation to be present
 		// Container TypeProperty Type
-		InterpretationOfBGP i1 = make(
+		FXBGPAnnotation i1 = make(
 			v("x"), FX.Container,
 			v("p"), FX.TypeProperty,
 			v("f"), FX.Type
 		);
-		InterpretationOfBGP i2 = make(
+		FXBGPAnnotation i2 = make(
 			v("x"), FX.Container,
 			v("p"), FX.SlotNumber,
 			v("f"), FX.Container
 		);
-		InterpretationOfBGP i3 = make(
+		FXBGPAnnotation i3 = make(
 			v("x"), FX.Container,
 			v("p"), FX.SlotNumber,
 			v("f"), FX.Value
 		);
-		InterpretationOfBGP i4 = make(
+		FXBGPAnnotation i4 = make(
 			v("x"), FX.Container,
 			v("p"), FX.TypeProperty,
 			v("f"), FX.Root
@@ -264,12 +256,12 @@ public class AnalyserTest extends BGPTestAbstract {
 		add(v("x"), T , v("f"));
 		// We expect the following interpretation to be present
 		// Container TypeProperty Type
-		InterpretationOfBGP i1 = make(
+		FXBGPAnnotation i1 = make(
 			v("x"), FX.Container,
 			T, FX.TypeProperty,
 			v("f"), FX.Type
 		);
-		InterpretationOfBGP i2 = make(
+		FXBGPAnnotation i2 = make(
 			v("x"), FX.Container,
 			T, FX.TypeProperty,
 			v("f"), FX.Root

@@ -2,8 +2,8 @@ package io.github.sparqlanything.fxbgp;
 
 import org.apache.jena.graph.Node;
 
-public interface InterpretationOfNode extends Interpretation {
-	boolean consistentWith(InterpretationOfNode node);
+public interface FXNodeAnnotation extends FXAnnotation {
+	boolean consistentWith(FXNodeAnnotation node);
 
 	FX getTerm();
 

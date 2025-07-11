@@ -10,7 +10,6 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.vocabulary.RDF;
-import org.junit.Assert;
 import org.junit.Before;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +30,7 @@ public abstract class BGPTestAbstract {
 	protected BasicPattern bp = null;
 	private FXModel FXM = null;
 	protected Analyser ANA = null;
-	private Set<InterpretationOfBGP> interpretations = null;
+	private Set<FXBGPAnnotation> interpretations = null;
 
 	public BGPTestAbstract(FXModel FXM){
 		this.FXM = FXM;
@@ -47,14 +46,14 @@ public abstract class BGPTestAbstract {
 	protected void runAnalyser(){
 		interpretations = ANA.interpret(new OpBGP(bp()));
 	}
-	protected Set<InterpretationOfBGP> interpretations(){
+	protected Set<FXBGPAnnotation> interpretations(){
 		if(interpretations == null){
 			runAnalyser();
 		}
 		return interpretations;
 	}
 
-	protected InterpretationFactory IF(){
+	protected FXAnnotationFactory IF(){
 		return FXM().getIF();
 	}
 
@@ -177,8 +176,8 @@ public abstract class BGPTestAbstract {
 	 * @param pairs Node, FX, Node, FX, ...
 	 * @return
 	 */
-	protected InterpretationOfBGP make(Object... pairs){
-		Set<InterpretationOfNode> set = new HashSet<>();
+	protected FXBGPAnnotation make(Object... pairs){
+		Set<FXNodeAnnotation> set = new HashSet<>();
 		for(int x = 0; x<pairs.length; x=x+2){
 			Object n = pairs[x];
 			Object t = pairs[x+1];

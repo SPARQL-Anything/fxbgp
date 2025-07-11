@@ -5,7 +5,7 @@ import io.github.sparqlanything.fxbgp.AnalyserAsSearch;
 import io.github.sparqlanything.fxbgp.AnalyserGrounder;
 import io.github.sparqlanything.fxbgp.BGPTestAbstract;
 import io.github.sparqlanything.fxbgp.FXModel;
-import io.github.sparqlanything.fxbgp.InterpretationOfBGP;
+import io.github.sparqlanything.fxbgp.FXBGPAnnotation;
 import org.apache.commons.io.IOUtils;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.core.BasicPattern;
@@ -246,7 +246,7 @@ public class ExperimentsTest extends BGPTestAbstract {
     }
 
     private long lastDuration;
-    private Set<InterpretationOfBGP> lastInterpretations;
+    private Set<FXBGPAnnotation> lastInterpretations;
     public void run(Analyser analyser, File file, boolean complete) throws IOException {
         // Preparation
         bp = new BasicPattern();
