@@ -1,0 +1,3 @@
+<iri1> ?p ?o
+?o ?p <http://sparql.xyz/facade-x/ns/root>
+?s ?p1 <http://sparql.xyz/facade-x/ns/root>

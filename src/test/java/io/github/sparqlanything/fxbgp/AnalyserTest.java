@@ -212,18 +212,18 @@ public class AnalyserTest extends BGPTestAbstract {
 	//@Ignore // This is for development only
 	@Test
 	public void BGP_X() throws IOException {
-//		readBGP(name.getMethodName());
-//		L.info("size: {}",interpretations().size());
-//		System.out.println(interpretations());
+		readBGP(name.getMethodName());
+		L.info("size: {}",interpretations().size());
+		System.out.println(interpretations());
 
-		Set product = Sets.cartesianProduct(ImmutableList.of(ImmutableSet.of("a","b"), ImmutableSet.of("a", "b")));
-		//System.out.println(product);
-		for(Object lo:product){
-			List<String> ls = (List<String>) lo;
-			String l = ls.get(0);
-			String r = ls.get(1);
-			//System.out.println(l.equals(r));
-		}
+//		Set product = Sets.cartesianProduct(ImmutableList.of(ImmutableSet.of("a","b"), ImmutableSet.of("a", "b")));
+//		//System.out.println(product);
+//		for(Object lo:product){
+//			List<String> ls = (List<String>) lo;
+//			String l = ls.get(0);
+//			String r = ls.get(1);
+//			//System.out.println(l.equals(r));
+//		}
 	}
 
 	@Test

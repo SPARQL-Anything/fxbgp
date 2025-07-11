@@ -51,8 +51,12 @@ public class AnalyserAsSearch implements Analyser {
 
 		iteration = 0;
 		Set<InterpretationOfBGP> interpretations = interpret(start, new HashSet<>(), complete);
-		L.info("{} iterations",iteration);
+		//L.info("{} iterations",iteration);
 		return interpretations;
+	}
+
+	public int getLastIterationsCount(){
+		return iteration;
 	}
 
 	private int iteration = 0;
@@ -78,7 +82,13 @@ public class AnalyserAsSearch implements Analyser {
 					// For each rule that resolves, check if interpretation is consistent
 					boolean resolves = rule.when(focus, nibgp);
 					if(resolves){
+						if(rule.failure()){
+							inconsistent = true;
+							break;
+						}
+
 						InterpretationOfNode nni = rule.infer();
+
 						// Is it redundant?
 						InterpretationOfNode prev = nibgp.getInterpretation(focus);
 						if(nni.equals(prev)){

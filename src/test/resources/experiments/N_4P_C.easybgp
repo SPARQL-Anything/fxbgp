@@ -1,3 +1,4 @@
+?a ?b <iri2>
 <iri1> ?p ?o
 <iri2> ?p1 ?o
 ?o a <Person>

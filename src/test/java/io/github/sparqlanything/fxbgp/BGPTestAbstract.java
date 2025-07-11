@@ -28,7 +28,7 @@ public abstract class BGPTestAbstract {
 	final protected static Logger L = LoggerFactory.getLogger(BGPTestAbstract.class);
 
 	protected Properties properties = null;
-	private BasicPattern bp = null;
+	protected BasicPattern bp = null;
 	private FXModel FXM = null;
 	protected Analyser ANA = null;
 	private Set<InterpretationOfBGP> interpretations = null;
@@ -121,14 +121,18 @@ public abstract class BGPTestAbstract {
 
 	/**
 	 * Easybgp means 1 triple per line separated in SPARQL syntax, no dots between triples
-	 * @param easyBgpFile
+	 * @param easyBgpFileName
 	 * @throws IOException
 	 */
-	protected void readBGP(String easyBgpFile) throws IOException {
-		BasicPattern bp = new BasicPattern();
-//		L.info("{}", easyBgpFile);
-		URL url = getClass().getClassLoader().getResource("./" + easyBgpFile + ".easybgp");
+	protected void readBGP(String easyBgpFileName) throws IOException {
+		URL url = getClass().getClassLoader().getResource("./" + easyBgpFileName + ".easybgp");
 		L.trace("easy bgp: {}", url);
+		readBGP(url);
+	}
+
+	protected void readBGP(URL url) throws IOException {
+			BasicPattern bp = new BasicPattern();
+//		L.info("{}", easyBgpFile);
 		String sBGP = IOUtils.toString(url, StandardCharsets.UTF_8);
 //		L.trace("sBGP: {}", sBGP);
 		String[] lines = sBGP.split("\n");

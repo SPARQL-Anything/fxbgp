@@ -576,6 +576,7 @@ public class FXModel {
 					List<Node> left = pair.getLeft();
 					List<Node> right = pair.getRight();
 
+
 					// If one of the two is shorter, its origin cannot be root
 					if(left.size() != right.size()){
 						List<Node> shorter = left.size() < right.size() ? left : right;
@@ -590,14 +591,23 @@ public class FXModel {
 							}
 						}
 					}
+
+					int maxLength = left.size() >= right.size() ? left.size() : right.size();
 					// Check if terms are compatible
-					for(int x = 0; x < left.size(); x++){
-						Node ln = left.get(x);
-						if(right.get(x) == null){
-							// exit
+					for(int x = 0; x < maxLength; x++){
+						Node ln;
+						if(left.size() > x){
+							ln = left.get(x);
+						}else{
 							break;
 						}
-						Node rn = right.get(x);
+						Node rn;
+						if(right.size() > x){
+							rn = right.get(x);
+						}else{
+							break;
+						}
+
 						boolean ok = false;
 						if(ln.equals(rn)){
 							// OK
