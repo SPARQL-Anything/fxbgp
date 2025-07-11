@@ -9,14 +9,14 @@ import org.junit.rules.TestName;
 
 import java.io.IOException;
 
-public class annotationFactoryTest extends BGPTestAbstract {
+public class AnnotationFactoryTest extends BGPTestAbstract {
 
 	protected FXAnnotationFactory IF;
 
 	@Rule
 	public TestName name = new TestName();
 
-	public annotationFactoryTest() {
+	public AnnotationFactoryTest() {
 		super(FXModel.getFXModel());
 	}
 
