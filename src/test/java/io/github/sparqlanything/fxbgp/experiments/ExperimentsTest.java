@@ -104,7 +104,7 @@ public class ExperimentsTest extends BGPTestAbstract {
             groupedBySize.get(size).add(file);
             println("### " + name.replace(".easybgp",""));
             println("\nThe bgp is " + (satisfiable?"":"not ") +"satisfiable." );
-            println("\nThe bgp has " + size + " number of triples");
+            println("\nThe bgp has " + size + " triples");
             if(name.contains("P")){
                 println("\nThe bgp has  multiple paths to an object");
             }
