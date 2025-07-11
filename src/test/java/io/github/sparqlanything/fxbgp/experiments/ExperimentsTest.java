@@ -31,12 +31,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class Experiments extends BGPTestAbstract {
-    final protected static Logger L = LoggerFactory.getLogger(Experiments.class);
+public class ExperimentsTest extends BGPTestAbstract {
+    final protected static Logger L = LoggerFactory.getLogger(ExperimentsTest.class);
 
     @Rule
     public TestName name = new TestName();
-    public Experiments() {
+    public ExperimentsTest() {
         super(FXModel.getFXModel());
     }
     private static Map<File,Object[]> fileData = new HashMap<>();
@@ -59,7 +59,7 @@ public class Experiments extends BGPTestAbstract {
             throw new RuntimeException(e);
         }
         try {
-            URI experimentsFolder = Experiments.class.getClassLoader().getResource("./experiments").toURI();
+            URI experimentsFolder = ExperimentsTest.class.getClassLoader().getResource("./experiments").toURI();
             files = new File(experimentsFolder).listFiles();
             // Sort files by name
             Arrays.sort(files, new Comparator()
@@ -105,6 +105,14 @@ public class Experiments extends BGPTestAbstract {
 
     }
 
+    private void thead(){
+        println("");
+        println("| name | satisfiable? | annotations found | type | size | ms |");
+        println("| ---- | ------------ | ----------------- | ---- | ---- | -- |");
+    }
+    private void tfoot(){
+        println("");
+    }
     private static File[] files;
 
     @Test
@@ -114,10 +122,8 @@ public class Experiments extends BGPTestAbstract {
         println("");
 
         println("## Top down, only satisfiability");
-        println("");
-
-        println("| name | sat (ann) | type | size | ms |");
-        println("| ---- | --------- | ---- | ---- | -- |");
+        println("The algorithm stops when 1 satisfiable annotation is found");
+        thead();
         run(topDown,true, 1, "T", false);
         run(topDown,true, 2, "T", false);
         run(topDown, true, 3, "T", false);
@@ -126,11 +132,11 @@ public class Experiments extends BGPTestAbstract {
         run(topDown,false, 1, "T", false);
         run(topDown,false, 2, "T", false);
 //        run(topDown,false, 3, "T", false);
-        println("");
+        tfoot();
+
         println("## Top down, all satisfiable annotations");
-        println("");
-        println("| name | sat (ann) | type | size | ms |");
-        println("| ---- | --------- | ---- | ---- | -- |");
+        println("The algorithm proceeds to find all possible satisfiable annotations");
+        thead();
         run(topDown,true, 1, "T", true);
         run(topDown,true, 2, "T", true);
         //run(topDown, true, 3, "T", true);
@@ -152,9 +158,8 @@ public class Experiments extends BGPTestAbstract {
         Analyser bottomUp = new AnalyserGrounder(properties, FXM());
         println("");
         println("## Bottom up, only satisfiability");
-        println("");
-        println("| name | sat (ann) | type | size | ms |");
-        println("| ---- | --------- | ---- | ---- | -- |");
+        println("The algorithm stops when 1 satisfiable annotation is found");
+        thead();
         run(bottomUp,true, 1, "T", false);
         run(bottomUp,true, 2, "T", false);
         run(bottomUp, true, 3, "T", false);
@@ -183,11 +188,10 @@ public class Experiments extends BGPTestAbstract {
         run(bottomUp, false, 3, "P", false);
         run(bottomUp, false, 4, "P", false);
         run(bottomUp, false, 5, "P", false);
-        println("");
+        tfoot();
         println("## Bottom up, all annotations (only satisfiable bgps)");
-        println("");
-        println("| name | sat (ann) | type | size | ms |");
-        println("| ---- | --------- | ---- | ---- | -- |");
+        println("The algorithm proceeds to find all possible satisfiable annotations");
+        thead();
         run(bottomUp,true, 1, "T", true);
         run(bottomUp,true, 2, "T", true);
         run(bottomUp,true, 3, "T", true);
@@ -201,7 +205,7 @@ public class Experiments extends BGPTestAbstract {
         run(bottomUp, true, 3, "P", true);
         run(bottomUp, true, 4, "P", true);
         run(bottomUp, true, 5, "P", true);
-        println("");
+        tfoot();
     }
 
     public void run(Analyser analyser, Boolean satisfiable, Integer size, String type, boolean complete) throws IOException {
