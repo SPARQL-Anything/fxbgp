@@ -75,8 +75,8 @@ public class ExperimentsTest extends BGPTestAbstract {
         }
         println("# Experiments");
         println("## Algorithms");
-        println("Top down / Search: [AnalyserAsSearch](src/main/java/io/github/sparqlanything/fxbgp/AnalyserAsSearch.java)");
-        println("Bottom up / CSP: [AnalyserGrounder](src/main/java/io/github/sparqlanything/fxbgp/AnalyserGrounder.java)");
+        println("\nTop down / Search: [AnalyserAsSearch](src/main/java/io/github/sparqlanything/fxbgp/AnalyserAsSearch.java)");
+        println("\nBottom up / CSP: [AnalyserGrounder](src/main/java/io/github/sparqlanything/fxbgp/AnalyserGrounder.java)");
         println("");
         println("## Files");
         println("\nEach file tests a single BGP");
