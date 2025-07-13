@@ -343,30 +343,30 @@ The algorithm stops when 1 satisfiable annotation is found
 
 | name | satisfiable? | annotations found | type | size | ms |
 | ---- | ------------ | ----------------- | ---- | ---- | -- |
-| S_1T | true | (1) | T | 1 | 16 |
+| S_1T | true | (1) | T | 1 | 14 |
 | S_2T | true | (1) | T | 2 | 1 |
 | S_3T | true | (1) | T | 3 | 1 |
-| S_4T | true | (1) | T | 4 | 30 |
-| S_5T | true | (1) | T | 5 | 229 |
+| S_4T | true | (1) | T | 4 | 32 |
+| S_5T | true | (1) | T | 5 | 260 |
 | N_1T | false | (0) | T | 1 | 2 |
 | N_2T | false | (0) | T | 2 | 7 |
-| N_3T | false | (0) | T | 3 | 59 |
-| N_4T | false | (0) | T | 4 | 217 |
-| N_5T | false | (0) | T | 5 | 1624 |
+| N_3T | false | (0) | T | 3 | 54 |
+| N_4T | false | (0) | T | 4 | 197 |
+| N_5T | false | (0) | T | 5 | 1595 |
 | S_2J | true | (1) | J | 2 | 0 |
 | S_3J | true | (1) | J | 3 | 0 |
 | S_4J | true | (1) | J | 4 | 26 |
 | N_2J | false | (0) | J | 2 | 0 |
-| N_3J | false | (0) | J | 3 | 1 |
+| N_3J | false | (0) | J | 3 | 0 |
 | N_4J | false | (0) | J | 4 | 0 |
 | N_5J | false | (0) | J | 5 | 0 |
-| S_3P_C | true | (1) | P | 3 | 2 |
+| S_3P_C | true | (1) | P | 3 | 1 |
 | S_4P_C | true | (1) | P | 4 | 1 |
-| S_5P_C | true | (1) | P | 5 | 46 |
-| N_3P_C | false | (0) | P | 3 | 3 |
+| S_5P_C | true | (1) | P | 5 | 42 |
+| N_3P_C | false | (0) | P | 3 | 4 |
 | N_3P_R | false | (0) | P | 3 | 5 |
-| N_4P_C | false | (0) | P | 4 | 67 |
-| N_5P_C | false | (0) | P | 5 | 534 |
+| N_4P_C | false | (0) | P | 4 | 63 |
+| N_5P_C | false | (0) | P | 5 | 509 |
 
 ### Bottom up, all annotations (only satisfiable bgps)
 The algorithm proceeds to find all possible satisfiable annotations
@@ -375,15 +375,15 @@ The algorithm proceeds to find all possible satisfiable annotations
 | ---- | ------------ | ----------------- | ---- | ---- | -- |
 | S_1T | true | (6) | T | 1 | 0 |
 | S_2T | true | (36) | T | 2 | 1 |
-| S_3T | true | (216) | T | 3 | 7 |
-| S_4T | true | (1296) | T | 4 | 87 |
-| S_5T | true | (7776) | T | 5 | 1227 |
-| S_2J | true | (36) | J | 2 | 0 |
-| S_3J | true | (60) | J | 3 | 4 |
-| S_4J | true | (300) | J | 4 | 48 |
-| S_3P_C | true | (4) | P | 3 | 1 |
-| S_4P_C | true | (8) | P | 4 | 17 |
-| S_5P_C | true | (16) | P | 5 | 204 |
+| S_3T | true | (216) | T | 3 | 8 |
+| S_4T | true | (1296) | T | 4 | 94 |
+| S_5T | true | (7776) | T | 5 | 1203 |
+| S_2J | true | (36) | J | 2 | 1 |
+| S_3J | true | (60) | J | 3 | 3 |
+| S_4J | true | (300) | J | 4 | 50 |
+| S_3P_C | true | (4) | P | 3 | 2 |
+| S_4P_C | true | (8) | P | 4 | 15 |
+| S_5P_C | true | (16) | P | 5 | 206 |
 
 
 ## Top down / Search
@@ -392,16 +392,16 @@ The algorithm stops when 1 satisfiable annotation is found
 
 | name | satisfiable? | annotations found | type | size | ms |
 | ---- | ------------ | ----------------- | ---- | ---- | -- |
-| S_1T | true | (1) | T | 1 | 0	(4) |
+| S_1T | true | (1) | T | 1 | 1	(4) |
 | S_2T | true | (1) | T | 2 | 1	(6) |
-| S_3T | true | (1) | T | 3 | 1	(10) |
-| S_4T | true | (1) | T | 4 | 2	(14) |
-| S_5T | true | (1) | T | 5 | 2	(18) |
-| S_2P_R | true | (1) | P | 2 | 15	(592) |
-| N_1T | false | (0) | T | 1 | 1	(12) |
-| N_2T | false | (0) | T | 2 | 485	(16364) |
-| N_2J | false | (1) | J | 2 | 1	(6) |
-| N_2P_R | false | (0) | P | 2 | 25	(1957) |
+| S_3T | true | (1) | T | 3 | 2	(10) |
+| S_4T | true | (1) | T | 4 | 3	(14) |
+| S_5T | true | (1) | T | 5 | 3	(18) |
+| S_2P_R | true | (1) | P | 2 | 16	(592) |
+| N_1T | false | (0) | T | 1 | 0	(12) |
+| N_2T | false | (0) | T | 2 | 514	(16364) |
+| N_2J | false | (1) | J | 2 | 0	(6) |
+| N_2P_R | false | (0) | P | 2 | 26	(1957) |
 
 ### Top down, all satisfiable annotations
 The algorithm proceeds to find all possible satisfiable annotations
@@ -409,6 +409,6 @@ The algorithm proceeds to find all possible satisfiable annotations
 | name | satisfiable? | annotations found | type | size | ms |
 | ---- | ------------ | ----------------- | ---- | ---- | -- |
 | S_1T | true | (6) | T | 1 | 2	(60) |
-| S_2T | true | (36) | T | 2 | 2232	(193237) |
+| S_2T | true | (36) | T | 2 | 2220	(193237) |
 | S_2P_R | true | (1) | P | 2 | 21	(2098) |
 
