@@ -153,8 +153,7 @@ public class ExperimentsTest extends BGPTestAbstract {
         println("### Top down, only satisfiability");
         println("The algorithm stops when 1 satisfiable annotation is found");
         thead();
-        runAll(bottomUp, 100, false);
-        runAll(bottomUp, 100, false);
+        runAll(bottomUp, 2, false);
 
         //        run(topDown,false, 3, "T", false);
         tfoot();
@@ -162,17 +161,8 @@ public class ExperimentsTest extends BGPTestAbstract {
         println("### Top down, all satisfiable annotations");
         println("The algorithm proceeds to find all possible satisfiable annotations");
         thead();
-        runAll(bottomUp, 100, true);
+        runAll(bottomUp, 2, true);
         println("");
-
-        //run(topDown, false, 3, "T", false);
-        //run(topDown, false, 4, "T", false);
-        //run(topDown, false, 5, "T", false);
-        //println("## Top down, all satisfiable annotations");
-        //println("name\tsatisfiable\ttype\tsize\tms");
-        //run(topDown,false, 1, "T", true);
-        //run(topDown,false, 2, "T", true);
-        //run(topDown, true, 3, "T", true);
     }
 
     @Test
@@ -185,7 +175,6 @@ public class ExperimentsTest extends BGPTestAbstract {
         println("The algorithm stops when 1 satisfiable annotation is found");
         thead();
         runAll(bottomUp, 100, false);
-        runAll(bottomUp, 100, false);
 
         tfoot();
         println("### Bottom up, all annotations (only satisfiable bgps)");
@@ -196,9 +185,9 @@ public class ExperimentsTest extends BGPTestAbstract {
     }
 
     public void runAll(Analyser analyser, Integer onlySizeLowerThan, boolean complete) throws IOException {
-        for(Map.Entry<File,Object[]> en: fileData.entrySet()){
-            Object[] data = en.getValue();
-            File file = (File) en.getKey();
+        for(File file : files){
+        // for(Map.Entry<File,Object[]> en: fileData.entrySet()){
+            Object[] data = fileData.get(file);
             String name = file.getName().replace(".easybgp","");
             Integer size = (Integer) data[1];
             String type = (String) data[2];
@@ -206,7 +195,7 @@ public class ExperimentsTest extends BGPTestAbstract {
             if(complete && !satisfiable){
                 continue; // Ignore when we look for all solutions of a non satisfiable pattern
             }
-            if(onlySizeLowerThan <= size){
+            if(onlySizeLowerThan >= size){
                 run(analyser, file, complete);
                 if(analyser instanceof AnalyserAsSearch) {
                     println("| " + name + " | " + satisfiable +" | "+ (lastannotations.size()) + " | " + type + " | " + size + " | " + lastDuration + "\t(" + ((AnalyserAsSearch)analyser).getLastIterationsCount() + ") |");
