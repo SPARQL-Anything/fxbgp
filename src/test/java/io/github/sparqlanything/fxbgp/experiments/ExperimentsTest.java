@@ -146,14 +146,13 @@ public class ExperimentsTest extends BGPTestAbstract {
     @Test
     public void TopDown() throws IOException {
         AnalyserAsSearch topDown = new AnalyserAsSearch(properties, FXM());
-        Analyser bottomUp = new AnalyserGrounder(properties, FXM());
         println("");
         println("## Top down / Search");
 
         println("### Top down, only satisfiability");
         println("The algorithm stops when 1 satisfiable annotation is found");
         thead();
-        runAll(bottomUp, 2, false);
+        runAll(topDown, 2, false);
 
         //        run(topDown,false, 3, "T", false);
         tfoot();
@@ -161,7 +160,7 @@ public class ExperimentsTest extends BGPTestAbstract {
         println("### Top down, all satisfiable annotations");
         println("The algorithm proceeds to find all possible satisfiable annotations");
         thead();
-        runAll(bottomUp, 2, true);
+        runAll(topDown, 2, true);
         println("");
     }
 

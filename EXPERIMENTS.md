@@ -343,32 +343,32 @@ The algorithm stops when 1 satisfiable annotation is found
 
 | name | satisfiable? | annotations found | type | size | ms | tested |
 | ---- | ------------ | ----------------- | ---- | ---- | -- | ------ |
-| N_1T | false | 0 | T | 1 | 16 | 12 |
+| N_1T | false | 0 | T | 1 | 17 | 12 |
 | N_2J | false | 0 | J | 2 | 0 | 12 |
-| N_2P_R | false | 0 | P | 2 | 5 | 36 |
-| N_2T | false | 0 | T | 2 | 10 | 144 |
+| N_2P_R | false | 0 | P | 2 | 7 | 36 |
+| N_2T | false | 0 | T | 2 | 11 | 144 |
 | N_3J | false | 0 | J | 3 | 0 | 144 |
-| N_3P_C | false | 0 | P | 3 | 13 | 432 |
-| N_3P_R | false | 0 | P | 3 | 6 | 144 |
-| N_3T | false | 0 | T | 3 | 36 | 1728 |
+| N_3P_C | false | 0 | P | 3 | 16 | 432 |
+| N_3P_R | false | 0 | P | 3 | 5 | 144 |
+| N_3T | false | 0 | T | 3 | 28 | 1728 |
 | N_4J | false | 0 | J | 4 | 0 | 1728 |
-| N_4P_C | false | 0 | P | 4 | 73 | 5184 |
-| N_4T | false | 0 | T | 4 | 275 | 20736 |
+| N_4P_C | false | 0 | P | 4 | 70 | 5184 |
+| N_4T | false | 0 | T | 4 | 148 | 20736 |
 | N_5J | false | 0 | J | 5 | 0 | 20736 |
-| N_5P_C | false | 0 | P | 5 | 304 | 62208 |
-| N_5T | false | 0 | T | 5 | 1569 | 248832 |
-| S_1T | true | 1 | T | 1 | 1 | 12 |
+| N_5P_C | false | 0 | P | 5 | 296 | 62208 |
+| N_5T | false | 0 | T | 5 | 1605 | 248832 |
+| S_1T | true | 1 | T | 1 | 0 | 12 |
 | S_2J | true | 1 | J | 2 | 0 | 144 |
-| S_2P_R | true | 1 | P | 2 | 1 | 36 |
+| S_2P_R | true | 1 | P | 2 | 0 | 36 |
 | S_2T | true | 1 | T | 2 | 0 | 144 |
-| S_3J | true | 1 | J | 3 | 1 | 1728 |
+| S_3J | true | 1 | J | 3 | 0 | 1728 |
 | S_3P_C | true | 1 | P | 3 | 0 | 432 |
 | S_3T | true | 1 | T | 3 | 1 | 1728 |
-| S_4J | true | 1 | J | 4 | 24 | 20736 |
+| S_4J | true | 1 | J | 4 | 26 | 20736 |
 | S_4P_C | true | 1 | P | 4 | 1 | 5184 |
-| S_4T | true | 1 | T | 4 | 3 | 20736 |
+| S_4T | true | 1 | T | 4 | 4 | 20736 |
 | S_5P_C | true | 1 | P | 5 | 26 | 62208 |
-| S_5T | true | 1 | T | 5 | 150 | 248832 |
+| S_5T | true | 1 | T | 5 | 156 | 248832 |
 
 ### Bottom up, all annotations (only satisfiable bgps)
 The algorithm proceeds to find all possible satisfiable annotations
@@ -378,15 +378,15 @@ The algorithm proceeds to find all possible satisfiable annotations
 | S_1T | true | 6 | T | 1 | 0 | 12 |
 | S_2J | true | 36 | J | 2 | 1 | 144 |
 | S_2P_R | true | 1 | P | 2 | 0 | 36 |
-| S_2T | true | 36 | T | 2 | 1 | 144 |
-| S_3J | true | 60 | J | 3 | 4 | 1728 |
+| S_2T | true | 36 | T | 2 | 0 | 144 |
+| S_3J | true | 60 | J | 3 | 5 | 1728 |
 | S_3P_C | true | 4 | P | 3 | 2 | 432 |
-| S_3T | true | 216 | T | 3 | 7 | 1728 |
+| S_3T | true | 216 | T | 3 | 8 | 1728 |
 | S_4J | true | 300 | J | 4 | 61 | 20736 |
-| S_4P_C | true | 8 | P | 4 | 14 | 5184 |
-| S_4T | true | 1296 | T | 4 | 86 | 20736 |
-| S_5P_C | true | 16 | P | 5 | 215 | 62208 |
-| S_5T | true | 7776 | T | 5 | 1226 | 248832 |
+| S_4P_C | true | 8 | P | 4 | 16 | 5184 |
+| S_4T | true | 1296 | T | 4 | 99 | 20736 |
+| S_5P_C | true | 16 | P | 5 | 224 | 62208 |
+| S_5T | true | 7776 | T | 5 | 1239 | 248832 |
 
 
 ## Top down / Search
@@ -395,10 +395,10 @@ The algorithm stops when 1 satisfiable annotation is found
 
 | name | satisfiable? | annotations found | type | size | ms | tested |
 | ---- | ------------ | ----------------- | ---- | ---- | -- | ------ |
-| N_1T | false | 0 | T | 1 | 0 | 12 |
-| N_2J | false | 0 | J | 2 | 0 | 12 |
-| N_2P_R | false | 0 | P | 2 | 1 | 36 |
-| N_2T | false | 0 | T | 2 | 1 | 144 |
+| N_1T | false | 0 | T | 1 | 2 | 12 |
+| N_2J | false | 1 | J | 2 | 0 | 6 |
+| N_2P_R | false | 0 | P | 2 | 65 | 1957 |
+| N_2T | false | 0 | T | 2 | 426 | 16364 |
 | N_3J | false | - | J | 3 | - | - |
 | N_3P_C | false | - | P | 3 | - | - |
 | N_3P_R | false | - | P | 3 | - | - |
@@ -409,10 +409,10 @@ The algorithm stops when 1 satisfiable annotation is found
 | N_5J | false | - | J | 5 | - | - |
 | N_5P_C | false | - | P | 5 | - | - |
 | N_5T | false | - | T | 5 | - | - |
-| S_1T | true | 1 | T | 1 | 0 | 12 |
-| S_2J | true | 1 | J | 2 | 0 | 144 |
-| S_2P_R | true | 1 | P | 2 | 0 | 36 |
-| S_2T | true | 1 | T | 2 | 0 | 144 |
+| S_1T | true | 1 | T | 1 | 0 | 4 |
+| S_2J | true | 1 | J | 2 | 0 | 7 |
+| S_2P_R | true | 1 | P | 2 | 12 | 592 |
+| S_2T | true | 1 | T | 2 | 0 | 6 |
 | S_3J | true | - | J | 3 | - | - |
 | S_3P_C | true | - | P | 3 | - | - |
 | S_3T | true | - | T | 3 | - | - |
@@ -427,10 +427,10 @@ The algorithm proceeds to find all possible satisfiable annotations
 
 | name | satisfiable? | annotations found | type | size | ms | tested |
 | ---- | ------------ | ----------------- | ---- | ---- | -- | ------ |
-| S_1T | true | 6 | T | 1 | 0 | 12 |
-| S_2J | true | 36 | J | 2 | 1 | 144 |
-| S_2P_R | true | 1 | P | 2 | 0 | 36 |
-| S_2T | true | 36 | T | 2 | 1 | 144 |
+| S_1T | true | 6 | T | 1 | 2 | 60 |
+| S_2J | true | 36 | J | 2 | 365 | 22822 |
+| S_2P_R | true | 1 | P | 2 | 22 | 2098 |
+| S_2T | true | 36 | T | 2 | 2310 | 193237 |
 | S_3J | true | - | J | 3 | - | - |
 | S_3P_C | true | - | P | 3 | - | - |
 | S_3T | true | - | T | 3 | - | - |
