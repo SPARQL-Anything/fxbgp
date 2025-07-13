@@ -158,9 +158,13 @@ public class ExperimentsTest extends BGPTestAbstract {
         run(topDown, true, 3, "T", false);
         run(topDown, true, 4, "T", false);
         run(topDown, true, 5, "T", false);
+        run(topDown,true, 2, "P", false);
         run(topDown,false, 1, "T", false);
         run(topDown,false, 2, "T", false);
-//        run(topDown,false, 3, "T", false);
+        run(topDown, false, 2, "J", false);
+        run(topDown, false, 2, "P", false);
+
+        //        run(topDown,false, 3, "T", false);
         tfoot();
 
         println("### Top down, all satisfiable annotations");
@@ -168,7 +172,9 @@ public class ExperimentsTest extends BGPTestAbstract {
         thead();
         run(topDown,true, 1, "T", true);
         run(topDown,true, 2, "T", true);
-        //run(topDown, true, 3, "T", true);
+        run(topDown,true, 2, "P", true);
+
+
 
         println("");
 
