@@ -153,16 +153,8 @@ public class ExperimentsTest extends BGPTestAbstract {
         println("### Top down, only satisfiability");
         println("The algorithm stops when 1 satisfiable annotation is found");
         thead();
-        run(topDown,true, 1, "T", false);
-        run(topDown,true, 2, "T", false);
-        run(topDown, true, 3, "T", false);
-        run(topDown, true, 4, "T", false);
-        run(topDown, true, 5, "T", false);
-        run(topDown,true, 2, "P", false);
-        run(topDown,false, 1, "T", false);
-        run(topDown,false, 2, "T", false);
-        run(topDown, false, 2, "J", false);
-        run(topDown, false, 2, "P", false);
+        runAll(bottomUp, 100, false);
+        runAll(bottomUp, 100, false);
 
         //        run(topDown,false, 3, "T", false);
         tfoot();
@@ -170,12 +162,7 @@ public class ExperimentsTest extends BGPTestAbstract {
         println("### Top down, all satisfiable annotations");
         println("The algorithm proceeds to find all possible satisfiable annotations");
         thead();
-        run(topDown,true, 1, "T", true);
-        run(topDown,true, 2, "T", true);
-        run(topDown,true, 2, "P", true);
-
-
-
+        runAll(bottomUp, 100, true);
         println("");
 
         //run(topDown, false, 3, "T", false);
@@ -197,52 +184,39 @@ public class ExperimentsTest extends BGPTestAbstract {
         println("### Bottom up, only satisfiability");
         println("The algorithm stops when 1 satisfiable annotation is found");
         thead();
-        run(bottomUp,true, 1, "T", false);
-        run(bottomUp,true, 2, "T", false);
-        run(bottomUp, true, 3, "T", false);
-        run(bottomUp, true, 4, "T", false);
-        run(bottomUp, true, 5, "T", false);
+        runAll(bottomUp, 100, false);
+        runAll(bottomUp, 100, false);
 
-        run(bottomUp,false, 1, "T", false);
-        run(bottomUp,false, 2, "T", false);
-        run(bottomUp, false, 3, "T", false);
-        run(bottomUp, false, 4, "T", false);
-        run(bottomUp, false, 5, "T", false);
-
-        run(bottomUp, true, 2, "J", false);
-        run(bottomUp, true, 3, "J", false);
-        run(bottomUp, true, 4, "J", false);
-
-        run(bottomUp, false, 2, "J", false);
-        run(bottomUp, false, 3, "J", false);
-        run(bottomUp, false, 4, "J", false);
-        run(bottomUp, false, 5, "J", false);
-
-        run(bottomUp, true, 3, "P", false);
-        run(bottomUp, true, 4, "P", false);
-        run(bottomUp, true, 5, "P", false);
-
-        run(bottomUp, false, 3, "P", false);
-        run(bottomUp, false, 4, "P", false);
-        run(bottomUp, false, 5, "P", false);
         tfoot();
         println("### Bottom up, all annotations (only satisfiable bgps)");
         println("The algorithm proceeds to find all possible satisfiable annotations");
         thead();
-        run(bottomUp,true, 1, "T", true);
-        run(bottomUp,true, 2, "T", true);
-        run(bottomUp,true, 3, "T", true);
-        run(bottomUp,true, 4, "T", true);
-        run(bottomUp,true, 5, "T", true);
-
-        run(bottomUp, true, 2, "J", true);
-        run(bottomUp, true, 3, "J", true);
-        run(bottomUp, true, 4, "J", true);
-
-        run(bottomUp, true, 3, "P", true);
-        run(bottomUp, true, 4, "P", true);
-        run(bottomUp, true, 5, "P", true);
+        runAll(bottomUp, 100, true);
         tfoot();
+    }
+
+    public void runAll(Analyser analyser, Integer onlySizeLowerThan, boolean complete) throws IOException {
+        for(Map.Entry<File,Object[]> en: fileData.entrySet()){
+            Object[] data = en.getValue();
+            File file = (File) en.getKey();
+            String name = file.getName().replace(".easybgp","");
+            Integer size = (Integer) data[1];
+            String type = (String) data[2];
+            Boolean satisfiable = (Boolean) data[0];
+            if(complete && !satisfiable){
+                continue; // Ignore when we look for all solutions of a non satisfiable pattern
+            }
+            if(onlySizeLowerThan <= size){
+                run(analyser, file, complete);
+                if(analyser instanceof AnalyserAsSearch) {
+                    println("| " + name + " | " + satisfiable +" | "+ (lastannotations.size()) + " | " + type + " | " + size + " | " + lastDuration + "\t(" + ((AnalyserAsSearch)analyser).getLastIterationsCount() + ") |");
+                }else {
+                    println("| " + name + " | " + satisfiable +" | "+ (lastannotations.size()) + " | " + type + " | " + size + " | " + lastDuration + " |");
+                }
+            }else{
+                println("| " + name + " | " + satisfiable +" | - | " + type + " | " + size + " | - \t(-) |");
+            }
+        }
     }
 
     public void run(Analyser analyser, Boolean satisfiable, Integer size, String type, boolean complete) throws IOException {
