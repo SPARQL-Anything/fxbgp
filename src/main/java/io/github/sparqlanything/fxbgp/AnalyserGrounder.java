@@ -99,6 +99,7 @@ public class AnalyserGrounder implements Analyser {
 
 		Set<List<FXNodeAnnotation>> output = Sets.cartesianProduct(input.toArray(new Set[input.size()]));
 		L.debug("possible BGP annotation hypotheses: {}", output.size());
+		lastTestedHypotheses = output.size();
 		Set<FXBGPAnnotation> results = new HashSet<>();
 		// Check if any is consistent and discard the rest
 		for(List<FXNodeAnnotation> list: output){
@@ -122,4 +123,8 @@ public class AnalyserGrounder implements Analyser {
 		}
 		return results;
 	}
+	public int getLastTestedHypotheses(){
+		return lastTestedHypotheses;
+	}
+	private int lastTestedHypotheses = 0;
 }

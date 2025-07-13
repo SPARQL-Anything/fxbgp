@@ -135,8 +135,8 @@ public class ExperimentsTest extends BGPTestAbstract {
 
     private void thead(){
         println("");
-        println("| name | satisfiable? | annotations found | type | size | ms |");
-        println("| ---- | ------------ | ----------------- | ---- | ---- | -- |");
+        println("| name | satisfiable? | annotations found | type | size | ms | tested |");
+        println("| ---- | ------------ | ----------------- | ---- | ---- | -- | ------ |");
     }
     private void tfoot(){
         println("");
@@ -198,12 +198,12 @@ public class ExperimentsTest extends BGPTestAbstract {
             if(onlySizeLowerThan >= size){
                 run(analyser, file, complete);
                 if(analyser instanceof AnalyserAsSearch) {
-                    println("| " + name + " | " + satisfiable +" | "+ (lastannotations.size()) + " | " + type + " | " + size + " | " + lastDuration + "\t(" + ((AnalyserAsSearch)analyser).getLastIterationsCount() + ") |");
+                    println("| " + name + " | " + satisfiable +" | "+ (lastannotations.size()) + " | " + type + " | " + size + " | " + lastDuration + " | " + ((AnalyserAsSearch)analyser).getLastIterationsCount() + " |");
                 }else {
-                    println("| " + name + " | " + satisfiable +" | "+ (lastannotations.size()) + " | " + type + " | " + size + " | " + lastDuration + " |");
+                    println("| " + name + " | " + satisfiable +" | "+ (lastannotations.size()) + " | " + type + " | " + size + " | " + lastDuration + " | " + ((AnalyserGrounder)analyser).getLastTestedHypotheses() + " |");
                 }
             }else{
-                println("| " + name + " | " + satisfiable +" | - | " + type + " | " + size + " | - \t(-) |");
+                println("| " + name + " | " + satisfiable +" | - | " + type + " | " + size + " | - | - |");
             }
         }
     }
