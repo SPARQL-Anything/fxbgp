@@ -33,7 +33,7 @@ public class FXModel {
 	private Map<FX,Set<FX>> specialisationOf;
 	private Map<FX,Set<FX>> inconsistentWith;
 
-	private Set<FXNodeRule> inferenceRules;
+	private List<FXNodeRule> inferenceRules;
 
 	// FIXME Use constant from model package
 	protected static final Node FXRoot = NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT);
@@ -43,7 +43,7 @@ public class FXModel {
 		specialisedBy = new HashMap<>();
 		specialisationOf = new HashMap<>();
 		inconsistentWith = new HashMap<>();
-		inferenceRules = new HashSet<>();
+		inferenceRules = new ArrayList<>();
 		IF = new FXAnnotationFactory(this);
 		init();
 		extend();
@@ -105,8 +105,8 @@ public class FXModel {
 		inferenceRules.add(rule);
 	}
 
-	public Set<FXNodeRule> getInferenceRules(){
-		return Collections.unmodifiableSet(inferenceRules);
+	public List<FXNodeRule> getInferenceRules(){
+		return Collections.unmodifiableList(inferenceRules);
 	}
 	public boolean elementExists(FX element){
 		return this.terms.contains(element);
@@ -723,7 +723,7 @@ public class FXModel {
 		// Make inferences
 		for(Node focus: nibgp.nodes()) {
 			// For each node, run inference rules
-			Set<FXNodeRule> rules = this.getInferenceRules();
+			List<FXNodeRule> rules = this.getInferenceRules();
 			for(FXNodeRule rule: rules){
 				// For each rule that resolves, check if annotation is consistent
 				boolean resolves = rule.when(focus, nibgp);

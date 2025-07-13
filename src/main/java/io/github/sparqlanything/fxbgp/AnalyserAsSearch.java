@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -77,7 +78,7 @@ public class AnalyserAsSearch implements Analyser {
 			// Make inferences
 			for(Node focus: nibgp.nodes()) {
 					// For each node, run inference rules
-				Set<FXNodeRule> rules = FXM.getInferenceRules();
+				List<FXNodeRule> rules = FXM.getInferenceRules();
 				for(FXNodeRule rule: rules){
 					// For each rule that resolves, check if annotation is consistent
 					boolean resolves = rule.when(focus, nibgp);
@@ -88,10 +89,12 @@ public class AnalyserAsSearch implements Analyser {
 						}
 
 						FXNodeAnnotation nni = rule.infer();
-
+						if(nni == null){
+							throw new RuntimeException("This should never happen");
+						}
 						// Is it redundant?
 						FXNodeAnnotation prev = nibgp.getannotation(focus);
-						if(nni.equals(prev)){
+						if(prev.equals(nni)){
 							// Ignore redundant inferences, move to the next rule
 							continue;
 						}

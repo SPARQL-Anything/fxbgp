@@ -30,6 +30,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class ExperimentsTest extends BGPTestAbstract {
     final protected static Logger L = LoggerFactory.getLogger(ExperimentsTest.class);
@@ -152,7 +159,8 @@ public class ExperimentsTest extends BGPTestAbstract {
         println("### Top down, only satisfiability");
         println("The algorithm stops when 1 satisfiable annotation is found");
         thead();
-        runAll(topDown, 2, false);
+        //runAll(topDown, 100, false);
+        runWithTimeout(topDown, 5, false);
 
         //        run(topDown,false, 3, "T", false);
         tfoot();
@@ -160,7 +168,7 @@ public class ExperimentsTest extends BGPTestAbstract {
         println("### Top down, all satisfiable annotations");
         println("The algorithm proceeds to find all possible satisfiable annotations");
         thead();
-        runAll(topDown, 2, true);
+        runWithTimeout(topDown, 5, true);
         println("");
     }
 
@@ -173,15 +181,74 @@ public class ExperimentsTest extends BGPTestAbstract {
         println("### Bottom up, only satisfiability");
         println("The algorithm stops when 1 satisfiable annotation is found");
         thead();
-        runAll(bottomUp, 100, false);
+        runWithTimeout(bottomUp, 5, false);
 
         tfoot();
         println("### Bottom up, all annotations (only satisfiable bgps)");
         println("The algorithm proceeds to find all possible satisfiable annotations");
         thead();
-        runAll(bottomUp, 100, true);
+        runWithTimeout(bottomUp, 5, true);
         tfoot();
     }
+
+
+
+    public void runWithTimeout(final Analyser analyser, int stopAfterSeconds, final boolean complete) throws IOException {
+        for(final File file : files){
+            // for(Map.Entry<File,Object[]> en: fileData.entrySet()){
+            Object[] data = fileData.get(file);
+            String name = file.getName().replace(".easybgp","");
+            Integer size = (Integer) data[1];
+            String type = (String) data[2];
+            Boolean satisfiable = (Boolean) data[0];
+            if(complete && !satisfiable){
+                continue; // Ignore when we look for all solutions of a non satisfiable pattern
+            }
+
+            ExecutorService executor = Executors.newCachedThreadPool();
+            Callable<Object> task = new Callable<Object>() {
+                public Object call() throws IOException {
+                    //runInThread(analyser, file, complete);
+
+                    bp = new BasicPattern();
+                    readBGP(file.toURI().toURL());
+                    long start = System.currentTimeMillis();
+                    Set<FXBGPAnnotation> anns = analyser.annotate(new OpBGP(bp()), complete);
+                    long  end = System.currentTimeMillis();
+                    long durs = end - start;
+                    return new Object[]{anns,durs};
+                }
+            };
+            Future<Object> future = executor.submit(task);
+            Boolean success = false;
+            long durs = 0;
+            Set<FXBGPAnnotation> anns = new HashSet<>();
+            try {
+                Object[] returned = (Object[]) future.get(5, TimeUnit.SECONDS);
+                success = true;
+                anns = (Set<FXBGPAnnotation> ) returned[0];
+                durs = (Long) returned[1];
+            } catch (TimeoutException e) {
+                success = false;
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            } finally {
+                future.cancel(true);
+            }
+            if(success){
+                if(analyser instanceof AnalyserAsSearch) {
+                    println("| " + name + " | " + satisfiable +" | "+ (anns.size()) + " | " + type + " | " + size + " | " + durs + " | " + ((AnalyserAsSearch)analyser).getLastIterationsCount() + " |");
+                }else {
+                    println("| " + name + " | " + satisfiable +" | "+ (anns.size()) + " | " + type + " | " + size + " | " + durs + " | " + ((AnalyserGrounder)analyser).getLastTestedHypotheses() + " |");
+                }
+            }else{
+                println("| " + name + " | " + satisfiable +" | - | " + type + " | " + size + " | >5s | - |");
+            }
+        }
+    }
+
 
     public void runAll(Analyser analyser, Integer onlySizeLowerThan, boolean complete) throws IOException {
         for(File file : files){
