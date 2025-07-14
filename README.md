@@ -21,5 +21,14 @@ or
 mvn test
 ```
 
+## Build tables
+
+We use SPARQL Anything
+```
+java -jar -Xmx=4g sparql-anything-v1.0.0.jar -q experiments-tables.sparql -v algorithm=T -v complete=false -o "TopDown_Satisfiability.csv"
+java -jar -Xmx=4g sparql-anything-v1.0.0.jar -q experiments-tables.sparql -v algorithm=T -v complete=true -o "TopDown_SolutionPatterns.csv"
+java -jar -Xmx=4g sparql-anything-v1.0.0.jar -q experiments-tables.sparql -v algorithm=B -v complete=false -o "BottomUp_Satisfiability.csv"
+java -jar -Xmx=4g sparql-anything-v1.0.0.jar -q experiments-tables.sparql -v algorithm=B -v complete=true -o "BottomUp_SolutionPatterns.csv"
+```
 
 

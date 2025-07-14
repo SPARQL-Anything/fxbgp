@@ -30,7 +30,7 @@ public class AnalyserAsSearch implements Analyser {
 
 	@Override
 	public Set<FXBGPAnnotation> annotate(OpBGP bgp, boolean complete){
-
+		iteration = 0;
 		// To collect the solutions
 		Set<FXBGPAnnotation> finalStates = new HashSet<>();
 
@@ -61,7 +61,7 @@ public class AnalyserAsSearch implements Analyser {
 		if(FXM.hasCycle(bgp)){
 			return Collections.emptySet();
 		}
-		iteration = 0;
+		//iteration = 0;
 		Set<FXBGPAnnotation> annotations = annotate(start, new HashSet<>(), complete);
 		//L.info("{} iterations",iteration);
 		return annotations;
