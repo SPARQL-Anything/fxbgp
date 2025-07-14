@@ -40,6 +40,15 @@ import java.util.concurrent.TimeoutException;
 
 public class ExperimentsTest extends BGPTestAbstract {
     final protected static Logger L = LoggerFactory.getLogger(ExperimentsTest.class);
+    final static URI experimentsFolder;
+
+    static {
+        try {
+            experimentsFolder = ExperimentsTest.class.getClassLoader().getResource("./experiments/").toURI();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Rule
     public TestName name = new TestName();
@@ -49,6 +58,7 @@ public class ExperimentsTest extends BGPTestAbstract {
     private static Map<File,Object[]> fileData = new HashMap<>();
     private static Map<Integer,Set<File>> groupedBySize = new HashMap<>();
 
+    private static PrintStream PRINT_EXPERIMENTSCSV_FILE;
     private static PrintStream PRINT_EXPERIMENTS_FILE;
     private static void println(String str){
         System.out.println(str);
@@ -59,9 +69,12 @@ public class ExperimentsTest extends BGPTestAbstract {
     public static void beforeClass(){
         // Create file EXPERIMENTS.md
         File EXPERIMENTS = new File("./EXPERIMENTS.md");
+        File EXPERIMENTSCSV = new File("./EXPERIMENTS.csv");
         EXPERIMENTS.delete();
+        EXPERIMENTSCSV.delete();
         try {
             PRINT_EXPERIMENTS_FILE = new PrintStream(new FileOutputStream(EXPERIMENTS));
+            PRINT_EXPERIMENTSCSV_FILE = new PrintStream(new FileOutputStream(EXPERIMENTSCSV));
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -80,6 +93,7 @@ public class ExperimentsTest extends BGPTestAbstract {
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
+
         println("# Experiments");
         println("## Algorithms");
         println("\nTop down / Search: [AnalyserAsSearch](src/main/java/io/github/sparqlanything/fxbgp/AnalyserAsSearch.java)");
@@ -137,17 +151,30 @@ public class ExperimentsTest extends BGPTestAbstract {
     @Override
     public void before() {
         super.before();
+    }
 
+    private void printCSV(String analyser, Boolean complete, String name, Boolean satisfiable, Integer found, String type, Integer size, Long durs, Integer evaluated){
+        PRINT_EXPERIMENTSCSV_FILE.println( analyser + "," + complete + "," + name + "," + satisfiable + "," + found + "," + type + "," + size + "," + durs + "," + evaluated );
+    }
+
+    private void log(String analyser, boolean complete, String name, Boolean satisfiable, Set<FXBGPAnnotation> anns, String type, Integer size, Long durs, Integer evaluated){
+        int found = -1;
+        if(anns != null){
+            found = anns.size();
+        }
+        printCSV(analyser, complete, name, satisfiable, found, type, size, durs, evaluated);
+        println("| " + name + " | " + satisfiable +" | "+ found + " | " + type + " | " + size + " | " + durs + " | " + evaluated + " |");
     }
 
     private void thead(){
         println("");
-        println("| name | satisfiable? | annotations found | type | size | ms | tested |");
+        println("| name | satisfiable? | found | type | size | ms | tested |");
         println("| ---- | ------------ | ----------------- | ---- | ---- | -- | ------ |");
     }
     private void tfoot(){
         println("");
     }
+
     private static File[] files;
 
     @Test
@@ -190,8 +217,6 @@ public class ExperimentsTest extends BGPTestAbstract {
         runWithTimeout(bottomUp, 5, true);
         tfoot();
     }
-
-
 
     public void runWithTimeout(final Analyser analyser, int stopAfterSeconds, final boolean complete) throws IOException {
         for(final File file : files){
@@ -239,16 +264,20 @@ public class ExperimentsTest extends BGPTestAbstract {
             }
             if(success){
                 if(analyser instanceof AnalyserAsSearch) {
-                    println("| " + name + " | " + satisfiable +" | "+ (anns.size()) + " | " + type + " | " + size + " | " + durs + " | " + ((AnalyserAsSearch)analyser).getLastIterationsCount() + " |");
+                    log("T", complete, name, satisfiable, anns, type, size, durs, ((AnalyserAsSearch)analyser).getLastIterationsCount());
                 }else {
-                    println("| " + name + " | " + satisfiable +" | "+ (anns.size()) + " | " + type + " | " + size + " | " + durs + " | " + ((AnalyserGrounder)analyser).getLastTestedHypotheses() + " |");
+                    log("B", complete, name, satisfiable, anns, type, size, durs, ((AnalyserGrounder)analyser).getLastTestedHypotheses());
+//                    println("| " + name + " | " + satisfiable +" | "+ (anns.size()) + " | " + type + " | " + size + " | " + durs + " | " + ((AnalyserGrounder)analyser).getLastTestedHypotheses() + " |");
                 }
             }else{
-                println("| " + name + " | " + satisfiable +" | - | " + type + " | " + size + " | >5s | - |");
+                String analy = "B";
+                if(analyser instanceof AnalyserAsSearch) {
+                    analy = "T";
+                }
+                log(analy, complete, name, satisfiable, null, type, size, (long)-1, -1);
             }
         }
     }
-
 
     public void runAll(Analyser analyser, Integer onlySizeLowerThan, boolean complete) throws IOException {
         for(File file : files){

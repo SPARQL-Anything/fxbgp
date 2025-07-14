@@ -33,7 +33,7 @@ public class FXModel {
 	private Map<FX,Set<FX>> specialisationOf;
 	private Map<FX,Set<FX>> inconsistentWith;
 
-	private List<FXNodeRule> inferenceRules;
+	private List<FXNodeRuleFactory> inferenceRules;
 
 	// FIXME Use constant from model package
 	protected static final Node FXRoot = NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT);
@@ -101,13 +101,18 @@ public class FXModel {
 		}
 	}
 
-	protected void addInferenceRule(FXNodeRule rule){
-		inferenceRules.add(rule);
+	protected void addInferenceRule(FXNodeRuleFactory ruleFactory){
+		inferenceRules.add(ruleFactory);
 	}
 
 	public List<FXNodeRule> getInferenceRules(){
-		return Collections.unmodifiableList(inferenceRules);
+		List<FXNodeRule> rules = new ArrayList<>();
+		for(FXNodeRuleFactory fac: inferenceRules){
+			rules.add(fac.make());
+		}
+		return Collections.unmodifiableList(rules);
 	}
+
 	public boolean elementExists(FX element){
 		return this.terms.contains(element);
 	}
@@ -168,6 +173,7 @@ public class FXModel {
 
 		// Add consistency table (full binary matrix)
 		setInconsistentWith(FX.Subject, FX.Predicate, FX.Slot, FX.SlotString, FX.SlotNumber, FX.Root, FX.Type, FX.TypeProperty);
+		setInconsistentWith(FX.Predicate, FX.Subject, FX.Object, FX.Container, FX.Value, FX.Type, FX.Root);
 		setInconsistentWith(FX.Object, FX.Predicate, FX.Slot, FX.SlotString, FX.SlotNumber, FX.TypeProperty);
 		setInconsistentWith(FX.TypeProperty, FX.Subject, FX.Object, FX.Slot, FX.SlotString, FX.SlotNumber, FX.Type, FX.Container, FX.Root);
 		setInconsistentWith(FX.Type, FX.Slot, FX.SlotString, FX.SlotNumber, FX.Container, FX.Value, FX.Subject, FX.Value, FX.Root);
@@ -192,461 +198,539 @@ public class FXModel {
 		// Add inference rules
 
 		// 1. If a Subject, then a Container
-		addInferenceRule(new FXNodeRule() {
+		addInferenceRule(new FXNodeRuleFactory() {
 			@Override
-			protected boolean when(Node node, FXBGPAnnotation previous) {
-				for(Triple t: previous.getOpBGP().getPattern().getList()) {
-					if (
-						node.equals(t.getSubject())
-					) {
-						set(IF.make(previous.getOpBGP(), node, FX.Container));
-						return true;
+			public FXNodeRule make() {
+				return new FXNodeRule() {
+					@Override
+					protected boolean when(Node node, FXBGPAnnotation previous) {
+						for(Triple t: previous.getOpBGP().getPattern().getList()) {
+							if (
+									node.equals(t.getSubject())
+							) {
+								set(IF.make(previous.getOpBGP(), node, FX.Container));
+								return true;
+							}
+						}
+						return false;
 					}
-				}
-				return false;
+				};
 			}
 		});
 
 		// 2. If node is fx:Root, then is Root
-		addInferenceRule(new FXNodeRule() {
+		addInferenceRule(new FXNodeRuleFactory() {
 			@Override
-			protected boolean when(Node node, FXBGPAnnotation previous) {
-				if(node.equals(FXRoot)){
-					set(IF.make(previous.getOpBGP(), node, FX.Root));
-					return true;
-				}
-				return false;
+			public FXNodeRule make() {
+				return new FXNodeRule() {
+					@Override
+					protected boolean when(Node node, FXBGPAnnotation previous) {
+						if (node.equals(FXRoot)) {
+							set(IF.make(previous.getOpBGP(), node, FX.Root));
+							return true;
+						}
+						return false;
+					}
+				};
 			}
 		});
 
 		// 3. If node is rdf:type, then is TypeProperty
-		addInferenceRule(new FXNodeRule() {
+		addInferenceRule(new FXNodeRuleFactory() {
 			@Override
-			protected boolean when(Node node, FXBGPAnnotation previous) {
-				if(node.equals(RDF.type.asNode())){
-					set(IF.make(previous.getOpBGP(), node, FX.TypeProperty));
-					return true;
-				}
-				return false;
-			}
-		});
-
-		// 4. If a Property and not a variable nor rdf:type, then a Slot
-		addInferenceRule(new FXNodeRule() {
-			@Override
-			protected boolean when(Node n, FXBGPAnnotation p) {
-				if(n.isConcrete()) {
-					// Find if predicate
-					for(Triple t: p.getOpBGP().getPattern().getList()) {
-						if (
-							n.equals(t.getPredicate()) &&
-								!n.equals(RDF.type.asNode())
-						) {
-							set(IF.make(p.getOpBGP(), n, FX.Slot));
+			public FXNodeRule make() {
+				return new FXNodeRule() {
+					@Override
+					protected boolean when(Node node, FXBGPAnnotation previous) {
+						if (node.equals(RDF.type.asNode())) {
+							set(IF.make(previous.getOpBGP(), node, FX.TypeProperty));
 							return true;
 						}
+						return false;
 					}
-				}
-				return false;
-			}
-		});
+				};
+			}});
+
+		// 4. If a Property and not a variable nor rdf:type, then a Slot
+		addInferenceRule(new FXNodeRuleFactory() {
+			@Override
+			public FXNodeRule make() {
+				return new FXNodeRule() {
+					@Override
+					protected boolean when(Node n, FXBGPAnnotation p) {
+						if (n.isConcrete()) {
+							// Find if predicate
+							for (Triple t : p.getOpBGP().getPattern().getList()) {
+								if (
+										n.equals(t.getPredicate()) &&
+												!n.equals(RDF.type.asNode())
+								) {
+									set(IF.make(p.getOpBGP(), n, FX.Slot));
+									return true;
+								}
+							}
+						}
+						return false;
+					}
+				};
+			}});
 
 
 		// 5. If Object not Var/Bnode and not fx:Root but Predicate rdf:type, then Type
-		addInferenceRule(new FXNodeRule() {
+		addInferenceRule(new FXNodeRuleFactory() {
 			@Override
-			protected boolean when(Node n, FXBGPAnnotation p) {
-				if(n.isConcrete() && !n.equals(FXRoot) ){
-					// Find the predicate
-					for(Triple t: p.getOpBGP().getPattern().getList()){
-						if(t.getObject().equals(n) &&
-							t.getPredicate().equals(RDF.type.asNode())){
-							set(IF.make(p.getOpBGP(), n, FX.Type));
-							return true;
+			public FXNodeRule make() {
+				return new FXNodeRule() {
+					@Override
+					protected boolean when(Node n, FXBGPAnnotation p) {
+						if (n.isConcrete() && !n.equals(FXRoot)) {
+							// Find the predicate
+							for (Triple t : p.getOpBGP().getPattern().getList()) {
+								if (t.getObject().equals(n) &&
+										t.getPredicate().equals(RDF.type.asNode())) {
+									set(IF.make(p.getOpBGP(), n, FX.Type));
+									return true;
+								}
+							}
 						}
+						return false;
 					}
-				}
-				return false;
-			}
-		});
+				};
+			}});
 
 		// 6. If Predicate is focus and Object is Root, then Predicate is TypeProperty
-		addInferenceRule(new FXNodeRule() {
+		addInferenceRule(new FXNodeRuleFactory() {
 			@Override
-			protected boolean when(Node n, FXBGPAnnotation p) {
-				// Find object
-				for (Triple t : p.getOpBGP().getPattern().getList()) {
-					if (t.getPredicate().equals(n) &&
-						p.getannotation(t.getObject()).getTerm().equals(FX.Root)) {
-						set(IF.make(p.getOpBGP(), n, FX.TypeProperty));
-						return true;
-					}
-				}
+			public FXNodeRule make() {
+				return new FXNodeRule() {
+					@Override
+					protected boolean when(Node n, FXBGPAnnotation p) {
+						// Find object
+						for (Triple t : p.getOpBGP().getPattern().getList()) {
+							if (t.getPredicate().equals(n) &&
+									p.getAnnotation(t.getObject()).getTerm().equals(FX.Root)) {
+								set(IF.make(p.getOpBGP(), n, FX.TypeProperty));
+								return true;
+							}
+						}
 
-				return false;
-			}
-		});
+						return false;
+					}
+				};
+			}});
 
 		// 7. If Predicate is focus and Object is Type, then Predicate is TypeProperty
-		addInferenceRule(new FXNodeRule() {
+		addInferenceRule(new FXNodeRuleFactory() {
 			@Override
-			protected boolean when(Node n, FXBGPAnnotation p) {
-				// Find object
-				for (Triple t : p.getOpBGP().getPattern().getList()) {
-					if (t.getPredicate().equals(n) &&
-						p.getannotation(t.getObject()).getTerm().equals(FX.Type)) {
-						set(IF.make(p.getOpBGP(), n, FX.TypeProperty));
-						return true;
-					}
-				}
+			public FXNodeRule make() {
+				return new FXNodeRule() {
+					@Override
+					protected boolean when(Node n, FXBGPAnnotation p) {
+						// Find object
+						for (Triple t : p.getOpBGP().getPattern().getList()) {
+							if (t.getPredicate().equals(n) &&
+									p.getAnnotation(t.getObject()).getTerm().equals(FX.Type)) {
+								set(IF.make(p.getOpBGP(), n, FX.TypeProperty));
+								return true;
+							}
+						}
 
-				return false;
-			}
-		});
+						return false;
+					}
+				};
+			}});
 
 		// 8. If Predicate is a CMP, then Predicate is SlotNumber
-		addInferenceRule(new FXNodeRule() {
+		addInferenceRule(new FXNodeRuleFactory() {
 			@Override
-			protected boolean when(Node n, FXBGPAnnotation p) {
-				String prefix = "http://www.w3.org/1999/02/22-rdf-syntax-ns#_";
-				if(n.isConcrete()){
-					for(Triple t: p.getOpBGP().getPattern().getList()) {
-						if (t.getPredicate().equals(n)) {
-							if (n.getURI().startsWith(prefix)) {
-								set(IF.make(p.getOpBGP(), n, FX.SlotNumber));
-								return true;
-							}
-						}
-					}
-				}
-				return false;
-			}
-		});
-
-		// 9. If Predicate is not Var and not rdf:type and not a CMP, then is SlotString
-		addInferenceRule(new FXNodeRule() {
-			@Override
-			protected boolean when(Node n, FXBGPAnnotation p) {
-				String prefix = "http://www.w3.org/1999/02/22-rdf-syntax-ns#_";
-				if(n.isConcrete() && !n.equals(RDF.type.asNode())){
-					for(Triple t: p.getOpBGP().getPattern().getList()) {
-						if (t.getPredicate().equals(n)) {
-							if (!n.getURI().startsWith(prefix)) {
-								set(IF.make(p.getOpBGP(), n, FX.SlotString));
-								return true;
-							}
-						}
-					}
-				}
-				return false;
-			}
-		});
-
-		// 10. If Object is Literal, then is Value
-		addInferenceRule(new FXNodeRule() {
-			@Override
-			protected boolean when(Node n, FXBGPAnnotation p) {
-				if(n.isConcrete()
-					&& n.isLiteral()){
-						set(IF.make(p.getOpBGP(), n, FX.Value));
-						return true;
-				}
-				return false;
-			}
-		});
-
-		// 11. If Object is IRI and Predicate is Slot, then Object is Container
-		addInferenceRule(new FXNodeRule() {
-			@Override
-			protected boolean when(Node n, FXBGPAnnotation p) {
-				if(n.isURI()){
-					// Find predicate
-					for(Triple t: p.getOpBGP().getPattern().getList()) {
-						if (t.getObject().equals(n)) {
-							Node r = t.getPredicate();
-							if(p.getannotation(r).getTerm().equals(FX.Slot)) {
-								set(IF.make(p.getOpBGP(), n, FX.Container));
-								return true;
-							}
-						}
-					}
-				}
-				return false;
-			}
-		});
-
-		// 12. On focus node is Predicate position: and Object is Value, then Predicate is Slot
-		addInferenceRule(new FXNodeRule() {
-			@Override
-			protected boolean when(Node n, FXBGPAnnotation p) {
-				// Find object
-				for (Triple t : p.getOpBGP().getPattern().getList()) {
-					if (t.getPredicate().equals(n)) {
-						// If object is value
-						Node o = t.getObject();
-						if (p.getannotation(o).getTerm().equals(FX.Value)) {
-							set(IF.make(p.getOpBGP(), n, FX.Slot));
-							return true;
-						}
-					}
-				}
-				return false;
-			}
-		});
-
-		// 13. Object cannot be IRI, != Root, and Root
-		addInferenceRule(new FXNodeRule() {
-
-			@Override
-			protected boolean when(Node node, FXBGPAnnotation previous) {
-				if(previous.getannotation(node).getTerm().equals(FX.Root)){
-					if(node.isURI() && !node.equals(FXRoot)){
-						setFailure();
-						return true;
-					}
-				}
-				return false;
-			}
-		});
-
-		// 14. Type cannot be the primitive Root
-		addInferenceRule(new FXNodeRule() {
-
-			@Override
-			protected boolean when(Node node, FXBGPAnnotation previous) {
-				if(previous.getannotation(node).getTerm().equals(FX.Type)){
-					if(node.equals(FXRoot)){
-						setFailure();
-						return true;
-					}
-				}
-				return false;
-			}
-		});
-
-		// 15. Object cannot be IRI and Value
-		addInferenceRule(new FXNodeRule() {
-
-			@Override
-			protected boolean when(Node node, FXBGPAnnotation previous) {
-				if(previous.getannotation(node).getTerm().equals(FX.Value)){
-					if(node.isURI()){
-						setFailure();
-						return true;
-					}
-				}
-				return false;
-			}
-		});
-
-		// 16. On focus node is Predicate position: and Object is Container, then Predicate is Slot
-		addInferenceRule(new FXNodeRule() {
-			@Override
-			protected boolean when(Node n, FXBGPAnnotation p) {
-				// Find object
-				for (Triple t : p.getOpBGP().getPattern().getList()) {
-					if (t.getPredicate().equals(n)) {
-						// If object is value
-						Node o = t.getObject();
-						if (p.getannotation(o).getTerm().equals(FX.Container)) {
-							set(IF.make(p.getOpBGP(), n, FX.Slot));
-							return true;
-						}
-					}
-				}
-				return false;
-			}
-		});
-
-		// 17. If node is predicate, and it is a slot, and is in two triples that have the same subject, they also need to have the same object
-		addInferenceRule(new FXNodeRule() {
-			@Override
-			protected boolean when(Node n, FXBGPAnnotation p) {
-				FX term = p.getannotation(n).getTerm();
-				Set<FX> spec = getSpecialisedBy(FX.Slot);
-				if(term.equals(FX.Slot) || spec.contains(term)) {
-					List<Triple> havingNodeAsP = new ArrayList<>();
-					for (Triple t : p.getOpBGP().getPattern().getList()) {
-						if (t.getPredicate().equals(n)) {
-							havingNodeAsP.add(t);
-						}
-					}
-					if (havingNodeAsP.size() > 1) {
-						//
-						Set product = Sets.cartesianProduct(ImmutableList.of(ImmutableSet.copyOf(havingNodeAsP), ImmutableSet.copyOf(havingNodeAsP)));
-						for (Object lo: product) {
-							List<Triple> ls = (List<Triple>) lo;
-							Triple l = ls.get(0);
-							Triple r = ls.get(1);
-							// If equals, OK
-							if (l.getSubject().equals(r.getSubject())) {
-								if(!l.getObject().isConcrete() ||
-								!r.getObject().isConcrete()){
-									// If either is not concrete, this is fine
-								}else{
-									if (!l.getObject().equals(r.getObject())) {
-										setFailure();
+			public FXNodeRule make() {
+				return new FXNodeRule() {
+					@Override
+					protected boolean when(Node n, FXBGPAnnotation p) {
+						String prefix = "http://www.w3.org/1999/02/22-rdf-syntax-ns#_";
+						if (n.isConcrete()) {
+							for (Triple t : p.getOpBGP().getPattern().getList()) {
+								if (t.getPredicate().equals(n)) {
+									if (n.getURI().startsWith(prefix)) {
+										set(IF.make(p.getOpBGP(), n, FX.SlotNumber));
 										return true;
 									}
 								}
 							}
 						}
+						return false;
 					}
-				}
-				return false;
-			}
-		});
-		// 18. No subject join when object is Root (no path to root...)
-		addInferenceRule(new FXNodeRule() {
+				};
+			}});
+
+		// 9. If Predicate is not Var and not rdf:type and not a CMP, then is SlotString
+		addInferenceRule(new FXNodeRuleFactory() {
 			@Override
-			protected boolean when(Node n, FXBGPAnnotation p) {
-				// Object is root
-				if(p.getannotation(n).getTerm().equals(FX.Root)){
-					for (Triple t : p.getOpBGP().getPattern().getList()) {
-						// If it is not the same node
-						if (t.getObject().equals(n) ){
-							Node subject = t.getSubject();
-							for (Triple t2 : p.getOpBGP().getPattern().getList()) {
-								if(t2.getObject().equals(subject)){
+			public FXNodeRule make() {
+				return new FXNodeRule() {
+					@Override
+					protected boolean when(Node n, FXBGPAnnotation p) {
+						String prefix = "http://www.w3.org/1999/02/22-rdf-syntax-ns#_";
+						if (n.isConcrete() && !n.equals(RDF.type.asNode())) {
+							for (Triple t : p.getOpBGP().getPattern().getList()) {
+								if (t.getPredicate().equals(n)) {
+									if (!n.getURI().startsWith(prefix)) {
+										set(IF.make(p.getOpBGP(), n, FX.SlotString));
+										return true;
+									}
+								}
+							}
+						}
+						return false;
+					}
+				};
+			}});
+
+		// 10. If Object is Literal, then is Value
+		addInferenceRule(new FXNodeRuleFactory() {
+			@Override
+			public FXNodeRule make() {
+				return new FXNodeRule() {
+					@Override
+					protected boolean when(Node n, FXBGPAnnotation p) {
+						if (n.isConcrete()
+								&& n.isLiteral()) {
+							set(IF.make(p.getOpBGP(), n, FX.Value));
+							return true;
+						}
+						return false;
+					}
+				};
+			}});
+
+		// 11. If Object is IRI and Predicate is Slot, then Object is Container
+		addInferenceRule(new FXNodeRuleFactory() {
+			@Override
+			public FXNodeRule make() {
+				return new FXNodeRule() {
+					@Override
+					protected boolean when(Node n, FXBGPAnnotation p) {
+						if (n.isURI()) {
+							// Find predicate
+							for (Triple t : p.getOpBGP().getPattern().getList()) {
+								if (t.getObject().equals(n)) {
+									Node r = t.getPredicate();
+									if (p.getAnnotation(r).getTerm().equals(FX.Slot)) {
+										set(IF.make(p.getOpBGP(), n, FX.Container));
+										return true;
+									}
+								}
+							}
+						}
+						return false;
+					}
+				};
+			}});
+
+		// 12. On focus node is Predicate position: and Object is Value, then Predicate is Slot
+		addInferenceRule(new FXNodeRuleFactory() {
+			@Override
+			public FXNodeRule make() {
+				return new FXNodeRule() {
+					@Override
+					protected boolean when(Node n, FXBGPAnnotation p) {
+						// Find object
+						for (Triple t : p.getOpBGP().getPattern().getList()) {
+							if (t.getPredicate().equals(n)) {
+								// If object is value
+								Node o = t.getObject();
+								if (p.getAnnotation(o).getTerm().equals(FX.Value)) {
+									set(IF.make(p.getOpBGP(), n, FX.Slot));
+									return true;
+								}
+							}
+						}
+						return false;
+					}
+				};
+			}});
+
+		// 13. Object cannot be IRI, != Root, and Root
+		addInferenceRule(new FXNodeRuleFactory() {
+			@Override
+			public FXNodeRule make() {
+				return new FXNodeRule() {
+
+					@Override
+					protected boolean when(Node node, FXBGPAnnotation previous) {
+						if (previous.getAnnotation(node).getTerm().equals(FX.Root)) {
+							if (node.isURI() && !node.equals(FXRoot)) {
+								setFailure();
+								return true;
+							}
+						}
+						return false;
+					}
+				};
+			}});
+
+		// 14. Type cannot be the primitive Root
+		addInferenceRule(new FXNodeRuleFactory() {
+			@Override
+			public FXNodeRule make() {
+				return new FXNodeRule() {
+
+					@Override
+					protected boolean when(Node node, FXBGPAnnotation previous) {
+						if (previous.getAnnotation(node).getTerm().equals(FX.Type)) {
+							if (node.equals(FXRoot)) {
+								setFailure();
+								return true;
+							}
+						}
+						return false;
+					}
+				};
+			}});
+
+		// 15. Object cannot be IRI and Value
+		addInferenceRule(new FXNodeRuleFactory() {
+			@Override
+			public FXNodeRule make() {
+				return new FXNodeRule() {
+
+					@Override
+					protected boolean when(Node node, FXBGPAnnotation previous) {
+						if (previous.getAnnotation(node).getTerm().equals(FX.Value)) {
+							if (node.isURI()) {
+								setFailure();
+								return true;
+							}
+						}
+						return false;
+					}
+				};
+			}});
+
+		// 16. On focus node is Predicate position: and Object is Container, then Predicate is Slot
+		addInferenceRule(new FXNodeRuleFactory() {
+			@Override
+			public FXNodeRule make() {
+				return new FXNodeRule() {
+					@Override
+					protected boolean when(Node n, FXBGPAnnotation p) {
+						// Find object
+						for (Triple t : p.getOpBGP().getPattern().getList()) {
+							if (t.getPredicate().equals(n)) {
+								// If object is value
+								Node o = t.getObject();
+								if (p.getAnnotation(o).getTerm().equals(FX.Container)) {
+									set(IF.make(p.getOpBGP(), n, FX.Slot));
+									return true;
+								}
+							}
+						}
+						return false;
+					}
+				};
+			}});
+
+		// 17. If node is predicate, and it is a slot, and is in two triples that have the same subject, they also need to have the same object
+		addInferenceRule(new FXNodeRuleFactory() {
+			@Override
+			public FXNodeRule make() {
+				return new FXNodeRule() {
+					@Override
+					protected boolean when(Node n, FXBGPAnnotation p) {
+						FX term = p.getAnnotation(n).getTerm();
+						Set<FX> spec = getSpecialisedBy(FX.Slot);
+						if (term.equals(FX.Slot) || spec.contains(term)) {
+							List<Triple> havingNodeAsP = new ArrayList<>();
+							for (Triple t : p.getOpBGP().getPattern().getList()) {
+								if (t.getPredicate().equals(n)) {
+									havingNodeAsP.add(t);
+								}
+							}
+							if (havingNodeAsP.size() > 1) {
+								//
+								Set product = Sets.cartesianProduct(ImmutableList.of(ImmutableSet.copyOf(havingNodeAsP), ImmutableSet.copyOf(havingNodeAsP)));
+								for (Object lo : product) {
+									List<Triple> ls = (List<Triple>) lo;
+									Triple l = ls.get(0);
+									Triple r = ls.get(1);
+									// If equals, OK
+									if (l.getSubject().equals(r.getSubject())) {
+										if (!l.getObject().isConcrete() ||
+												!r.getObject().isConcrete()) {
+											// If either is not concrete, this is fine
+										} else {
+											if (!l.getObject().equals(r.getObject())) {
+												setFailure();
+												return true;
+											}
+										}
+									}
+								}
+							}
+						}
+						return false;
+					}
+				};
+			}});
+		// 18. No subject join when object is Root (no path to root...)
+		addInferenceRule(new FXNodeRuleFactory() {
+			@Override
+			public FXNodeRule make() {
+				return new FXNodeRule() {
+					@Override
+					protected boolean when(Node n, FXBGPAnnotation p) {
+						// Object is root
+						if (p.getAnnotation(n).getTerm().equals(FX.Root)) {
+							for (Triple t : p.getOpBGP().getPattern().getList()) {
+								// If it is not the same node
+								if (t.getObject().equals(n)) {
+									Node subject = t.getSubject();
+									for (Triple t2 : p.getOpBGP().getPattern().getList()) {
+										if (t2.getObject().equals(subject)) {
+											setFailure();
+											return true;
+										}
+									}
+								}
+							}
+						}
+						return false;
+					}
+				};
+			}});
+
+		// 19. Matching-path constraint when node is Object and (Container or Root)
+		addInferenceRule(new FXNodeRuleFactory() {
+			@Override
+			public FXNodeRule make() {
+				return new FXNodeRule() {
+
+					@Override
+					protected boolean when(Node node, FXBGPAnnotation previous) {
+
+						// Only if node is a container or root
+						if (!previous.getAnnotation(node).getTerm().equals(FX.Container)
+								&& !previous.getAnnotation(node).getTerm().equals(FX.Root)) {
+							return false;
+						}
+
+						// Collect triples with this node as object
+						Set<Triple> withNodeAsObject = new HashSet<>();
+						for (Triple t : previous.getOpBGP().getPattern().getList()) {
+							if (t.getObject().equals(node)) {
+								withNodeAsObject.add(t);
+							}
+						}
+						// Make unique pairs
+						Set<Set<Triple>> sets = new HashSet<>();
+						for (Triple t1 : withNodeAsObject) {
+							for (Triple t2 : withNodeAsObject) {
+								if (!t1.equals(t2)) {
+									sets.add(new HashSet<>(Arrays.asList(t1, t2)));
+								}
+							}
+						}
+						List<Pair<Triple, Triple>> paris = new ArrayList<>();
+						for (Set<Triple> set : sets) {
+							Triple left = null;
+							Triple right = null;
+							for (Triple t : set) {
+								if (left == null) {
+									left = t;
+								} else if (right == null) {
+									right = t;
+								} else {
+									// This should never happen
+									throw new RuntimeException("This should never happen");
+								}
+							}
+							paris.add(Pair.of(left, right));
+						}
+						// TODO: Avoid duplicates?
+
+						// Make backward paths out of triples...
+						List<Pair<List<Node>, List<Node>>> london = new ArrayList<>();
+						for (Pair<Triple, Triple> pair : paris) {
+							london.add(Pair.of(this.asList(pair.getLeft(), previous.getOpBGP().getPattern()), this.asList(pair.getRight(), previous.getOpBGP().getPattern())));
+						}
+
+						// Verify the terms can match on each path pair
+						for (Pair<List<Node>, List<Node>> pair : london) {
+							List<Node> left = pair.getLeft();
+							List<Node> right = pair.getRight();
+
+
+							// If one of the two is shorter, its origin cannot be root
+							if (left.size() != right.size()) {
+								List<Node> shorter = left.size() < right.size() ? left : right;
+								Node shorterStart = shorter.get(shorter.size() - 1);
+								// Check that shorter cannot be a subject of a triple where object is FX.Root!
+								for (Triple t : previous.getOpBGP().getPattern().getList()) {
+									if (t.getSubject().equals(shorterStart) &&
+											previous.getAnnotation(t.getObject()).getTerm().equals(FX.Root)
+									) {
+										setFailure();
+										return true;
+									}
+								}
+							}
+
+							int maxLength = left.size() >= right.size() ? left.size() : right.size();
+							// Check if terms are compatible
+							for (int x = 0; x < maxLength; x++) {
+								Node ln;
+								if (left.size() > x) {
+									ln = left.get(x);
+								} else {
+									break;
+								}
+								Node rn;
+								if (right.size() > x) {
+									rn = right.get(x);
+								} else {
+									break;
+								}
+
+								boolean ok = false;
+								if (ln.equals(rn)) {
+									// OK
+									ok = true;
+								}
+								if (!ok && (ln.isBlank() || rn.isBlank())) {
+									// OK
+									ok = true;
+								}
+								if (!ok && (ln.isVariable() || rn.isVariable())) {
+									// OK
+									ok = true;
+								}
+								// If not OK, FAIL
+								if (!ok) {
 									setFailure();
 									return true;
 								}
 							}
 						}
+
+						return false;
 					}
-				}
-				return false;
-			}
-		});
 
-		// 19. Matching-path constraint when node is Object and (Container or Root)
-		addInferenceRule(new FXNodeRule() {
-
-			@Override
-			protected boolean when(Node node, FXBGPAnnotation previous) {
-
-				// Only if node is a container or root
-				if(!previous.getannotation(node).getTerm().equals(FX.Container)
-					&& !previous.getannotation(node).getTerm().equals(FX.Root)){
-					return false;
-				}
-
-				// Collect triples with this node as object
-				Set<Triple> withNodeAsObject = new HashSet<>();
-				for (Triple t: previous.getOpBGP().getPattern().getList()){
-					if (t.getObject().equals(node)) {
-						withNodeAsObject.add(t);
-					}
-				}
-				// Make unique pairs
-				Set<Set<Triple>> sets = new HashSet<>();
-				for (Triple t1: withNodeAsObject){
-					for (Triple t2: withNodeAsObject){
-						if(!t1.equals(t2)){
-							sets.add(new HashSet<>(Arrays.asList(t1,t2)));
-						}
-					}
-				}
-				List<Pair<Triple, Triple>> paris = new ArrayList<>();
-				for(Set<Triple> set: sets){
-					Triple left = null;
-					Triple right = null;
-					for(Triple t: set){
-						if(left == null){
-							left = t;
-						}else if(right == null){
-							right = t;
-						}else{
-							// This should never happen
-							throw new RuntimeException("This should never happen");
-						}
-					}
-					paris.add(Pair.of(left, right));
-				}
-				// TODO: Avoid duplicates?
-
-				// Make backward paths out of triples...
-				List<Pair<List<Node>, List<Node>>> london = new ArrayList<>();
-				for(Pair<Triple,Triple> pair : paris){
-					london.add(Pair.of(this.asList(pair.getLeft(), previous.getOpBGP().getPattern()),this.asList(pair.getRight(), previous.getOpBGP().getPattern())));
-				}
-
-				// Verify the terms can match on each path pair
-				for(Pair<List<Node>, List<Node>> pair : london){
-					List<Node> left = pair.getLeft();
-					List<Node> right = pair.getRight();
-
-
-					// If one of the two is shorter, its origin cannot be root
-					if(left.size() != right.size()){
-						List<Node> shorter = left.size() < right.size() ? left : right;
-						Node shorterStart = shorter.get(shorter.size()-1);
-						// Check that shorter cannot be a subject of a triple where object is FX.Root!
-						for(Triple t: previous.getOpBGP().getPattern().getList()){
-							if (t.getSubject().equals(shorterStart) &&
-								previous.getannotation(t.getObject()).getTerm().equals(FX.Root)
-							) {
-								setFailure();
-								return true;
+					List<Node> asList(Triple triple, BasicPattern pattern) {
+						List<Node> list = new ArrayList<>();
+						list.add(triple.getObject());
+						list.add(triple.getPredicate());
+						list.add(triple.getSubject());
+						// Search for subject-object join
+						for (Triple t : pattern.getList()) {
+							if (!t.equals(triple) && t.getObject().equals(triple.getSubject())) {
+								list.addAll(asList(t, pattern));
 							}
 						}
+						return list;
 					}
 
-					int maxLength = left.size() >= right.size() ? left.size() : right.size();
-					// Check if terms are compatible
-					for(int x = 0; x < maxLength; x++){
-						Node ln;
-						if(left.size() > x){
-							ln = left.get(x);
-						}else{
-							break;
-						}
-						Node rn;
-						if(right.size() > x){
-							rn = right.get(x);
-						}else{
-							break;
-						}
-
-						boolean ok = false;
-						if(ln.equals(rn)){
-							// OK
-							ok = true;
-						}
-						if(!ok && (ln.isBlank() || rn.isBlank())){
-							// OK
-							ok = true;
-						}
-						if(!ok && (ln.isVariable() || rn.isVariable())){
-							// OK
-							ok = true;
-						}
-						// If not OK, FAIL
-						if(!ok){
-							setFailure();
-							return true;
-						}
-					}
-				}
-
-				return false;
-			}
-
-			List<Node> asList(Triple triple, BasicPattern pattern){
-				List<Node> list = new ArrayList<>();
-				list.add(triple.getObject());
-				list.add(triple.getPredicate());
-				list.add(triple.getSubject());
-				// Search for subject-object join
-				for(Triple t: pattern.getList()){
-					if(!t.equals(triple) && t.getObject().equals(triple.getSubject())){
-						list.addAll(asList(t, pattern));
-					}
-				}
-				return list;
-			}
-
-		});
+				};
+			}});
 	}
 
 	/**
@@ -734,7 +818,7 @@ public class FXModel {
 					}
 					FXNodeAnnotation nni = rule.infer();
 					// Is it redundant?
-					FXNodeAnnotation prev = nibgp.getannotation(focus);
+					FXNodeAnnotation prev = nibgp.getAnnotation(focus);
 					if(nni.equals(prev)){
 						// Ignore redundant inferences, move to the next rule
 						continue;

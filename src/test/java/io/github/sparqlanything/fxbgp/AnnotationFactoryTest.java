@@ -34,7 +34,7 @@ public class AnnotationFactoryTest extends BGPTestAbstract {
 		Assert.assertTrue(ibgp.isStart());
 		Assert.assertFalse(ibgp.isGrounded());
 
-		Assert.assertTrue(ibgp.getannotationOfNodes().size() == 3);
+		Assert.assertTrue(ibgp.getAnnotationOfNodes().size() == 3);
 	}
 
 	@Test
@@ -44,7 +44,7 @@ public class AnnotationFactoryTest extends BGPTestAbstract {
 
 		Assert.assertTrue(ibgp.isStart());
 		Assert.assertFalse(ibgp.isGrounded());
-		Assert.assertTrue(ibgp.getannotationOfNodes().size() == 5);
+		Assert.assertTrue(ibgp.getAnnotationOfNodes().size() == 5);
 
 		// Let's interpret the first subject as a container
 		Node s = ibgp.getOpBGP().getPattern().getList().iterator().next().getSubject();

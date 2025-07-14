@@ -1,6 +1,7 @@
 package io.github.sparqlanything.fxbgp;
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.slf4j.Logger;
@@ -36,20 +37,30 @@ public class AnalyserAsSearch implements Analyser {
 		// We make a starting annotation. This is the root of the search space.
 		FXBGPAnnotation start = FXM.getIF().make(bgp);
 
+		Set<Node> s = new HashSet<>();
+		Set<Node> p = new HashSet<>();
+		Set<Node> o = new HashSet<>();
 		// For any triple, s, p, o are all different
+		// No P-O or P-S joins
 		for(Triple t : bgp.getPattern()){
 			if(t.getSubject().equals(t.getObject()) ||
 				t.getSubject().equals(t.getPredicate()) ||
 				t.getObject().equals(t.getPredicate()) ){
 				return Collections.emptySet();
 			}
+			if(p.contains(t.getSubject()) || o.contains(t.getPredicate())
+					|| s.contains(t.getPredicate()) || p.contains(t.getObject())){
+				return Collections.emptySet();
+			}
+			s.add(t.getSubject());
+			p.add(t.getPredicate());
+			o.add(t.getObject());
 		}
 
 		// No cycles are allowed
 		if(FXM.hasCycle(bgp)){
 			return Collections.emptySet();
 		}
-
 		iteration = 0;
 		Set<FXBGPAnnotation> annotations = annotate(start, new HashSet<>(), complete);
 		//L.info("{} iterations",iteration);
@@ -77,11 +88,12 @@ public class AnalyserAsSearch implements Analyser {
 
 			// Make inferences
 			for(Node focus: nibgp.nodes()) {
-					// For each node, run inference rules
+				// For each node, run inference rules
 				List<FXNodeRule> rules = FXM.getInferenceRules();
 				for(FXNodeRule rule: rules){
 					// For each rule that resolves, check if annotation is consistent
 					boolean resolves = rule.when(focus, nibgp);
+
 					if(resolves){
 						if(rule.failure()){
 							inconsistent = true;
@@ -89,11 +101,8 @@ public class AnalyserAsSearch implements Analyser {
 						}
 
 						FXNodeAnnotation nni = rule.infer();
-						if(nni == null){
-							throw new RuntimeException("This should never happen");
-						}
 						// Is it redundant?
-						FXNodeAnnotation prev = nibgp.getannotation(focus);
+						FXNodeAnnotation prev = nibgp.getAnnotation(focus);
 						if(prev.equals(nni)){
 							// Ignore redundant inferences, move to the next rule
 							continue;
@@ -169,7 +178,7 @@ public class AnalyserAsSearch implements Analyser {
 		}else{
 			Set<FXBGPAnnotation> annotations = new HashSet<>();
 			boolean hasSpecialisations = false;
-			for(FXNodeAnnotation ni: annotation.getannotationOfNodes().values()){
+			for(FXNodeAnnotation ni: annotation.getAnnotationOfNodes().values()){
 				for(FXNodeAnnotation in: specialise(ni) ) {
 					annotations.add(FXM.getIF().make(annotation, in));
 					hasSpecialisations = true;

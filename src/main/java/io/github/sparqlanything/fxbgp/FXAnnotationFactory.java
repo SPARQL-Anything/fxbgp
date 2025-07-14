@@ -103,7 +103,7 @@ public class FXAnnotationFactory {
 			this.previous = previous;
 			this.bgp = previous.getOpBGP();
 			// Inherit all previous annotations
-			nodeInderpretations.putAll(previous.getannotationOfNodes());
+			nodeInderpretations.putAll(previous.getAnnotationOfNodes());
 			// ... except for this node
 			nodeInderpretations.put(newannotation.getNode(),newannotation);
 			// Compute if this is grounded
@@ -120,7 +120,7 @@ public class FXAnnotationFactory {
 		}
 
 		@Override
-		public Map<Node, FXNodeAnnotation>  getannotationOfNodes() {
+		public Map<Node, FXNodeAnnotation> getAnnotationOfNodes() {
 			return Collections.unmodifiableMap(nodeInderpretations);
 		}
 
@@ -135,7 +135,7 @@ public class FXAnnotationFactory {
 		}
 
 		@Override
-		public FXNodeAnnotation getannotation(Node node) {
+		public FXNodeAnnotation getAnnotation(Node node) {
 			return nodeInderpretations.get(node);
 		}
 
@@ -158,7 +158,7 @@ public class FXAnnotationFactory {
 		public boolean equals(Object obj) {
 			if(obj instanceof FXBGPAnnotation){
 				boolean samebgp = ((FXBGPAnnotation)obj).getOpBGP().getPattern().equals(this.getOpBGP().getPattern());
-				boolean sameint = ((FXBGPAnnotation)obj).getannotationOfNodes().equals(this.getannotationOfNodes());
+				boolean sameint = ((FXBGPAnnotation)obj).getAnnotationOfNodes().equals(this.getAnnotationOfNodes());
 				return sameint && samebgp;
 			}
 			return false;
@@ -169,9 +169,9 @@ public class FXAnnotationFactory {
 			StringBuilder sb = new StringBuilder();
 			sb.append(Integer.toString(hashCode())).append("@( ");
 			for(Triple t: getOpBGP().getPattern()){
-					sb.append(getannotation(t.getSubject()))
-					.append(getannotation(t.getPredicate()))
-					.append(getannotation(t.getObject())).append(" . ");
+					sb.append(getAnnotation(t.getSubject()))
+					.append(getAnnotation(t.getPredicate()))
+					.append(getAnnotation(t.getObject())).append(" . ");
 			}
 			return sb.append(" ) ").toString();
 		}
