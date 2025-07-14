@@ -21,7 +21,7 @@ or
 mvn test
 ```
 
-## Rune experiments 10 times
+## Run the experiments 10 times
 
 Use the script runAll.sh to generate 10 execution files EXPERIMENTS-run-`N`.md/.csv
 
