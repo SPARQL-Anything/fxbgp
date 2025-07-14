@@ -6,7 +6,7 @@ Top down / Search: [AnalyserAsSearch](src/main/java/io/github/sparqlanything/fxb
 
 Bottom up / CSP: [AnalyserGrounder](src/main/java/io/github/sparqlanything/fxbgp/AnalyserGrounder.java) (efficient)
 
-See [EXPERIMENTS.md](EXPERIMENTS.md)
+See [EXPERIMENTS.md](EXPERIMENTS.md) for an example of output.
 
 ## Build and run experiments
 Building or running tests with maven will also re-generate the file EXPERIMENTS.md
@@ -20,6 +20,12 @@ or
 ```
 mvn test
 ```
+
+## Rune experiments 10 times
+
+Use the script runAll.sh to generate 10 execution files EXPERIMENTS-run-`N`.md/.csv
+
+The script was tested only on a MacBook Pro environment.
 
 ## Build tables
 
