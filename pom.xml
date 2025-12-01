@@ -30,15 +30,20 @@
 	</properties>
 	<artifactId>sparql-anything-fxbgp</artifactId>
 	<dependencies>
+        <dependency>
+            <groupId>io.github.sparql-anything</groupId>
+            <artifactId>sparql-anything-model</artifactId>
+            <version>${revision}</version>
+        </dependency>
 		<dependency>
 			<groupId>io.github.sparql-anything</groupId>
-			<artifactId>sparql-anything-model</artifactId>
-			<version>${project.version}</version>
+			<artifactId>sparql-anything-csv</artifactId>
+			<version>${revision}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.github.sparql-anything</groupId>
 			<artifactId>sparql-anything-testutils</artifactId>
-			<version>${project.version}</version>
+			<version>${revision}</version>
 			<scope>test</scope>
 		</dependency>
 
