@@ -99,19 +99,19 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
 
         Set<Matching> spawned = new HashSet<>();
         Set<Matching> completed = new HashSet<>();
-        L.info("node {}", node);
-        L.info("component {}", component);
-        L.info("matches {}", matches.size());
         for(Matching matching: matches){
+//            L.info(" {} >> {} ??", node, matching.getMap().size());
             Set<Matching> spawn = matching.check(node, component);
             spawned.addAll(spawn);
-            if(matching.getMap().size() > 2){
-                L.info("{}", matching.getMap());
-            }
+//            L.info(" {} << {} ??", node, matching.getMap().size());
             if(matching.getMap().size() == pattern.nodes().size()){
                 addQuerySolution(matching);
                 completed.add(matching);
             }
+        }
+        if(L.isTraceEnabled()) {
+            L.trace("node {} ({})", node, component.getName());
+            L.trace("matches {}; completed {} spawned {}", new Object[]{matches.size(), completed.size(), spawned.size() });
         }
         this.matches.removeAll(completed);
         this.matches.addAll(spawned);

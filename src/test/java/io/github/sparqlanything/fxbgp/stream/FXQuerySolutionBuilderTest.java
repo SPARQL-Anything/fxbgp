@@ -2,7 +2,6 @@ package io.github.sparqlanything.fxbgp.stream;
 
 import io.github.sparqlanything.fxbgp.AnalyserGrounder;
 import io.github.sparqlanything.fxbgp.BGPTestUtils;
-import io.github.sparqlanything.fxbgp.FX;
 import io.github.sparqlanything.fxbgp.FXBGPAnnotation;
 import io.github.sparqlanything.fxbgp.FXModel;
 import org.apache.jena.graph.Node;
@@ -44,7 +43,7 @@ public class FXQuerySolutionBuilderTest extends BGPTestUtils {
     }
 
     @Test
-    public void m1() throws IOException, NotAStarException {
+    public void m1() throws IOException, NotATreeException {
         prepare(this.testName.getMethodName());
         process();
         Assert.assertEquals(1, this.solutions.size());
@@ -63,7 +62,7 @@ public class FXQuerySolutionBuilderTest extends BGPTestUtils {
     public void m3() throws IOException {
         prepare(this.testName.getMethodName());
         process();
-        //Assert.assertEquals(1, this.solutions.size());
+        Assert.assertEquals(1, this.solutions.size());
         QuerySolution qs = this.solutions.iterator().next();
         qs.contains("a");
         qs.contains("A");
@@ -84,7 +83,11 @@ public class FXQuerySolutionBuilderTest extends BGPTestUtils {
                 L.info("Annotation: {}", annotation);
             }
             Assert.assertEquals(1, annotations.size());
-            pattern = FXTreePattern.make(annotations.iterator().next());
+            try {
+                pattern = FXTreePattern.make(annotations.iterator().next());
+            } catch (NotATreeException e) {
+                throw new RuntimeException(e);
+            }
         }
         return pattern;
     }
@@ -120,7 +123,7 @@ public class FXQuerySolutionBuilderTest extends BGPTestUtils {
         Node _3 = l("3");
         this.builder.startContainer(root);
         this.builder.onTypeProperty();
-        this.builder.onType(fxr);
+        this.builder.onTypeRoot();
         this.builder.onSlotNumber(r_1);
         this.builder.startContainer(row1);
         this.builder.onSlotNumber(c_1);

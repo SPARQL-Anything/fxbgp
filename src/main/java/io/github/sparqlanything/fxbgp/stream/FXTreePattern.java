@@ -4,6 +4,8 @@ import io.github.sparqlanything.fxbgp.FXBGPAnnotation;
 import io.github.sparqlanything.fxbgp.FXNodeAnnotation;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,20 +20,17 @@ public class FXTreePattern {
     private Set<Node> nodes;
     private FXNode root;
     private Set<Node> variables;
-    private FXTreePattern(FXBGPAnnotation bpa) {
-        // Assumption: is a star pattern
-        // Verify it is a star pattern
-        // Subjects must all be joined
-        Node root = null;
+    private FXTreePattern(FXBGPAnnotation bpa) throws NotATreeException {
+        // Verify it is a tree pattern
+        // All but one subject must be objects as well
         Set<Node> nodes = new HashSet<>();
         Set<Node> variables = new HashSet<>();
+        Set<Node> subjects = new HashSet<>();
+//        Set<Node> predicates = new HashSet<>();
+        Set<Node> objects = new HashSet<>();
         for(Triple t : bpa.getOpBGP().getPattern()){
-            if(root == null) {
-                root = t.getSubject();
-            }
-//            else if(!root.equals(t.getSubject())) {
-//                throw new NotAStarException(bpa.getOpBGP().getPattern());
-//            }
+            subjects.add(t.getSubject());
+            objects.add(t.getObject());
             if(t.getSubject().isVariable()){
                 variables.add(t.getSubject());
             }
@@ -45,12 +44,19 @@ public class FXTreePattern {
             nodes.add(t.getPredicate());
             nodes.add(t.getObject());
         }
-        this.root = makeRoot(root, bpa);
+
+        // Root candidates
+        subjects.removeAll(objects);
+        if(subjects.size() != 1){
+            throw new NotATreeException(bpa.getOpBGP().getPattern());
+        }
+        // Determine root first
+        this.root = makeRoot(subjects.iterator().next(), bpa);
         this.variables = Collections.unmodifiableSet(variables);
         this.nodes = Collections.unmodifiableSet(nodes);
     }
 
-    public static FXTreePattern make(FXBGPAnnotation bpa) {
+    public static FXTreePattern make(FXBGPAnnotation bpa) throws NotATreeException {
         return new FXTreePattern(bpa);
     }
 
@@ -58,15 +64,15 @@ public class FXTreePattern {
         return makeNode(null, node, bpa);
     }
 
-    private static List<FXNode> makeChildren(Node node, FXBGPAnnotation bpa) {
+    private static List<FXNode> makeChildren(Node parent, Node node, FXBGPAnnotation bpa) {
         List<FXNode> children = new ArrayList<>();
         for(Triple t : bpa.getOpBGP().getPattern()){
             if(t.getSubject().equals(node)) {
                 children.add(makeNode(node, t.getPredicate(), bpa));
-            }else if(t.getPredicate().equals(node)) {
+            }else if(t.getPredicate().equals(node) && t.getSubject().equals(parent)) {
                 children.add(makeNode(node, t.getObject(), bpa));
             }else if(t.getObject().equals(node)) {
-                // Ignore
+                // Ignore, only subjects have children
             }
         }
         return Collections.unmodifiableList(children);
@@ -74,7 +80,7 @@ public class FXTreePattern {
 
     private static FXNode makeNode(Node parent, Node node, FXBGPAnnotation bpa) {
         FXNodeAnnotation annotation = bpa.getAnnotation(node);
-        List<FXNode> children = makeChildren(node, bpa);
+        List<FXNode> children = makeChildren(parent, node, bpa);
         return new FXNode(node,  annotation, children);
     }
 

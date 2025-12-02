@@ -31,7 +31,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     }
 
     @Test
-    public void test1_csv_all() throws IOException {
+    public void test1_csv_all() throws IOException, NotATreeException {
         String name = testName.getMethodName();
         prepare(name);
         Iterator<QuerySolution> it = executor.exec(new OpBGP(bp), properties());
@@ -43,7 +43,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
 
 
     @Test
-    public void test1_csv_strict() throws IOException, NotAStarException {
+    public void test1_csv_strict() throws IOException, NotATreeException {
         String name = testName.getMethodName();
         prepare(name);
         Iterator<QuerySolution> it = executor.exec(new OpBGP(bp), properties());

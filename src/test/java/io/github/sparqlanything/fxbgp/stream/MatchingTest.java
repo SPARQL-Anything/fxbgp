@@ -5,7 +5,6 @@ import io.github.sparqlanything.fxbgp.BGPTestUtils;
 import io.github.sparqlanything.fxbgp.FX;
 import io.github.sparqlanything.fxbgp.FXBGPAnnotation;
 import io.github.sparqlanything.fxbgp.FXModel;
-import io.github.sparqlanything.model.IRIArgument;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.sparql.algebra.op.OpBGP;
@@ -20,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -58,6 +56,11 @@ public class MatchingTest extends BGPTestUtils {
         Assert.assertFalse(m.isEmpty());
         Assert.assertFalse(m.getMap().isEmpty());
         Assert.assertTrue(m.size() == 5);
+        FXTreePattern p = pattern();
+        System.out.println(p.variables());
+        System.out.println(p.nodes());
+
+        L.info("{} {} ",m.getMap().size(), pattern().nodes().size() );
         Assert.assertTrue(m.getMap().size() == pattern().nodes().size());
         // Even if the matching is complete, it is marked as unresolvable when a new node event is triggered
         Assert.assertTrue(m.isUnresolvable());
@@ -65,6 +68,7 @@ public class MatchingTest extends BGPTestUtils {
 
 
     private void prepare(String easyBGPName) throws IOException {
+        L.info("Test " + easyBGPName + " started");
         this.bp = readBGP("./stream/" + easyBGPName);
     }
 
@@ -74,7 +78,11 @@ public class MatchingTest extends BGPTestUtils {
             AnalyserGrounder ag = new AnalyserGrounder(new Properties(), FXModel.getFXModel());
             Set<FXBGPAnnotation> annotations = ag.annotate(new OpBGP(this.bp), true);
             Assert.assertEquals(1, annotations.size());
-            pattern = FXTreePattern.make(annotations.iterator().next());
+            try {
+                pattern = FXTreePattern.make(annotations.iterator().next());
+            } catch (NotATreeException e) {
+                throw new RuntimeException(e);
+            }
         }
         return pattern;
     }

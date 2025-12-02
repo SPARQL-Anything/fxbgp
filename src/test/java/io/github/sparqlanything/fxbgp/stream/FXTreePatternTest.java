@@ -38,34 +38,47 @@ public class FXTreePatternTest extends BGPTestAbstract {
     }
 
     @Test
-    public void TPT1() throws IOException, NotAStarException {
+    public void TPT1() throws IOException {
         loadBGP(name.getMethodName());
         patterns = buildPatterns(annotations());
         printTrees();
     }
 
     @Test
-    public void TPT2() throws IOException, NotAStarException {
+    public void TPT2() throws IOException, NotATreeException {
         loadBGP(name.getMethodName());
         patterns = buildPatterns(annotations());
         printTrees();
     }
 
-    private void printTrees() throws NotAStarException {
+    @Test
+    public void TPT3() throws IOException, NotATreeException {
+        loadBGP(name.getMethodName());
+        patterns = buildPatterns(annotations());
+        printTrees();
+    }
+
+    private void printTrees() {
+        int c = 0;
         for (FXTreePattern p: patterns) {
             StringBuilder sb = new StringBuilder();
-            printTree(sb, p.getRoot());
+            printTree(c++, sb, p.getRoot());
             System.out.println(sb.toString());
         }
     }
 
-    private void printTree(StringBuilder sb, FXNode focus) {
-        int depth = 0;
-        FXNode node = focus;
-        while(!node.isRoot()) {
-            depth++;
-            node = node.getParent();
+    private void printTree(int c, StringBuilder sb, FXNode focus) {
+        if(focus.isRoot()){
+            L.info("Printing tree {}", c);
         }
+
+        int depth = 0;
+        FXNode r = focus;
+        while(!r.isRoot()) {
+            depth++;
+            r = r.getParent();
+        }
+
         if(sb.length() > 0) {
             sb.append("\n");
             sb.append(StringUtils.pad("", depth,"-", false));
@@ -75,14 +88,18 @@ public class FXTreePatternTest extends BGPTestAbstract {
         sb.append(focus.getAnnotation());
         sb.append("]");
         for(FXNode ch: focus.getChildren()){
-            printTree(sb, ch);
+            printTree(c, sb, ch);
         }
     }
 
-    private Set<FXTreePattern> buildPatterns(Set<FXBGPAnnotation> annotations) throws NotAStarException {
+    private Set<FXTreePattern> buildPatterns(Set<FXBGPAnnotation> annotations) {
         Set<FXTreePattern> patterns = new HashSet<>();
         for(FXBGPAnnotation annotation : annotations) {
-            patterns.add(FXTreePattern.make(annotation));
+            try {
+                patterns.add(FXTreePattern.make(annotation));
+            } catch (NotATreeException e) {
+                throw new RuntimeException(e);
+            }
         }
         return Collections.unmodifiableSet(patterns);
     }
