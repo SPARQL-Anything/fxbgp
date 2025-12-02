@@ -3,15 +3,13 @@ package io.github.sparqlanything.fxbgp.stream;
 import io.github.sparqlanything.fxbgp.AnalyserGrounder;
 import io.github.sparqlanything.fxbgp.FXBGPAnnotation;
 import io.github.sparqlanything.fxbgp.FXModel;
-import io.github.sparqlanything.model.FacadeXGraphBuilder;
 import io.github.sparqlanything.model.TriplifierHTTPException;
-import org.apache.jena.graph.Node;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.sparql.algebra.op.OpBGP;
-import org.apache.jena.sparql.core.DatasetGraph;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Properties;
@@ -23,10 +21,11 @@ import java.util.concurrent.Executors;
  * This is a temporary implementation; we will need to change the Triplifier interface and replace FacadeXGraphBuilder with an intermediate interface that returns the iterator of query solutions
  *
  */
-public class FXBGPExecutor {
-    private Set<QuerySolution> solutions = new HashSet<>();
-    private boolean complete = false;
-    public Iterator<QuerySolution> exec(OpBGP bgp, Properties properties) throws NotAStarException {
+public class FXStreamExecutor {
+    private static final Logger L = LoggerFactory.getLogger(FXStreamExecutor.class);
+    private volatile Set<QuerySolution> solutions = new HashSet<>();
+    private volatile boolean complete = false;
+    public Iterator<QuerySolution> exec(OpBGP bgp, Properties properties) {
         // TODO choose the FX model specific to the format.
         AnalyserGrounder ag = new AnalyserGrounder(properties, FXModel.getFXModel());
         Set<FXBGPAnnotation> annotations = ag.annotate(bgp, true);
@@ -46,6 +45,7 @@ public class FXBGPExecutor {
                 triplifier2.triplify(properties,
                         new StreamEventsHandler(properties,
                                 FXProxyEventListener.make(patterns)));
+                complete = true;
             } catch (IOException e) {
                 complete = true; // Let's leave the other thread in peace.
                 throw new RuntimeException(e);
@@ -53,7 +53,10 @@ public class FXBGPExecutor {
                 complete = true; // Let's leave the other thread in peace.
                 throw new RuntimeException(e);
             }
+            L.info("================ FINISHED ==========");
         });
+
+
         // Solution returns the iteator and waits
         return new Iterator<QuerySolution>() {
 
@@ -69,7 +72,9 @@ public class FXBGPExecutor {
 
             @Override
             public QuerySolution next() {
-                return solutions.iterator().next();
+                QuerySolution solution = solutions.iterator().next();
+                solutions.remove(solution);
+                return solution;
             }
         };
     }

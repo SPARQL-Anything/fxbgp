@@ -39,14 +39,14 @@ public class FXTreePatternTest extends BGPTestAbstract {
 
     @Test
     public void TPT1() throws IOException, NotAStarException {
-        readBGP(name.getMethodName());
+        loadBGP(name.getMethodName());
         patterns = buildPatterns(annotations());
         printTrees();
     }
 
     @Test
     public void TPT2() throws IOException, NotAStarException {
-        readBGP(name.getMethodName());
+        loadBGP(name.getMethodName());
         patterns = buildPatterns(annotations());
         printTrees();
     }

@@ -10,6 +10,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -177,6 +178,7 @@ public class ExperimentsTest extends BGPTestAbstract {
 
     private static File[] files;
 
+    @Ignore // We only needed that for the paper
     @Test
     public void TopDown() throws IOException {
         AnalyserAsSearch topDown = new AnalyserAsSearch(properties, FXM());
@@ -199,6 +201,7 @@ public class ExperimentsTest extends BGPTestAbstract {
         println("");
     }
 
+    @Ignore // We only needed that for the paper
     @Test
     public void BottomUp() throws IOException {
         Analyser bottomUp = new AnalyserGrounder(properties, FXM());
@@ -236,7 +239,7 @@ public class ExperimentsTest extends BGPTestAbstract {
                     //runInThread(analyser, file, complete);
 
                     bp = new BasicPattern();
-                    readBGP(file.toURI().toURL());
+                    loadBGP(file.toURI().toURL());
                     long start = System.currentTimeMillis();
                     Set<FXBGPAnnotation> anns = analyser.annotate(new OpBGP(bp()), complete);
                     long  end = System.currentTimeMillis();
@@ -324,7 +327,7 @@ public class ExperimentsTest extends BGPTestAbstract {
     public void run(Analyser analyser, File file, boolean complete) throws IOException {
         // Preparation
         bp = new BasicPattern();
-        readBGP(file.toURI().toURL());
+        loadBGP(file.toURI().toURL());
         long start = System.currentTimeMillis();
         lastannotations = analyser.annotate(new OpBGP(bp()), complete);
         long end = System.currentTimeMillis();

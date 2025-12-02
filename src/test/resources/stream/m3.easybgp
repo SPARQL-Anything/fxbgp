@@ -1,0 +1,5 @@
+?r a <http://sparql.xyz/facade-x/ns/root>
+?r <http://www.w3.org/1999/02/22-rdf-syntax-ns#_1> ?a
+?a <http://www.w3.org/1999/02/22-rdf-syntax-ns#_1> "A"
+?a <http://www.w3.org/1999/02/22-rdf-syntax-ns#_2> "B"
+?a <http://www.w3.org/1999/02/22-rdf-syntax-ns#_3> "C"

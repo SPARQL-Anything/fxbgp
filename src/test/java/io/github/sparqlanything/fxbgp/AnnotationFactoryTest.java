@@ -28,7 +28,7 @@ public class AnnotationFactoryTest extends BGPTestAbstract {
 
 	@Test
 	public void testIF1() throws IOException {
-		readBGP(name.getMethodName().substring(4));
+		loadBGP(name.getMethodName().substring(4));
 		FXBGPAnnotation ibgp = IF.make(new OpBGP(bp()));
 
 		Assert.assertTrue(ibgp.isStart());
@@ -39,7 +39,7 @@ public class AnnotationFactoryTest extends BGPTestAbstract {
 
 	@Test
 	public void testIF2() throws IOException {
-		readBGP(name.getMethodName().substring(4));
+		loadBGP(name.getMethodName().substring(4));
 		FXBGPAnnotation ibgp = IF.make(new OpBGP(bp()));
 
 		Assert.assertTrue(ibgp.isStart());
@@ -56,7 +56,7 @@ public class AnnotationFactoryTest extends BGPTestAbstract {
 
 	@Test
 	public void equalsOfBGP() throws IOException {
-		readBGP("IF1");
+		loadBGP("IF1");
 		FXBGPAnnotation ibgp = IF.make(new OpBGP(bp()));
 		FXBGPAnnotation ibgp2 = IF.make(new OpBGP(bp()));
 		Assert.assertEquals(ibgp, ibgp2);
@@ -65,7 +65,7 @@ public class AnnotationFactoryTest extends BGPTestAbstract {
 
 	@Test
 	public void equalsOfNode() throws IOException {
-		readBGP("IF1");
+		loadBGP("IF1");
 		FXNodeAnnotation in = IF.make(new OpBGP(bp()), new OpBGP(bp()).getPattern().getList().get(0).getSubject(), FX.Container);
 		FXNodeAnnotation in2 = IF.make(new OpBGP(bp()), new OpBGP(bp()).getPattern().getList().get(0).getSubject(), FX.Container);
 		Assert.assertEquals(in, in2);
@@ -73,7 +73,7 @@ public class AnnotationFactoryTest extends BGPTestAbstract {
 
 	@Test
 	public void hashcodeOfBGP() throws IOException {
-		readBGP("IF1");
+		loadBGP("IF1");
 		FXBGPAnnotation ibgp = IF.make(new OpBGP(bp()));
 		FXBGPAnnotation ibgp2 = IF.make(new OpBGP(bp()));
 		Assert.assertEquals(ibgp.hashCode(), ibgp2.hashCode());
@@ -82,7 +82,7 @@ public class AnnotationFactoryTest extends BGPTestAbstract {
 
 	@Test
 	public void hashcodeOfNode() throws IOException {
-		readBGP("IF1");
+		loadBGP("IF1");
 		FXNodeAnnotation in = IF.make(new OpBGP(bp()), new OpBGP(bp()).getPattern().getList().get(0).getSubject(), FX.Container);
 		FXNodeAnnotation in2 = IF.make(new OpBGP(bp()), new OpBGP(bp()).getPattern().getList().get(0).getSubject(), FX.Container);
 		Assert.assertEquals(in, in2);

@@ -13,7 +13,7 @@ import java.util.Set;
 class Matching {
     private Map<FXNode, Node> map;
     private Set<FXNode> cursor;
-
+    private boolean unresolvable = false;
     // The first cursor is always the root of the pattern
     Matching(FXNode cursor, Node node) {
         this.cursor = new HashSet<>();
@@ -62,6 +62,9 @@ class Matching {
         this.cursor = next;
     }
 
+    public void unset(FXNode patternNode) {
+        this.map.remove(patternNode);
+    }
     public Matching copy(){
         return new Matching(this.map, this.cursor);
     }
@@ -75,12 +78,13 @@ class Matching {
                 // Is it matching the component type?
                 if(child.getAnnotation().getTerm().equals(component)){
                     // Do the incoming node matches the pattern node?
-                    if(node.matches(child.getNode())){
+                    if(nodeMatches(child.getNode(), node)){
                         childrenFound.add(child);
                         // Does the map already contains a match?
                         if(map.containsKey(child)){
                             Matching copy = this.copy();
                             spawned.add(copy);
+                            copy.unset(child);
                             copy.set(child, node);
                         }else{
                             this.set(child, node);
@@ -111,5 +115,51 @@ class Matching {
             }
         }
         return spawned;
+    }
+
+    public void endContainer(){
+        // What happens to these matches if a container is closed?
+        // Look at cursors
+        for(FXNode c : this.cursor) {
+            // if the cursor is a container, rollback to the parent container
+            if(c.getAnnotation().getTerm().equals(FX.Container)){
+                if(!c.isRoot()) {
+                    rollback(2);
+                }else{
+                    // If it is the root node, and the map is incomplete, there is no solution
+                    // (if the matches where completed, they would have been removed)
+                    // mark this as unresolvable
+                    this.unresolvable = true;
+                    return;
+                }
+            }else if(c.getAnnotation().getTerm().equals(FX.SlotNumber)
+            || c.getAnnotation().getTerm().equals(FX.TypeProperty) ||
+                    c.getAnnotation().getTerm().equals(FX.SlotString) ){
+                this.unresolvable = true;
+                return;
+            }
+            // I would assume there is either a single container or a set of properties here
+        }
+    }
+
+    public boolean isUnresolvable() {
+        return unresolvable;
+    }
+
+
+    public static boolean nodeMatches(Node patternNode, Node dataNode){
+        if(patternNode.isBlank()){
+            return true;
+        }
+        if(patternNode.isVariable()){
+            return true;
+        }
+        if(patternNode.isURI() && patternNode.sameTermAs(dataNode)){
+            return true;
+        }
+        if(patternNode.isLiteral() && patternNode.sameValueAs(dataNode)){
+            return true;
+        }
+        return false;
     }
 }

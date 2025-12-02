@@ -18,7 +18,7 @@ public class FXTreePattern {
     private Set<Node> nodes;
     private FXNode root;
     private Set<Node> variables;
-    private FXTreePattern(FXBGPAnnotation bpa) throws NotAStarException {
+    private FXTreePattern(FXBGPAnnotation bpa) {
         // Assumption: is a star pattern
         // Verify it is a star pattern
         // Subjects must all be joined
@@ -28,9 +28,10 @@ public class FXTreePattern {
         for(Triple t : bpa.getOpBGP().getPattern()){
             if(root == null) {
                 root = t.getSubject();
-            } else if(!root.equals(t.getSubject())) {
-                throw new NotAStarException(bpa.getOpBGP().getPattern());
             }
+//            else if(!root.equals(t.getSubject())) {
+//                throw new NotAStarException(bpa.getOpBGP().getPattern());
+//            }
             if(t.getSubject().isVariable()){
                 variables.add(t.getSubject());
             }
@@ -49,15 +50,15 @@ public class FXTreePattern {
         this.nodes = Collections.unmodifiableSet(nodes);
     }
 
-    public static FXTreePattern make(FXBGPAnnotation bpa) throws NotAStarException {
+    public static FXTreePattern make(FXBGPAnnotation bpa) {
         return new FXTreePattern(bpa);
     }
 
-    private static FXNode makeRoot(Node node, FXBGPAnnotation bpa) throws NotAStarException {
+    private static FXNode makeRoot(Node node, FXBGPAnnotation bpa) {
         return makeNode(null, node, bpa);
     }
 
-    private static List<FXNode> makeChildren(Node node, FXBGPAnnotation bpa) throws NotAStarException {
+    private static List<FXNode> makeChildren(Node node, FXBGPAnnotation bpa) {
         List<FXNode> children = new ArrayList<>();
         for(Triple t : bpa.getOpBGP().getPattern()){
             if(t.getSubject().equals(node)) {
@@ -71,7 +72,7 @@ public class FXTreePattern {
         return Collections.unmodifiableList(children);
     }
 
-    private static FXNode makeNode(Node parent, Node node, FXBGPAnnotation bpa) throws NotAStarException {
+    private static FXNode makeNode(Node parent, Node node, FXBGPAnnotation bpa) {
         FXNodeAnnotation annotation = bpa.getAnnotation(node);
         List<FXNode> children = makeChildren(node, bpa);
         return new FXNode(node,  annotation, children);

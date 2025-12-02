@@ -29,7 +29,7 @@ public class AnalyserTest extends BGPTestAbstract {
 
 	@Test
 	public void AT1() throws IOException {
-		readBGP(name.getMethodName());
+		add(BGPTestUtils.readBGP(name.getMethodName()));
 		Assert.assertEquals(6,annotations().size());
 		for(FXBGPAnnotation fi: annotations()){
 			L.info("{}",fi.toString());
@@ -39,7 +39,7 @@ public class AnalyserTest extends BGPTestAbstract {
 
 	@Test
 	public void AT2() throws IOException {
-		readBGP(name.getMethodName());
+		loadBGP(name.getMethodName());
 		Assert.assertEquals(36,annotations().size());
 		for(FXBGPAnnotation fi: annotations()){
 			L.info("AT2 -- {}",fi.toString());
@@ -49,7 +49,7 @@ public class AnalyserTest extends BGPTestAbstract {
 
 	@Test
 	public void AT3() throws IOException {
-		readBGP(name.getMethodName());
+		loadBGP(name.getMethodName());
 		L.info("Size: {}",annotations().size());
 		for(FXBGPAnnotation fi: annotations()){
 			L.info("{}",fi.toString());
@@ -59,90 +59,90 @@ public class AnalyserTest extends BGPTestAbstract {
 
 	@Test
 	public void NS1() throws IOException {
-		readBGP(name.getMethodName());
+		loadBGP(name.getMethodName());
 		Assert.assertEquals(0, annotations().size());
 	}
 
 	@Test
 	public void NS2() throws IOException {
-		readBGP(name.getMethodName());
+		loadBGP(name.getMethodName());
 		Assert.assertEquals(0, annotations().size());
 	}
 
 	@Test
 	public void NS3() throws IOException {
-		readBGP(name.getMethodName());
+		loadBGP(name.getMethodName());
 		Assert.assertEquals(0, annotations().size());
 	}
 
 
 	@Test
 	public void NS4() throws IOException {
-		readBGP(name.getMethodName());
+		loadBGP(name.getMethodName());
 		Assert.assertEquals(0, annotations().size());
 	}
 
 
 	@Test
 	public void NS5() throws IOException {
-		readBGP(name.getMethodName());
+		loadBGP(name.getMethodName());
 		Assert.assertEquals(0, annotations().size());
 	}
 
 	@Test
 	public void NS6() throws IOException {
-		readBGP(name.getMethodName());
+		loadBGP(name.getMethodName());
 		Assert.assertEquals(0, annotations().size());
 	}
 
 	@Test
 	public void NS7() throws IOException {
-		readBGP(name.getMethodName());
+		loadBGP(name.getMethodName());
 		Assert.assertEquals(0, annotations().size());
 	}
 
 	@Test
 	public void NS8() throws IOException {
 		// Unique path to container as object
-		readBGP(name.getMethodName());
+		loadBGP(name.getMethodName());
 		Assert.assertEquals(0, annotations().size());
 	}
 
 	@Test
 	public void NS9() throws IOException {
 		// Unique fx:root in BGP
-		readBGP(name.getMethodName());
+		loadBGP(name.getMethodName());
 		//System.err.println(annotations());
 		Assert.assertEquals(0, annotations().size());
 	}
 
 	@Test
 	public void NS10() throws IOException {
-		readBGP(name.getMethodName());
+		loadBGP(name.getMethodName());
 		Assert.assertEquals(0, annotations().size());
 	}
 
 	@Test
 	public void NS11() throws IOException {
-		readBGP(name.getMethodName());
+		loadBGP(name.getMethodName());
 		Assert.assertEquals(0, annotations().size());
 	}
 
 	@Test
 	public void NS12() throws IOException {
-		readBGP(name.getMethodName());
+		loadBGP(name.getMethodName());
 		Assert.assertEquals(0, annotations().size());
 	}
 
 	@Test
 	public void NS13() throws IOException {
-		readBGP(name.getMethodName());
+		loadBGP(name.getMethodName());
 		Assert.assertEquals(0, annotations().size());
 	}
 
 	@Test
 	public void NS14() throws IOException {
-		readBGP(name.getMethodName());
+		loadBGP(name.getMethodName());
 		//System.out.println(annotations());
 		Assert.assertEquals(0, annotations().size());
 	}
@@ -150,7 +150,7 @@ public class AnalyserTest extends BGPTestAbstract {
 
 	@Test
 	public void NS15() throws IOException {
-		readBGP(name.getMethodName());
+		loadBGP(name.getMethodName());
 		//System.out.println(annotations());
 		Assert.assertEquals(0, annotations().size());
 	}
@@ -158,7 +158,7 @@ public class AnalyserTest extends BGPTestAbstract {
 
 	@Test
 	public void NS16() throws IOException {
-		readBGP(name.getMethodName());
+		loadBGP(name.getMethodName());
 		//System.out.println(annotations());
 		Assert.assertEquals(0, annotations().size());
 	}
@@ -166,7 +166,7 @@ public class AnalyserTest extends BGPTestAbstract {
 
 	@Test
 	public void BGP_1_allGrounded() throws IOException {
-		readBGP("BGP_1");
+		loadBGP("BGP_1");
 		L.info("size: {}",annotations().size());
 		for(FXBGPAnnotation fi: annotations()){
 			L.info("{}",fi.toString());
@@ -176,7 +176,7 @@ public class AnalyserTest extends BGPTestAbstract {
 
 	@Test
 	public void BGP_2() throws IOException {
-		readBGP(name.getMethodName());
+		loadBGP(name.getMethodName());
 		L.info("size: {}",annotations().size());
 		Assert.assertEquals(2,annotations().size());
 		FXBGPAnnotation i1 = make(
@@ -204,7 +204,7 @@ public class AnalyserTest extends BGPTestAbstract {
 	//@Ignore // This is for development only
 	@Test
 	public void BGP_X() throws IOException {
-		readBGP(name.getMethodName());
+		loadBGP(name.getMethodName());
 		L.info("size: {}",annotations().size());
 		System.out.println(annotations());
 

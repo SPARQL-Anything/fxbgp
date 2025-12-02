@@ -8,13 +8,16 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.sparqlanything.fxbgp.FX;
+import io.github.sparqlanything.model.Triplifier;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     private final Logger L = LoggerFactory.getLogger(FXQuerySolutionBuilder.class);
@@ -49,18 +52,31 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     @Override
     public void endContainer() {
         super.endContainer();
+        triggerEndContainer();
     }
 
     @Override
     public void onTypeProperty() {
-        super.endContainer();
+        super.onTypeProperty();
         match(RDF.type.asNode(), FX.TypeProperty);
     }
 
     @Override
     public void onType(Node type) {
-        super.endContainer();
+        super.onType(type);
         match(type, FX.Type);
+    }
+
+    @Override
+    public void onTypeRoot() {
+        super.onTypeRoot();
+        match(NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT), FX.Root);
+    }
+
+    @Override
+    public void onValue(Node value) {
+        super.onValue(value);
+        match(value, FX.Value);
     }
 
     private void match(Node node, FX component){
@@ -72,7 +88,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
             // We take the root of the pattern, and attempt a match
             FXNode rnode = pattern.getRoot();
             // If the root node matches, register the match and set the cursor on it
-            if(rnode.getNode().matches(node)){
+            if(Matching.nodeMatches(rnode.getNode(), node)){
                 Matching matching = new Matching(rnode, node);
                 matches.add(matching);
                 //registerMatch(matching, rnode, node);
@@ -83,9 +99,15 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
 
         Set<Matching> spawned = new HashSet<>();
         Set<Matching> completed = new HashSet<>();
+        L.info("node {}", node);
+        L.info("component {}", component);
+        L.info("matches {}", matches.size());
         for(Matching matching: matches){
             Set<Matching> spawn = matching.check(node, component);
             spawned.addAll(spawn);
+            if(matching.getMap().size() > 2){
+                L.info("{}", matching.getMap());
+            }
             if(matching.getMap().size() == pattern.nodes().size()){
                 addQuerySolution(matching);
                 completed.add(matching);
@@ -95,9 +117,23 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         this.matches.addAll(spawned);
     }
 
+    private void triggerEndContainer(){
+        Set<Matching> unresolvable = new HashSet<>();
+        for(Matching matching: matches){
+            matching.endContainer();
+            if(matching.isUnresolvable()){
+                unresolvable.add(matching);
+            }
+        }
+        // Remove unresolvable matches
+        this.matches.removeAll(unresolvable);
+    }
+
     private void addQuerySolution(Matching matching){
         Map<String, RDFNode> solution = new HashMap<>();
         for(Map.Entry<FXNode, Node> entry : matching.getMap().entrySet()){
+            L.info(" >>>>> {} {} <<<<<", entry.getKey(), entry.getValue());
+            L.info(" ----- {} {} <<<<<", entry.getKey(), entry.getKey().getNode().isVariable());
             if(entry.getKey().getNode().isVariable()){
                 String var = entry.getKey().getNode().getName();
                 RDFNode val = toRDFNode(entry.getValue());

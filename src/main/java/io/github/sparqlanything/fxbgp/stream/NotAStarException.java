@@ -2,6 +2,7 @@ package io.github.sparqlanything.fxbgp.stream;
 
 import org.apache.jena.sparql.core.BasicPattern;
 
+@Deprecated
 public class NotAStarException extends Exception {
     private final BasicPattern bp;
 
