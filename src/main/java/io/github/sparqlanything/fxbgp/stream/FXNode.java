@@ -32,6 +32,13 @@ public class FXNode {
         return children.isEmpty();
     }
 
+    public FXNode goToRoot(){
+        FXNode r = this;
+        while(!r.isRoot())
+            r = r.getParent();
+        return r;
+    }
+
     public Node getNode() {
         return node;
     }
@@ -42,5 +49,18 @@ public class FXNode {
 
     public List<FXNode> getChildren() {
         return children;
+    }
+
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(getNode().toString());
+        sb.append(" [");
+        sb.append(getAnnotation().toString());
+        sb.append("] {" );
+        for(FXNode child : children){
+            sb.append(child.toString());
+        }
+        sb.append("}" );
+        return sb.toString();
     }
 }

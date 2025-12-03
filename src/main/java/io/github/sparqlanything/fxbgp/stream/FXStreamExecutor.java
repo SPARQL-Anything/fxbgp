@@ -53,9 +53,7 @@ public class FXStreamExecutor {
                 complete = true; // Let's leave the other thread in peace.
                 throw new RuntimeException(e);
             }
-            L.info("================ FINISHED ==========");
         });
-
 
         // Solution returns the iteator and waits
         return new Iterator<QuerySolution>() {

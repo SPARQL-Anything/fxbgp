@@ -136,7 +136,7 @@ public class CSVTriplifier2 implements Triplifier2 {
     private void processRow(int rown, String dataSourceId, String rootId, CSVRecord record, LinkedHashMap<Integer, String> headers_map, TriplifierEventsHandler handler, boolean ignoreColumnsWithNoHeaders) {
         handler.onSlotNumber(rown);
 
-        String rowContainerId = StringUtils.join(rootId, "#row", rown);
+        String rowContainerId = StringUtils.join(rootId, "row", rown);
         handler.startContainer(rowContainerId);
         //builder.addContainer(dataSourceId, rootId, rown, rowContainerId);
 

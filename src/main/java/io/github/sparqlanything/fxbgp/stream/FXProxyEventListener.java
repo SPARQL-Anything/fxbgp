@@ -1,11 +1,14 @@
 package io.github.sparqlanything.fxbgp.stream;
 
 import org.apache.jena.graph.Node;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.Set;
 
 public class FXProxyEventListener implements FXNodeEventListener{
+    private static final Logger L = LoggerFactory.getLogger(FXProxyEventListener.class);
     private Set<? extends FXNodeEventListener> listeners;
     private FXProxyEventListener(Set<? extends FXNodeEventListener> listeners) {
         this.listeners = Collections.unmodifiableSet(listeners);
@@ -17,6 +20,7 @@ public class FXProxyEventListener implements FXNodeEventListener{
 
     @Override
     public void startContainer(Node container) {
+        L.trace("startContainer {}", container);
         for (FXNodeEventListener listener : listeners) {
             listener.startContainer(container);
         }
@@ -24,6 +28,7 @@ public class FXProxyEventListener implements FXNodeEventListener{
 
     @Override
     public void onSlotNumber(Node n){
+        L.trace("onSlotNumber {}", n);
         for (FXNodeEventListener listener : listeners) {
             listener.onSlotNumber(n);
         }
@@ -31,6 +36,7 @@ public class FXProxyEventListener implements FXNodeEventListener{
 
     @Override
     public void onSlotString(Node n){
+        L.trace("onSlotString {}", n);
         for (FXNodeEventListener listener : listeners) {
             listener.onSlotString(n);
         }
@@ -38,6 +44,7 @@ public class FXProxyEventListener implements FXNodeEventListener{
 
     @Override
     public void onValue(Node value) {
+        L.trace("onValue {}", value);
         for (FXNodeEventListener listener : listeners) {
             listener.onValue(value);
         }
@@ -45,6 +52,7 @@ public class FXProxyEventListener implements FXNodeEventListener{
 
     @Override
     public void onTypeProperty() {
+        L.trace("onTypeProperty");
         for (FXNodeEventListener listener : listeners) {
             listener.onTypeProperty();
         }
@@ -52,6 +60,7 @@ public class FXProxyEventListener implements FXNodeEventListener{
 
     @Override
     public void onTypeRoot() {
+        L.trace("onTypeRoot");
         for (FXNodeEventListener listener : listeners) {
             listener.onTypeRoot();
         }
@@ -59,6 +68,7 @@ public class FXProxyEventListener implements FXNodeEventListener{
 
     @Override
     public void onType(Node node) {
+        L.trace("onType {}", node);
         for (FXNodeEventListener listener : listeners) {
             listener.onType(node);
         }
@@ -66,6 +76,7 @@ public class FXProxyEventListener implements FXNodeEventListener{
 
     @Override
     public void endContainer() {
+        L.trace("endContainer");
         for(FXNodeEventListener listener : listeners) {
             listener.endContainer();
         }

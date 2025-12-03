@@ -35,9 +35,44 @@ public class FXStreamExecutorTest extends BGPTestUtils {
         String name = testName.getMethodName();
         prepare(name);
         Iterator<QuerySolution> it = executor.exec(new OpBGP(bp), properties());
-        while(it.hasNext()){
-            QuerySolution qs = it.next();
-            L.info("{}", qs);
+        show(it);
+    }
+
+    @Test
+    public void test1_csv_s1() throws IOException, NotATreeException {
+        String name = testName.getMethodName();
+        prepare(name);
+        Iterator<QuerySolution> it = executor.exec(new OpBGP(bp), properties());
+        show(it);
+    }
+
+
+    @Test
+    public void test1_csv_s2() throws IOException, NotATreeException {
+        String name = testName.getMethodName();
+        prepare(name);
+        Iterator<QuerySolution> it = executor.exec(new OpBGP(bp), properties());
+        show(it);
+    }
+
+
+    @Test
+    public void test1_csv_s3() throws IOException, NotATreeException {
+        String name = testName.getMethodName();
+        prepare(name);
+        Iterator<QuerySolution> it = executor.exec(new OpBGP(bp), properties());
+        show(it);
+    }
+
+    private void show(Iterator<QuerySolution> qit){
+        while(qit.hasNext()){
+            L.info(" ---- ");
+            QuerySolution qs = qit.next();
+            Iterator<String> it = qs.varNames();
+            while(it.hasNext()){
+                String var = it.next();
+                L.info("Solution: {} -> {}", var, qs.get(var));
+            }
         }
     }
 
@@ -47,10 +82,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
         String name = testName.getMethodName();
         prepare(name);
         Iterator<QuerySolution> it = executor.exec(new OpBGP(bp), properties());
-        while(it.hasNext()){
-            QuerySolution qs = it.next();
-            L.info("{}", qs);
-        }
+        show(it);
     }
 
     private Properties properties() {

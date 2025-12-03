@@ -94,4 +94,8 @@ public class FXTreePattern {
     public Set<Node> nodes(){
         return nodes;
     }
+
+    public String toString(){
+        return this.root.toString();
+    }
 }
