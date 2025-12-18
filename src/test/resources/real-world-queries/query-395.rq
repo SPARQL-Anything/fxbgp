@@ -1,0 +1,13 @@
+# https://api.github.com/repositories/598502070/contents/issue365/query.sparql?ref=53dcc5377587eb7f804ed54c9be1acb3dc26a434
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX fx:  <http://sparql.xyz/facade-x/ns/>
+SELECT  *
+WHERE
+  { SERVICE <x-sparql-anything:>
+      { fx:properties
+                  fx:command     "ls -lha | grep sparql" ; #"ps -ef | grep bash " ;
+                  fx:media-type  "text/plain" .
+        ?s        ?p             ?o
+      } 
+  }

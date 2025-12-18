@@ -1,0 +1,271 @@
+# https://api.github.com/repositories/708677389/contents/query-sources.sparql?ref=df621a7ccc1262db58f277f3524d06e402bed787
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX mm:  <http://w3id.org/polifonia/ontology/music-meta/>
+PREFIX mp:  <http://w3id.org/polifonia/ontology/music-projection/>
+PREFIX mr:  <http://w3id.org/polifonia/ontology/music-representation/>
+PREFIX core:  <http://w3id.org/polifonia/ontology/core/>
+PREFIX tunes:  <http://w3id.org/polifonia/ontology/tunes/>
+PREFIX src: <http://w3id.org/polifonia/ontology/source/>
+PREFIX pon-resource: <http://w3id.org/polifonia/resource/tunes/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+CONSTRUCT {
+
+    ?source_iri a src:Source ; 
+        core:id ?source_iri_local ;
+        src:hasType ?source_type_iri ;
+        core:isMemberOf ?collection_iri ;
+        src:hasReference ?source_formatted_reference ;
+        core:title ?source_uniform_title ;  # add to ontology
+        core:title ?source_title_on_source ;
+        # what with uniform title id?
+        core:description ?source_description_url ;  # add to ontology
+        src:hasScan ?source_scan_url ;  # add to ontology
+        mm:hasPublicationSituation ?blank_publication_situation ;
+        core:hasTimeInterval ?blank_sorting_year ;
+        core:hasAgentRole ?blank_scribe_agentrole ;
+        core:hasAgentRole ?blank_editor_agentrole ;
+        core:hasAgentRole ?blank_author_agentrole ;
+        core:hasAgentRole ?blank_owner_agentrole ;
+        core:hasAgentRole ?blank_former_owner_agentrole ;
+        core:hasAgentRole ?blank_any_agentrole ;
+        # # identifiers can be described using this reification pattern 
+        # # in this case, both the ?source_id and the ?source_library_siglum are treated the same way and are disambiguated by the ?source_identifier_type and ?source_id_issuer_iri
+        src:hasIdentifier ?blank_identifier_library_siglum ;  # add to ontology
+        src:hasIdentifier ?blank_identifier_in_collection ;  # add to ontology
+        rdfs:comment ?source_comment .
+
+    # Collection memberships
+    ?collection_iri core:hasMember ?source_iri .
+
+    ?blank_scribe_agentrole a core:AgentRole ;
+        core:hasRole ?scribe_role_iri ;
+        core:hasAgent ?source_scribe_iri .
+
+    ?blank_editor_agentrole a core:AgentRole ;
+        core:hasRole ?editor_role_iri ;
+        core:hasAgent ?source_editor_iri .
+
+    ?blank_author_agentrole a core:AgentRole ;
+        core:hasRole ?author_role_iri ;
+        core:hasAgent ?source_author_iri .
+
+    ?blank_owner_agentrole a core:AgentRole ;
+        core:hasRole ?owner_role_iri ;
+        core:hasAgent ?source_owner_iri .
+
+    ?blank_former_owner_agentrole a core:AgentRole ;
+        core:hasRole ?former_owner_role_iri ;
+        core:hasAgent ?source_former_owner_iri .
+
+    ?blank_any_agentrole a core:AgentRole ;
+        core:hasRole ?any_role_iri ;
+        core:hasAgent ?any_agent_iri .
+
+    ?blank_identifier_library_siglum a src:Identifier ;
+            src:hasIdentifierType ?library_siglum_identifier_type_iri ;
+            src:hasIdentifierValue ?source_library_siglum .
+            #src:identifierIssuedBy ?source_library_siglum_issuer_iri .  #current owner iri?
+
+    ?blank_identifier_in_collection a src:Identifier ;
+            src:hasIdentifierType ?id_in_collection_identifier_type_iri ;
+            src:hasIdentifierValue ?source_id_in_collection ;
+            src:identifierIssuedBy ?source_id_issuer_iri .  #colection
+
+    ?blank_sorting_year a core:TimeInterval ;
+        core:date ?source_sorting_year .
+
+    ?blank_publication_situation a mm:PublicationSituation ;
+        core:hasPlace ?blank_publication_place ;
+        core:hasTimeInterval ?blank_publication_time_interval ;
+        mm:hasPublisher ?source_publisher_iri .
+
+    ?blank_publication_place a core:Place ;
+            core:name ?source_place_of_publishing .
+
+    ?blank_publication_time_interval a core:TimeInterval ;
+            core:date ?source_publication_dating ;
+            core:date ?source_publication_sorting_year .
+
+}
+
+
+WHERE {
+    SERVICE <x-sparql-anything:> {
+
+        fx:properties fx:location ?_filepath ;
+            fx:media-type  "application/json" .
+
+        ?base_root a fx:root ;
+            ?source_slot ?source_base .
+
+        ?source_base 
+            xyz:source_iri_local ?source_iri_local ;
+
+        # source iri
+        BIND(IRI(concat(str(pon-resource:), ?source_iri_local)) AS ?source_iri)
+
+        # collection
+        OPTIONAL { ?source_base xyz:collection_iri_local ?collection_iri_local . }
+        BIND(
+            IF(
+                BOUND(?collection_iri_local),
+                IRI(concat(str(pon-resource:), ?collection_iri_local)),
+                ?nothing
+            )
+            AS ?collection_iri
+        )
+
+        # simple fields
+        OPTIONAL { ?source_base xyz:source_description_url ?source_description_url . }
+        OPTIONAL { ?source_base xyz:source_title_on_source ?source_title_on_source . }
+        OPTIONAL { ?source_base xyz:source_title ?source_uniform_title . } #uniform title
+        OPTIONAL { ?source_base xyz:source_title_id ?source_uniform_title_id . } #uniform title
+        OPTIONAL { ?source_base xyz:source_scan_url ?source_scan_url . } 
+        OPTIONAL { ?source_base xyz:source_type_iri_local ?source_type_iri_local . } 
+        OPTIONAL { ?source_base xyz:source_formatted_reference ?source_formatted_reference .}
+
+        # type
+        BIND(IF(BOUND(?source_type_iri_local), IRI(concat(str(pon-resource:), ?source_type_iri_local)), ?nothing) AS ?source_type_iri)
+
+        # Identifier in collection
+        OPTIONAL { ?source_base xyz:source_id ?source_id_in_collection . }
+        BIND(IF(BOUND(?source_id_in_collection), IF(BOUND(?collection_iri), ?collection_iri, ?nothing), ?nothing) AS ?source_id_issuer_iri)
+        BIND(IF(BOUND(?source_id_in_collection), fx:bnode(concat(str(?source_iri), "si")), ?nothing) AS ?blank_identifier_in_collection)
+        BIND(IF(BOUND(?source_id_in_collection), IRI(concat(str(pon-resource:), "IdentifierType/IDInCollection")), ?nothing) AS ?id_in_collection_identifier_type_iri)
+    
+        # source_alternative_titles_ids        
+        OPTIONAL {
+            ?source_base xyz:source_alternative_titles ?source_alternative_titles_base .
+            ?source_alternative_titles_base fx:anySlot ?source_alternative_title .
+        }
+        # TODO
+
+        # publicatin situations
+        OPTIONAL {
+            ?source_base xyz:source_publication_situations ?source_pbss_base .
+            ?source_pbss_base ?pbs_slot ?source_pbs_base . #single
+            OPTIONAL { ?source_pbs_base xyz:place ?source_place_of_publishing . }
+            OPTIONAL { ?source_pbs_base xyz:dating ?source_publication_dating . }
+            OPTIONAL { ?source_pbs_base xyz:sorting_year ?source_publication_sorting_year . }
+            OPTIONAL { ?source_pbs_base xyz:publisher_in_source ?source_publication_publisher_in_source . }
+            OPTIONAL { ?source_pbs_base xyz:type ?source_publication_type . }
+            OPTIONAL {
+                ?source_pbs_base xyz:publishers_iris_local ?source_publishers_iris_local_base .
+                ?source_publishers_iris_local_base fx:anySlot ?source_publisher_iri_local .
+            }
+        }
+        #publication situation
+        BIND(IF(BOUND(?pbs_slot), replace(str(?pbs_slot), str(rdf:), ""), ?nothing) AS ?pbs_id)
+        BIND(IF(BOUND(?source_publisher_iri_local), IRI(concat(str(pon-resource:), ?source_publisher_iri_local)), ?nothing) AS ?source_publisher_iri)
+        BIND(IF(BOUND(?pbs_slot), fx:bnode(concat(str(?source_iri), "ps", ?pbs_id)), ?nothing) AS ?blank_publication_situation)
+        #place of publication
+        BIND(IF(BOUND(?source_place_of_publishing), fx:bnode(concat(str(?source_iri), "pp", ?pbs_id)), ?nothing) AS ?blank_publication_place)
+        #dating of publication
+        BIND (
+            COALESCE(
+                IF(BOUND(?source_publication_dating), "Y", 1/0),
+                IF(BOUND(?source_publication_sorting_year), "Y", 1/0),
+                ?nothing
+            ) AS ?publicationdatingpresent
+        )
+        BIND(IF(BOUND(?publicationdatingpresent), fx:bnode(concat(str(?source_iri), "pd", ?pbs_id)), ?nothing) AS ?blank_publication_time_interval)
+        
+        # manuscript information
+        OPTIONAL {
+            ?source_base xyz:source_manuscript_informations ?source_mis_base .
+            ?source_mis_base ?mis_id ?source_mi_base . #single
+            OPTIONAL { ?source_mi_base xyz:dating ?source_manuscript_dating . }
+            OPTIONAL { ?source_mi_base xyz:sorting_year ?source_manuscript_sorting_year . }
+            OPTIONAL { ?source_pbs_base xyz:type ?source_publication_type . }
+            OPTIONAL {
+                ?source_mi_base xyz:scribes_iris ?source_manuscript_scribes_iris_local_base .
+                ?source_manuscript_scribes_iris_local_base fx:anySlot ?source_manuscript_scribe_iri_local .
+            }
+        }
+        #For now, do nothing with the above. It is also at source level.
+
+        #dating and scribes at source level
+        OPTIONAL {
+            ?source_base xyz:source_sorting_years ?source_sorting_years_base .
+            ?source_sorting_years_base ?sorting_year_slot ?source_sorting_year .
+            #create the blank node for each sorting year
+        }
+        BIND(IF(BOUND(?source_sorting_year), replace(str(?sorting_year_slot), str(rdf:), ""), ?nothing) AS ?sorting_year_id)
+        BIND(IF(BOUND(?source_sorting_year), concat(str(?source_iri), "sy", ?sorting_year_id), ?nothing) AS ?blank_sorting_year_id)
+        BIND(IF(BOUND(?source_sorting_year), fx:bnode(?blank_sorting_year_id), ?nothing) AS ?blank_sorting_year)
+
+        # Scribes at source level
+        OPTIONAL {
+            ?source_base xyz:source_scribes_iris_local ?source_scribes_iris_local_base .
+            ?source_scribes_iris_local_base ?scribe_slot ?source_scribe_iri_local .
+        }
+        BIND(IF(BOUND(?source_scribe_iri_local), IRI(concat(str(pon-resource:), ?source_scribe_iri_local)), ?nothing) AS ?source_scribe_iri)
+        BIND(IF(BOUND(?source_scribe_iri_local), IRI(concat(str(pon-resource:), "Role/Scribe")), ?nothing) AS ?scribe_role_iri)
+        BIND(IF(BOUND(?source_scribe_iri_local), replace(str(?scribe_slot), str(rdf:), ""), ?nothing) AS ?scribe_id)
+        BIND(IF(BOUND(?source_scribe_iri_local), fx:bnode(concat(str(?source_iri), "scr", ?scribe_id)), ?nothing) AS ?blank_scribe_agentrole)
+
+        # Current owner
+        OPTIONAL { ?source_base xyz:source_current_owner_iri_local ?source_current_owner_iri_local . } 
+        BIND(IF(BOUND(?source_current_owner_iri_local), IRI(concat(str(pon-resource:), ?source_current_owner_iri_local)), ?nothing) AS ?source_owner_iri)
+        BIND(IF(BOUND(?source_current_owner_iri_local), IRI(concat(str(pon-resource:), "Role/Owner")), ?nothing) AS ?owner_role_iri)
+        BIND(IF(BOUND(?source_current_owner_iri_local), fx:bnode(concat(str(?source_iri), "owner")), ?nothing) AS ?blank_owner_agentrole)
+
+        # Former owners
+        OPTIONAL {
+            ?source_base xyz:source_former_owners_iris_local ?source_former_owners_base .
+            ?source_former_owners_base ?fowner_slot ?source_former_owner_iri_local .
+        }
+        BIND(IF(BOUND(?source_former_owner_iri_local), IRI(concat(str(pon-resource:), ?source_former_owner_iri_local)), ?nothing) AS ?source_former_owner_iri)
+        BIND(IF(BOUND(?source_former_owner_iri_local), IRI(concat(str(pon-resource:), "Role/FormerOwner")), ?nothing) AS ?former_owner_role_iri)
+        BIND(IF(BOUND(?source_former_owner_iri_local), replace(str(?fowner_slot), str(rdf:), ""), ?nothing) AS ?fowner_id)
+        BIND(IF(BOUND(?source_former_owner_iri_local), fx:bnode(concat(str(?source_iri), "fmo", ?fowner_id)), ?nothing) AS ?blank_former_owner_agentrole)
+
+        # Authors
+        OPTIONAL {
+            ?source_base xyz:source_authors_iris_local ?source_authors_base . 
+            ?source_authors_base ?author_slot ?source_author_iri_local .
+        }
+        BIND(IF(BOUND(?source_author_iri_local), IRI(concat(str(pon-resource:), ?source_author_iri_local)), ?nothing) AS ?source_author_iri)
+        BIND(IF(BOUND(?source_author_iri_local), IRI(concat(str(pon-resource:), "Role/Author")), ?nothing) AS ?author_role_iri)
+        BIND(IF(BOUND(?source_author_iri_local), replace(str(?author_slot), str(rdf:), ""), ?nothing) AS ?author_id)
+        BIND(IF(BOUND(?source_author_iri_local), fx:bnode(concat(str(?source_iri), "auth", ?author_id)), ?nothing) AS ?blank_author_agentrole)
+
+        # Editors
+        OPTIONAL {
+            ?source_base xyz:source_editors_iris_local ?source_editors_base . 
+            ?source_editors_base ?editor_slot ?source_editor_iri_local .
+        }
+        BIND(IF(BOUND(?source_editor_iri_local), IRI(concat(str(pon-resource:), ?source_editor_iri_local)), ?nothing) AS ?source_editor_iri)
+        BIND(IF(BOUND(?source_editor_iri_local), IRI(concat(str(pon-resource:), "Role/Editor")), ?nothing) AS ?editor_role_iri)
+        BIND(IF(BOUND(?source_editor_iri_local), replace(str(?editor_slot), str(rdf:), ""), ?nothing) AS ?editor_id)
+        BIND(IF(BOUND(?source_editor_iri_local), fx:bnode(concat(str(?source_iri), "ed", ?editor_id)), ?nothing) AS ?blank_editor_agentrole)
+
+        # Any Agents
+        OPTIONAL {
+            ?source_base xyz:any_agent_roles ?any_agent_roles_base .
+            ?any_agent_roles_base ?any_agent_role_slot ?any_agent_role_base .
+            ?any_agent_role_base
+                xyz:any_agent_iri_local ?any_agent_iri_local ;
+                xyz:any_role_iri_local ?any_role_iri_local
+        }
+        BIND(IF(BOUND(?any_agent_role_slot), IRI(concat(str(pon-resource:), ?any_agent_iri_local)), ?nothing) AS ?any_agent_iri)
+        BIND(IF(BOUND(?any_agent_role_slot), IRI(concat(str(pon-resource:), ?any_role_iri_local)), ?nothing) AS ?any_role_iri)
+        BIND(IF(BOUND(?any_agent_role_slot), replace(str(?any_agent_role_slot), str(rdf:), ""), ?nothing) AS ?any_agent_role_id)
+        BIND(IF(BOUND(?any_agent_role_slot), fx:bnode(concat(str(?source_iri), "anyagent", ?any_agent_role_id)), ?nothing) AS ?blank_any_agentrole)
+
+        #siglum
+        OPTIONAL { ?source_base xyz:source_library_siglum ?source_library_siglum . } 
+        BIND(IF(BOUND(?source_library_siglum), fx:bnode(concat(str(?source_iri), "ls")), ?nothing) AS ?blank_identifier_library_siglum)
+        BIND(IF(BOUND(?source_id_in_collection), IRI(concat(str(pon-resource:), "IdentifierType/LibrarySiglum")), ?nothing) AS ?library_siglum_identifier_type_iri)
+
+        #Comment
+        OPTIONAL { ?source_base xyz:source_comment ?source_comment . }
+
+    }
+}

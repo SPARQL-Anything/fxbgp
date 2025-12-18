@@ -1,0 +1,188 @@
+# https://api.github.com/repositories/847360089/contents/tarql/bond-list.rq?ref=d89f1b9118b5106ec45c9c4fcd8516b864fc7bb7
+PREFIX gist: <https://w3id.org/semanticarts/ns/ontology/gist/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX mg: <https://w3id.org/moneygraph/ns/ontology/>
+PREFIX mgx: <https://w3id.org/moneygraph/ns/taxonomy/>
+PREFIX mg3: <https://w3id.org/moneygraph/ns/data/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+
+CONSTRUCT
+
+{
+    ?__valuation_iri a gist:Event, gist:RevaluationEvent ;
+        gist:isCategorizedBy gist:_FinancialBusinessEventType_revaluation ;
+        gist:atDateTime ?__report_datetime ;
+        gist:isAbout ?__security ;
+
+# Daily Market Price
+        gist:hasMagnitude ?__daily_share_price_magn_iri ;
+# Yield
+        gist:hasMagnitude ?__ytm_magn ;
+# Rating
+        gist:isAffectedBy ?__rating_iri ;
+
+        gist:isRecordedAt ?__report_datetime ;
+    .
+# Marketable Security (e.g. Bond)
+    ?__security a mg:MarketableSecurity, mg:Bond .
+    ?__security gist:isIdentifiedBy ?__security_id .
+    ?__security rdfs:label ?Equity_Symbol .
+    ?__security skos:prefLabel ?Equity_Symbol .
+    ?__security gist:description ?Equity_Description .
+    ?__security gist:isCategorizedBy mgx:_MarketableSecurityType_bond .
+    ?__security mg:hasInterestPaymentTerms ?__coupon_payment_terms .
+    ?__security mg:hasRepaymentTerms ?__bond_repayment_terms .
+    ?__security mg:isIssuedBy ?__issuer_iri .
+
+# Security ID (CUSIP here)
+   ?__security_id a gist:ID ;
+        gist:isCategorizedBy ?__security_id_type ;
+        gist:uniqueText ?Equity_Symbol ;
+        skos:prefLabel ?Equity_Symbol ;
+    .
+
+# Yield
+   ?__ytm_magn a gist:Magnitude ;
+        gist:hasUnitOfMeasure mg:_RatioUnit_annualYield ;
+        gist:numericValue ?__ytm_num ;
+        gist:hasAspect mgx:_Aspect_yieldToMaturity ;
+    .
+
+# Daily market price
+    ?__daily_share_price_magn_iri a gist:Monetary ;
+        gist:numericValue ?__share_current_price ;
+        gist:hasUnitOfMeasure ?__share_price_uom_iri ;
+        gist:hasAspect mgx:_Aspect_securityShareUnitPriceAmount ;
+    .
+
+
+    ?__bond_repayment_terms a mg:BondRepaymentTerms ;
+        gist:specifies ?__repayment_event ;
+        mg:callable ?__callable ;
+    .
+
+# Coupon Payment Terms include the coupon rate
+    ?__coupon_payment_terms a mg:CouponPaymentTerms ;
+        skos:prefLabel ?Coupon ;
+    # ?__coupon_payment_terms gist:specifies ?__coupon_payment_schedule .
+        gist:specifies ?__coupon ;
+    .
+
+# Coupon is < gist:Magnitude
+    ?__coupon a mg:BondCoupon ;
+        gist:hasUnitOfMeasure mg:_RatioUnit_annualInterestRate ;
+        gist:numericValue ?__coupon_rate ;
+        gist:isCategorizedBy mgx:_Aspect_annualInterestRate ;
+    .
+
+# Rating
+    ?__rating_iri a mg:BondRating ;
+        skos:prefLabel ?__rating ;
+        gist:isAllocatedBy mg3:_Organization_Morningstar_DBRS ;
+    .
+
+# Bond repayment at due date
+    ?__repayment_event a gist:Event, gist:ScheduledEvent ;
+        gist:affects ?__security ;
+        gist:isCharacterizedAs mgx:_FinancialBusinessEventType_debt_principal_repayment ;
+        mg:plannedOccursDate ?__maturity_datetime ;
+    .
+
+# Issuer
+    ?__issuer_iri a gist:Organization ;
+        gist:name ?Issuer ;
+        skos:prefLabel ?Issuer ;
+    .
+
+}
+WHERE 
+{
+    SERVICE <x-sparql-anything:> {
+        BIND(IRI(CONCAT("file://",?_loc)) AS ?__location)
+        BIND(STRDT(CONCAT(STR(?_dt),"T00:00:00"), xsd:dateTime) AS ?__report_datetime)
+
+        fx:properties
+            fx:location ?__location ;    
+            fx:csv.headers true ;
+            fx:blank-nodes false ;
+            fx:csv.null-string "" ;
+            fx:root ?__location ;
+        .
+    # CUSIP,INVENTORY,ISSUER,COUPON,MATURITY,PRICE,YIELD,DBRS RATING
+        ?__csvline xyz:CUSIP ?Equity_Symbol .
+        ?__csvline xyz:INVENTORY ?Inventory .
+        ?__csvline xyz:ISSUER ?Issuer .
+        ?__csvline xyz:COUPON ?Coupon .
+        ?__csvline xyz:MATURITY ?Maturity .
+        ?__csvline xyz:PRICE ?Market_Price .
+        ?__csvline xyz:YIELD ?Yield .
+        OPTIONAL { ?__csvline xyz:DBRS%20RATING ?Rating } 
+    }
+
+    BIND(REPLACE(STR(?_dt), "\\W+", "-") AS ?__date_key)
+
+# Security Symbol - remove leading ., or .zz if xxxxx.zz
+    BIND(STR(?Equity_Symbol) AS ?__equity_symbol_str)
+    BIND(IF(
+        # TODO convert to string
+        STRSTARTS(?__equity_symbol_str,"."), 
+        STRAFTER(?__equity_symbol_str,"."),
+        IF(CONTAINS(?__equity_symbol_str,"."),
+            STRBEFORE(?__equity_symbol_str,"."),
+            ?__equity_symbol_str)) AS ?__symbol_str_norm)
+    BIND(ENCODE_FOR_URI(UCASE(STR(?__symbol_str_norm))) AS ?__eq_symbol)
+
+# Marketable Security
+    BIND(IRI(CONCAT(STR(mg3:),'_MarketableSecurity_', ?__eq_symbol)) AS ?__security)
+
+# Security ID
+    BIND(IRI(CONCAT(STR(mg3:),'_ID_marketableSecurity_', ?__eq_symbol)) AS ?__security_id)
+    BIND(mgx:_MarketableSecurityIdentifierType_CUSIP AS ?__security_id_type)
+
+# Spot Valuation per Security
+    BIND(IRI(CONCAT(STR(mg3:),'_Event_daily_market_closing_',?__eq_symbol,'_',?__date_key)) AS ?__valuation_iri)
+
+# Currency - Always CAD for Questrade Bond List
+    BIND(mgx:_CADollar AS ?__share_price_uom_iri)
+
+# Maturity
+   BIND(STRDT(CONCAT(STR(?Maturity), "T00:00:00"),xsd:dateTime) AS ?__maturity_datetime)
+
+# Market Price - Share current price
+    BIND(xsd:decimal(?Market_Price) AS ?__share_current_price)
+    BIND(IRI(CONCAT(STR(mg3:),'_Monetary_currentSecurityPrice_',?__eq_symbol,'_',?__date_key,'_',ENCODE_FOR_URI(?Market_Price))) AS ?__daily_share_price_magn_iri)
+
+# % Yield to Maturity
+    BIND(xsd:decimal(?Yield)/100 AS ?__ytm_num)
+    BIND(IRI(CONCAT(STR(mg3:),'_Monetary_yieldToMaturity_',?__eq_symbol,'_',?__date_key,'_',ENCODE_FOR_URI(?Yield))) AS ?__ytm_magn)
+
+# Coupon - may need to strip off '%' character and divide by 100
+    BIND(REPLACE(STR(?Coupon), "[^0-9.]", "") AS ?__coupon_str)
+    BIND(xsd:decimal(?__coupon_str)/100 as ?__coupon_rate)
+    BIND(IRI(CONCAT(STR(mg3:),'_Coupon_', ?__eq_symbol, '_', REPLACE(?__coupon_str, "\\W+","-"))) AS ?__coupon)
+
+# Bond repayment event
+    BIND(IRI(CONCAT(STR(mg3:),'_Event_debtPrincipalRepayment_',?__eq_symbol,'_',REPLACE(STR(?Maturity),"\\W+","-"))) AS ?__repayment_event)
+
+# Repayment Conditions
+    BIND(IRI(CONCAT(STR(mg3:),'_BondRepaymentTerms_', ?__eq_symbol)) AS ?__bond_repayment_terms)
+
+# Coupon Payment Terms
+    BIND(IRI(CONCAT(STR(mg3:),'_CouponPaymentTerms_', ?__eq_symbol)) AS ?__coupon_payment_terms)
+
+# Issuer
+    BIND(IRI(CONCAT(STR(mg3:), "_Organization_", LCASE(REPLACE(?Issuer,"\\W+","-")))) AS ?__issuer_iri)
+
+# Callable?
+    BIND(CONTAINS(?Issuer,"(F)") || CONTAINS(?Issuer,"Callable") AS ?__callable)
+
+# Rating
+    BIND(REPLACE(?Rating,"[^a-zA-Z0-9]","") AS ?__rating_stripped)
+    BIND(IF(STRLEN(?__rating_stripped)>0, ?__rating_stripped, ?unbound) AS ?__rating)
+    BIND(IRI(CONCAT(STR(mg3:), "_BondRating_DBRS_", LCASE(?__rating))) AS ?__rating_iri)
+
+#Equity Symbol	Equity Description	Due	Rate	Account Number	Currency	Cost Basis	Asset Class	Quantity	Cost Per Share	Position Cost	Market Price	Market Value	Profit And Loss	% Return	% of Portfolio
+}

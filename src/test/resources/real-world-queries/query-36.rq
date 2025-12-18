@@ -1,0 +1,44 @@
+# https://api.github.com/repositories/708677389/contents/query-individuals.sparql?ref=df621a7ccc1262db58f277f3524d06e402bed787
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX mm:  <http://w3id.org/polifonia/ontology/music-meta/>
+PREFIX core:  <http://w3id.org/polifonia/ontology/core/>
+PREFIX tunes:  <http://w3id.org/polifonia/ontology/tunes/>
+PREFIX pon-resource: <http://w3id.org/polifonia/resource/tunes/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+
+CONSTRUCT {
+    ?individual_iri a ?class_iri ;
+        core:id ?individual_iri_local ;
+        rdfs:label ?individual_label ;
+        core:name ?individual_name ;
+        core:description ?individual_url ;
+        core:comment ?individual_comment .
+}
+
+WHERE {
+    SERVICE <x-sparql-anything:> {
+
+        fx:properties fx:location ?_filepath ;
+            fx:media-type  "application/json" .
+
+        ?base_root a fx:root ;
+            fx:anySlot ?individual_base .
+
+        ?individual_base 
+            xyz:individual_iri_local ?individual_iri_local ;
+            xyz:class_iri_full ?class_iri_temp .
+
+        BIND(IRI(concat(str(pon-resource:), ?individual_iri_local)) AS ?individual_iri)
+        BIND(IRI(?class_iri_temp) AS ?class_iri)
+
+        OPTIONAL { ?individual_base xyz:name ?individual_name . }
+        OPTIONAL { ?individual_base xyz:url ?individual_url . }
+        OPTIONAL { ?individual_base xyz:label ?individual_label . }
+        OPTIONAL { ?individual_base xyz:comment ?individual_comment . }
+
+    }
+}

@@ -1,0 +1,43 @@
+# https://api.github.com/repositories/913938612/contents/queries/analytic-regions.rq?ref=afbbfb6939a1400d7284874f5849a5d941feb71b
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX for: <https://dkglab.github.io/ns/for/>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+
+CONSTRUCT {
+  ?region a geo:Feature ;
+    skos:prefLabel ?region_name ;
+    geo:hasGeometry ?geometry ;
+    .
+
+  ?geometry geo:asWKT ?wktLiteral .
+
+  for:analytic-regions a geo:FeatureCollection ;
+    rdfs:member ?region ;
+    dcterms:title "Analytic regions" ;
+    .
+}
+
+WHERE {
+  SERVICE <x-sparql-anything:location=data/analytic-regions/analytic-regions.wkt.json> {
+    fx:properties fx:media-type "application/json" .
+
+    ?feature xyz:properties/xyz:RegionName ?region_name .
+
+    # Generate URIs for regions and their geometries
+    BIND(REPLACE(LCASE(?region_name), "[^a-z0-9]", "-") AS ?id)
+    BIND(fx:entity(for:, "analytic-region/", ?id) AS ?region)
+    BIND(fx:entity(for:, "analytic-region/", ?id, "/geometry") AS ?geometry)
+
+    OPTIONAL {
+      ?feature xyz:geometry ?wktLiteralString .
+      # Set the correct datatype on our WKT string
+      BIND(STRDT(?wktLiteralString, geo:wktLiteral) AS ?wktLiteral)
+    }
+  }
+}

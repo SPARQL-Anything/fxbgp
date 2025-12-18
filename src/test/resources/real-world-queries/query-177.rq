@@ -1,0 +1,14 @@
+# https://api.github.com/repositories/598502070/contents/issue271/query.sparql?ref=53dcc5377587eb7f804ed54c9be1acb3dc26a434
+PREFIX ex: <http://example/> 
+PREFIX fx:  <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+
+CONSTRUCT {
+ ?bnode ex:p ?A
+} WHERE {
+ SERVICE <x-sparql-anything:> {
+	fx:properties fx:location "./data.csv" ; fx:csv.headers true .
+ 	[] xyz:c1 ?b0 ; xyz:c2 ?A
+ }
+ BIND ( BNODE ( ?b0 ) as ?bnode ) 
+}

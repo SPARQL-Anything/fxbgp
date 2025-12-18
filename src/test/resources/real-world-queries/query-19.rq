@@ -1,0 +1,51 @@
+# https://api.github.com/repositories/1012346640/contents/queries/biographical_situations.sparql?ref=36a06e92f9b812a4e57896b88de3c768454985a0
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX urb: <http://purl.archive.org/urbooks#>
+PREFIX urw: <http://purl.archive.org/urwriters#>
+PREFIX schema: <http://schema.org/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX dul: <http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#>
+PREFIX reo: <http://www.semanticweb.org/research-ontology/>
+PREFIX xml: <http://www.w3.org/XML/1998/namespace>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX org: <http://www.w3.org/ns/org#>
+PREFIX soa: <https://semopenalex.org/ontology/>
+PREFIX ndg: <https://purl.archive.org/nudging#>
+PREFIX pim: <https://purl.archive.org/people-in-the-media#>
+
+
+CONSTRUCT {
+    
+    ?situation a pim:BiographicalSituation; dul:isSettingFor ?id_author,?id_entity,?event_id .
+    ?id_author ?id_entity ?event_id .
+    ?id_author rdfs:label ?person .
+    ?id_entity rdfs:label ?entity .
+    ?event_id rdfs:label ?event .
+
+
+    
+} WHERE {
+  SERVICE <x-sparql-anything:csv.headers=true,location=data/processed.csv> {
+    []      xyz:id ?id;
+    xyz:author_id ?author_id;
+    xyz:person ?person;
+    xyz:event ?event;
+    xyz:entity ?entity ;
+    xyz:entity_id ?entity_id .
+
+  }
+
+  BIND(IRI(CONCAT(STR(pim:), ?author_id )) AS ?id_author).
+  BIND(IRI(CONCAT(STR(pim:),?entity_id)) AS ?id_entity) .
+  BIND(IRI(CONCAT(STR(pim:),?id)) AS ?sent_id) .
+  BIND(IRI(CONCAT(STR(pim:),?event)) AS ?event_id)
+
+  BIND (STR(fx:entity(?author_id,"_",?id)) AS ?mysit) .
+  BIND (IRI(CONCAT(STR(ndg:),?mysit)) AS ?situation) .
+  
+}

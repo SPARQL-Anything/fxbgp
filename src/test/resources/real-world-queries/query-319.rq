@@ -1,0 +1,11 @@
+# https://api.github.com/repositories/598502070/contents/issue580/uppercase.sparql?ref=53dcc5377587eb7f804ed54c9be1acb3dc26a434
+PREFIX fx:  <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+
+select *
+where {
+    service <x-sparql-anything:> {
+        fx:properties fx:location "books.XML" .
+    }
+    ?s ?p ?o
+}

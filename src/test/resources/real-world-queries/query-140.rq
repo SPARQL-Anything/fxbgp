@@ -1,0 +1,144 @@
+# https://api.github.com/repositories/708677389/contents/query-agents.sparql?ref=df621a7ccc1262db58f277f3524d06e402bed787
+# Testing: fx -q query-songs.sparql -values filepath="./sample_data_tunes_metadata_sparse.json" > sample_data_tunes.ttl
+
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX mm:  <http://w3id.org/polifonia/ontology/music-meta/>
+PREFIX mp:  <http://w3id.org/polifonia/ontology/music-projection/>
+PREFIX mr:  <http://w3id.org/polifonia/ontology/music-representation/>
+PREFIX core:  <http://w3id.org/polifonia/ontology/core/>
+PREFIX tunes:  <http://w3id.org/polifonia/ontology/tunes/>
+PREFIX src: <http://w3id.org/polifonia/ontology/source/>
+PREFIX pon-resource: <http://w3id.org/polifonia/resource/tunes/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+CONSTRUCT {
+    ?agent_iri a ?agent_class ;
+        rdfs:label ?agent_name ;
+        core:name ?agent_name ;
+        core:id ?agent_iri_local ;  # add to ontology
+        core:wikidataID ?agent_WKP_ID ;
+        owl:sameAs ?wkd_iri ;
+        core:viafID ?agent_VIAF_ID ;
+        owl:sameAs ?viaf_iri ;
+        core:dnbID ?agent_DNB_ID ;
+        owl:sameAs ?dnb_iri ;
+        # Here something for dating (dating string. e.g. 'fl. 1420')
+        core:activityStartDate ?agent_year_of_birth_verbatim ;
+        core:activityStartDate ?agent_year_of_birth_approximate ;
+        core:activityEndDate ?agent_year_of_death_verbatim ;
+        core:activityEndDate ?agent_year_of_death_approximate ;
+        core:involvesRole ?agent_role_iri ;  # add to ontology
+        core:hasTimedLocation ?blank_timedlocation ;
+        core:hasBirthPlace ?agent_place_of_birth_name ;
+        core:dateOfBirth ?blank_agent_year_of_birth ;
+        core:dateOfDeath ?blank_agent_year_of_death ;
+        core:placeOfBirthLatitude ?agent_place_of_birth_latitude ;
+        core:placeOfBirthLongitude ?agent_place_of_birth_longitude ;
+        rdfs:comment ?agent_comment .
+
+    ?blank_agent_year_of_birth a core:MusicTimeInterval ;
+                core:date ?agent_year_of_birth_verbatim ;
+                core:date ?agent_year_of_birth_approximate .
+
+    ?blank_agent_year_of_death a core:MusicTimeInterval ;
+                core:date ?agent_year_of_death_verbatim ;
+                core:date ?agent_year_of_death_approximate .
+
+    # blank node for the TimeLocation entity
+    ?blank_timedlocation a core:TimedLocation ;
+        core:hasLocation ?blank_location .
+        #core:hasTimeInterval ?blank_timeinterval . #not in data
+
+    # blank node for the location entity
+    ?blank_location a core:Location ; 
+        core:hasAddress ?agent_address ; # string literal with formatted address
+        core:hasAddress ?agent_place ; 
+        core:longitude ?agent_longitude ; # float
+        core:latitude ?agent_latitude . # float
+
+}
+
+
+WHERE {
+    SERVICE <x-sparql-anything:> {
+
+        fx:properties fx:location ?_filepath ;
+            fx:media-type  "application/json" .
+
+        ?base_root a fx:root ;
+            ?agent_slot ?agent_base .
+
+        ?agent_base 
+            xyz:agent_iri_local ?agent_iri_local .
+
+        OPTIONAL { ?agent_base xyz:agent_id ?agent_id . }
+        OPTIONAL { ?agent_base xyz:agent_name ?agent_name . }
+        OPTIONAL { ?agent_base xyz:agent_comment ?agent_comment . } 
+        OPTIONAL { ?agent_base xyz:agent_url ?agent_url . }
+        OPTIONAL { ?agent_base xyz:agent_dates ?agent_dates . }
+        OPTIONAL { ?agent_base xyz:agent_place ?agent_place . }
+        OPTIONAL { ?agent_base xyz:agent_address ?agent_address . }
+        OPTIONAL { ?agent_base xyz:agent_longitude ?agent_longitude . }
+        OPTIONAL { ?agent_base xyz:agent_latitude ?agent_latitude . }
+        OPTIONAL { ?agent_base xyz:agent_year_of_birth_verbatim ?agent_year_of_birth_verbatim . }
+        OPTIONAL { ?agent_base xyz:agent_year_of_birth_approximate ?agent_year_of_birth_approximate . }
+        OPTIONAL { ?agent_base xyz:agent_year_of_death_verbatim ?agent_year_of_death_verbatim . }
+        OPTIONAL { ?agent_base xyz:agent_year_of_death_approximate ?agent_year_of_death_approximate . }
+        OPTIONAL { ?agent_base xyz:agent_place_of_birth_latitude ?agent_place_of_birth_latitude . }
+        OPTIONAL { ?agent_base xyz:agent_place_of_birth_longitude ?agent_place_of_birth_longitude . }
+        OPTIONAL {
+            ?agent_base xyz:agent_classes_iris ?agent_classes_base .
+            ?agent_classes_base fx:anySlot ?agent_class_iri_temp .
+        }  # list
+        OPTIONAL { ?agent_base xyz:agent_place_of_birth_name ?agent_place_of_birth_name . }  # list
+        OPTIONAL {
+            ?agent_base xyz:agent_roles_iris_local ?agent_roles_base . 
+            ?agent_roles_base fx:anySlot ?agent_role_iri_local .
+        }  # list
+        OPTIONAL { ?agent_base xyz:agent_VIAF_ID ?agent_VIAF_ID . }
+        BIND(IF(BOUND(?agent_VIAF_ID), IRI(concat("http://viaf.org/viaf/", ?agent_VIAF_ID)), ?nothing) AS ?viaf_iri)
+        OPTIONAL { ?agent_base xyz:agent_DNB_ID ?agent_DNB_ID . }
+        BIND(IF(BOUND(?agent_DNB_ID), IRI(concat("http://d-nb.info/gnd/", ?agent_DNB_ID)), ?nothing) AS ?dnb_iri)
+        OPTIONAL { ?agent_base xyz:agent_WKP_ID ?agent_WKP_ID . }
+        BIND(IF(BOUND(?agent_WKP_ID), IRI(concat("http://www.wikidata.org/entity/", ?agent_WKP_ID)), ?nothing) AS ?wkd_iri)
+
+        #Agent IRI
+        BIND (IRI(concat(str(pon-resource:), ?agent_iri_local)) AS ?agent_iri)
+        #Agent classes
+        BIND(IF(BOUND(?agent_class_iri_temp), IRI(?agent_class_iri_temp), ?nothing) AS ?agent_class)
+        BIND(IF(BOUND(?agent_role_iri_local), IRI(CONCAT(str(pon-resource:), ?agent_role_iri_local)), ?nothing) AS ?agent_role_iri)
+
+        #Blank nodes
+        # Extract identifier as base for blank note identifiers
+        BIND(replace(str(?agent_slot), str(rdf:), "") AS ?agent_slotid)
+
+        # Create globally unique identifers for ?blank_agent_year_of_birth, ?blank_agent_year_of_death, ?blank_timedlocation, ?blank_location
+        BIND(concat(str(?agent_iri), "blank_agent_year_of_birth") AS ?blank_agent_year_of_birth_id)
+        BIND(concat(str(?agent_iri), "blank_agent_year_of_death") AS ?blank_agent_year_of_death_id)
+        BIND(concat(str(?agent_iri), "blank_timedlocation") AS ?blank_timedlocation_id)
+        BIND(concat(str(?agent_iri), "blank_location") AS ?blank_location_id)
+
+        # Make the blind nodes
+        BIND(IF(BOUND(?agent_year_of_birth_verbatim), fx:bnode(?blank_agent_year_of_birth_id), ?nothing) AS ?blank_agent_year_of_birth)
+        BIND(IF(BOUND(?agent_year_of_death_verbatim), fx:bnode(?blank_agent_year_of_death_id), ?nothing) AS ?blank_agent_year_of_death)
+        
+        BIND (
+            COALESCE(
+                IF(BOUND(?agent_address), "Y", 1/0),
+                IF(BOUND(?agent_place), "Y", 1/0),
+                IF(BOUND(?agent_latitude), "Y", 1/0),
+                IF(BOUND(?agent_longitude), "Y", 1/0),
+                ?nothing
+            ) AS ?timedlocationpresent
+        )
+
+        BIND(IF(BOUND(?timedlocationpresent), fx:bnode(?blank_timedlocation_id), ?nothing) AS ?blank_timedlocation)
+        BIND(IF(BOUND(?timedlocationpresent), fx:bnode(?blank_location_id), ?nothing) AS ?blank_location)
+
+    }
+}

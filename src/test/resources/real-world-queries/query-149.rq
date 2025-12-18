@@ -1,0 +1,322 @@
+# https://api.github.com/repositories/628009357/contents/P2KG-Pipeline/sparql_anything/jams_ontology_pattern-metadata.sparql?ref=0415fc92133cf0da04525835059ff391f96065c4
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX jams: <http://w3id.org/polifonia/ontology/jams/>
+PREFIX mm:  <http://w3id.org/polifonia/ontology/music-meta/>
+PREFIX tunes:  <http://w3id.org/polifonia/ontology/tunes/>
+PREFIX core:  <http://w3id.org/polifonia/ontology/core/>
+PREFIX pon-resource: <http://w3id.org/polifonia/resource/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX roman: <http://w3id.org/polifonia/ontology/roman/>
+PREFIX poly: <http://w3id.org/polifonia/ontology/polychord/>
+PREFIX chord: <http://purl.org/ontology/chord/>
+
+CONSTRUCT {
+    # the file from which the data is extracted
+    ?jams_file_uri a jams:JAMSFile ;
+        jams:jamsVersion ?jams_version ;
+        jams:release ?release ;
+        prov:wasDerivedFrom ?corpus ;
+        prov:wasMemberOf <https://github.com/ashahidkhattak/thesession> .
+
+    # COMPOSITION
+    ?composition_uri a mm:MusicEntity ;
+        # rdfs:label ?title ;
+        # core:title ?title ;
+        # prov:wasDerivedFrom ?jams_file_uri ;
+        # only if the sandbox.type = score
+        # jams:tuneId     ?tuneId;
+        jams:beatsDuration ?beats_duration;
+        jams:tuneContent  ?tuneContent;
+        jams:tuneFeatureData  ?tuneFeatureData;
+        jams:transcriber  ?transcriberURI;
+	    mm:FormType 	  ?tuneTypeURI;
+        core:isMemberOf   ?tuneFamilyURI;
+		mm:hasKey		      ?tuneKeyURI;
+		jams:timeSignature ?tuneTimeSignatureURI .
+        # ?composer_type_relation ?composer_uri .
+
+    # TUNE musical metadata - going from URIs to concrete strings/ints
+    # TODO these names eg mm:tuneTypeName need to be adjusted to use MusicMeta and PON correctly, I think.
+    ?tuneTypeURI mm:tuneTypeName ?tuneTypeName.
+    ?tuneFamilyURI mm:tuneFamilyName ?tuneFamilyName.
+    ?tuneKeyURI mm:tuneKeyName ?keyName.
+    ?tuneTimeSignatureURI mm:timesig ?timesig.
+
+    # TUNE FAMILY
+    ?tuneFamilyURI a tunes:TuneFamily , core:Collection;
+                   core:isDefinedBy ?tune_family_concept_URI.
+
+    # ARTIST COMPOSER
+    # ?composer_uri ?composer_is_type core:Agent ;
+    #     rdfs:label ?composer .
+
+    # ARTIST PERFORMER
+    # ?performer_uri ?performer_is_type core:Agent ;
+    #    rdfs:label ?performer .
+
+    # ANNOTATION
+     ?annotation_uri a jams:JAMSAnnotation ;
+        a ?jams_annotation_type .
+
+
+    # ANNOTATOR
+    #pon-resource:Agent%2Fannotator_local_id a core:Agent ;
+    #    jams:hasName ?annotator_name ;
+    #    jams:hasAnnotatorType ?annotator_type_uri ;
+    #    rdfs:label ?annotator_name .
+
+    # ANNOTATION
+    ?annotation_uri a jams:JAMSAnnotation ;
+        a ?jams_annotation_type ;
+        ?score_is_jams_annotation_of ?composition_uri ;
+        jams:includesObservation ?observation_uri.
+
+    # SCORE
+    # if it a score, we create a score individual and its description (duration, provenance)
+    # ?score_uri ?is_score_of ?composition_uri ; # FIXME this cannot be right - ?is_score_of should be a relation name, not a variable
+    #    ?score_type mm:Score ;
+    #    ?score_label ?title ;
+    #    ?score_derived_from ?jams_file_uri ;
+    #    ?performer_no_audio ?performer_uri ;
+    #    ?score_has_jams_annotation ?composition_uri .
+
+    # OBSERVATION
+    ?observation_uri a jams:JAMSObservation, ?observation_type, ?occurrence_type ;
+        #rdfs:label ?observation_value ;
+        #jams:hasConfidence ?confidence ;
+        #jams:hasDuration ?observation_duration_float ;
+        #?score_observation_starts_at ?metrical_time_uri_observation ;
+        #?audio_observation_starts_at ?observation_time_float ;
+        #jams:ofChord ?chord_uri ;
+        # PATTERN ADDITION
+        #jams:hasFrequency ?pattern_frequency ;
+        jams:ofPattern ?pattern_uri ;
+        jams:hasLocation ?observation_time_float.
+
+    # PATTERN
+    ?pattern_uri xyz:pattern_type ?pattern_type ;
+                 xyz:pattern_content ?pattern_content ;
+                 xyz:pattern_length ?pattern_length;
+                 xyz:pattern_complexity ?pattern_complexity.
+
+}
+
+WHERE {
+    SERVICE <x-sparql-anything:tmp.jams,media-type=application/json> {
+
+    ##############
+    # SANDBOX
+    ##############
+
+    ?x xyz:sandbox ?sandbox .     
+
+    OPTIONAL {?sandbox xyz:transcriber ?transcriberName .}
+    OPTIONAL {?sandbox xyz:content ?tuneContent .}
+    OPTIONAL {?sandbox xyz:tunetype ?tuneTypeName.}
+    OPTIONAL {?sandbox xyz:key ?keyName .}
+    OPTIONAL {?sandbox xyz:timesig ?timesig .}
+    OPTIONAL {?idoftune xyz:sandbox ?sandbox .
+            ?sandbox xyz:tuneid ?tuneId.}
+    OPTIONAL {?tunefamily xyz:sandbox ?sandbox .
+            ?sandbox xyz:tunefamily ?tuneFamilyName.}
+ #   OPTIONAL {?year xyz:sandbox ?sandbox .
+ #             ?sandbox xyz:year ?yearValue.}
+#   OPTIONAL {?feature_data xyz:sandbox ?sandbox .
+#            ?sandbox xyz:feature_data ?tuneFeatureData.}
+    OPTIONAL {?x xyz:sandbox ?sandbox .
+            ?sandbox xyz:type ?object_type .}
+    OPTIONAL {?sandbox xyz:performers ?performer_list .
+    ?performer_list fx:anySlot ?performer .}
+    OPTIONAL {?sandbox xyz:composers ?composer_list .
+    ?composer_list fx:anySlot ?composer.}
+
+
+    OPTIONAL {
+        FILTER (?composer != "")
+            BIND (mm:hasComposer AS ?composer_type_relation)
+            BIND (rdf:type AS ?composer_is_type)
+            BIND (rdf:type AS ?score_type)
+            BIND (mm:isScoreOf AS ?is_score_of)
+            BIND (rdfs:label AS ?score_label)
+            BIND (mm:duration AS ?score_duration)
+    }
+    OPTIONAL {
+        FILTER (?performer != "")
+            BIND (mm:performedBy AS ?performer_type_relation)
+            BIND (rdf:type AS ?performer_is_type)
+    }
+
+    OPTIONAL {
+        FILTER (?object_type = "score")
+            # annotation time information
+            BIND (jams:JAMSScoreObservation AS ?observation_type)
+            # observation
+            BIND (jams:hasJAMSAnnotation AS ?score_has_jams_annotation)
+            BIND (jams:isJAMSAnnotationOf AS ?score_is_jams_annotation_of)
+    }
+
+    ###################
+    # ANNOTATIONS
+    ###################
+    ?x xyz:annotations ?jams_annotations .
+    ?jams_annotations fx:anySlot ?annotation_properties .
+    ?annotation_properties xyz:namespace ?namespace .
+    ?annotation_properties xyz:sandbox ?annotation_sandbox .
+    ?annotation_properties xyz:annotation_metadata ?annotation_metadata .
+    ?annotation_properties xyz:time ?annotation_time .
+    OPTIONAL {
+    ?annotation_properties xyz:duration ?annotation_duration .
+    BIND (xsd:float(?annotation_duration) AS ?annotation_duration_float)
+    BIND (STR(xsd:float(?annotation_time)) AS ?annotation_time_float)
+    }
+    BIND (IF
+            (CONTAINS(?annotation_time_float, "."),
+            (xsd:int(STRBEFORE(?annotation_time_float, "."))),
+            xsd:int(?annotation_time_float)) AS ?annotation_time_measure)
+    BIND (IF
+            (CONTAINS(?annotation_time_float, "."),
+            (xsd:int(STRAFTER(?annotation_time_float, "."))),
+            xsd:int(0)) AS ?annotation_time_beat)
+    ?annotation_properties xyz:data ?data.
+
+
+    #BIND (IF (?namespace = "key_mode", jams:ScoreKeyModeOccurrence, jams:ScoreChordOccurrence) AS ?occurrence_type )
+
+    #####################
+    # ANNOTATION METADATA
+    #####################
+    ?annotation_metadata xyz:curator ?curator .
+    OPTIONAL {?curator xyz:name ?curator_name .}
+    OPTIONAL {?curator xyz:email ?curator_email .}
+    ?annotation_metadata xyz:annotator ?annotator .
+    OPTIONAL {?annotator xyz:name ?annotator_name .}
+    OPTIONAL {?annotator xyz:email ?annotator_email .}
+    ?annotation_metadata xyz:data_source ?annotator_type .
+
+    ?annotation_metadata xyz:version ?version .
+    ?annotation_metadata xyz:corpus ?corpus .
+    ?annotation_metadata xyz:annotation_tools ?annotation_tools .
+    OPTIONAL{?annotation_metadata xyz:annotation_rules ?annotation_rules .}
+    OPTIONAL{?annotation_metadata xyz:validation ?validation .}
+
+    #####################
+    # OBSERVATION
+    #####################
+    OPTIONAL {
+        FILTER (CONTAINS(?namespace, "pattern"))
+        ?data fx:anySlot ?observation .
+        ?observation xyz:value ?observation_value .
+        ?observation xyz:time ?observation_time .
+        #?observation_value xyz:pattern_location ?pattern_location.
+        #?pattern_location fx:anySlot ?plocation.
+
+        BIND (xsd:float(?observation_time) AS ?observation_time_float)
+        BIND (IF (CONTAINS(?observation_time_float, "."),
+        (xsd:int(STRBEFORE(?observation_time_float, "."))),
+        xsd:int(?observation_time_float)) AS ?observation_time_measure)
+
+        BIND (IF
+        (CONTAINS(?observation_time_float, "."),
+        (xsd:int(STRAFTER(?observation_time_float, "."))),
+        xsd:int(0)) AS ?observation_time_beat)
+
+        ?observation xyz:confidence ?observation_confidence .
+        ?observation xyz:duration ?observation_duration .
+        BIND (xsd:float(?observation_duration) AS ?observation_duration_float )
+        BIND (jams:ScorePatternOccurrence AS ?occurrence_type)
+
+        ?observation_value xyz:pattern_content ?pattern_content ;
+          xyz:pattern_type ?pattern_type ;
+          xyz:pattern_length ?pattern_length;
+          xyz:pattern_complexity ?pattern_complexity .
+        BIND (xsd:float(?pattern_complexity) AS ?pattern_complexity_float )
+
+    }
+    ###################
+    # FILE METADATA
+    ###################
+    ?x xyz:file_metadata ?file_meta .
+    OPTIONAL {?file_meta xyz:title ?title .}
+    OPTIONAL {?file_meta xyz:jams_version ?jams_version .}
+    ?file_meta xyz:identifiers ?ids .
+    
+    OPTIONAL {?ids xyz:music_brainz ?mb_id .}
+    OPTIONAL {?ids xyz:discogs ?discogs_id .}
+    OPTIONAL {?ids xyz:perlam ?perlam_id .}
+
+    OPTIONAL {?file_meta xyz:release ?release .}
+    OPTIONAL {?file_meta xyz:artist ?artist .}
+    OPTIONAL {?file_meta xyz:duration ?beats_duration .
+        BIND (round(xsd:float(?beats_duration)) AS ?beats_duration_float )}
+
+    # PLACEHOLDER URIs
+
+    # use this regex for URI encoding. underscores are more readable than percents. we don't
+    # need to be able to map back to the original, for the purpose of the URI.
+    BIND("[ ,\'\"?#/]+" AS ?regex)
+
+    # a useful component for reuse below:
+    BIND(REPLACE(?title, ?regex, "_") AS ?titleForURI)
+
+
+    # eg: <http://w3id.org/polifonia/resource/tunes/thesession20211212/MusicEntity/1029>
+    BIND (IRI(CONCAT(STR(pon-resource:tunes),"/", ?corpus, "/MusicEntity/", STR(?tuneId)))  AS ?composition_uri)
+
+    # eg: <http://w3id.org/polifonia/resource/JAMSFile/thesession20211212/3822/I_Won_t_Be_A_Nun>
+    BIND (IRI(CONCAT(STR(pon-resource:JAMSFile), "/", 
+                     ?corpus, "/",
+                     ?tuneId, "/", 
+                     ?titleForURI)) 
+          AS ?jams_file_uri)
+
+    # eg: <http://w3id.org/polifonia/resource/JAMSAnnotation/thesession20211212/3822/I_Won_t_Be_A_Nun>
+    BIND (IRI(CONCAT(STR(pon-resource:JAMSAnnotation), "/", 
+                     ?corpus, "/",
+                     ?tuneId, "/", 
+                     ?titleForURI)) 
+          AS ?annotation_uri)
+
+    # eg: <http://w3id.org/polifonia/resource/JAMSObservation/thesession20211212/3822/I_Won_t_Be_A_Nun/1c1ca58e70cc70c9d1d96514ef8f4869a1dbcbb3>
+    BIND (IRI(CONCAT(STR(pon-resource:JAMSObservation), "/", 
+                     ?corpus, "/",
+                     ?tuneId, "/", 
+                     ?titleForURI, "/", 
+                     SHA1(CONCAT(STR(?pattern_content), STR(?pattern_type), STR(?observation_time_float)))))
+          AS ?observation_uri)
+
+    BIND (IRI(CONCAT(STR(pon-resource:Agent), "/Composer/", STR(REPLACE(?composer, " ", "_"))  )) AS ?composer_uri)
+    BIND (IRI(CONCAT(STR(pon-resource:Agent), "/Performer/", STR(REPLACE(?performer, " ", "_"))  )) AS ?performer_uri)
+    
+    # eg: <http://w3id.org/polifonia/resource/pattern/fonn/feature=_diatonic_scale_degree_level=_accent_n_vals=4/5_3_1_6>
+    BIND (IRI(CONCAT(STR(pon-resource:pattern), "/fonn/", 
+                     REPLACE(?pattern_type, ?regex, "_"), "/", 
+                     REPLACE(?pattern_content, ?regex, "_"))) 
+          AS ?pattern_uri)
+
+    BIND (IRI(CONCAT(STR(pon-resource:transcriber), "/", 
+                     REPLACE(STR(?transcriberName), ?regex, "_"))) 
+          AS ?transcriberURI)
+
+    BIND (IRI(CONCAT(STR(pon-resource:tunes), "/", ?corpus, "/FormType/", 
+                     REPLACE(STR(?tuneTypeName), ?regex, "_"))) 
+          AS ?tuneTypeURI)
+
+    # eg: <http://w3id.org/polifonia/resource/key/Gmajor>
+    BIND (IRI(CONCAT(STR(pon-resource:key), "/", REPLACE(STR(?keyName), "#", "sharp"))) AS ?tuneKeyURI)
+
+    # eg: <http://w3id.org/polifonia/resource/timesig/4_4>
+    BIND (IRI(CONCAT(STR(pon-resource:timesig), "/", REPLACE(STR(?timesig), "/", "_"))) AS ?tuneTimeSignatureURI)
+
+    # ie: <http://w3id.org/polifonia/resource/CollectionConcept/TuneFamily>
+    BIND (IRI(CONCAT(STR(pon-resource:CollectionConcept), "/", "TuneFamily")) AS ?tune_family_concept_URI)
+
+    # eg: <http://w3id.org/polifonia/resource/tunefamily/O_Sullivan_s_March>
+    BIND (IRI(CONCAT(STR(pon-resource:tunefamily), "/", REPLACE(?tuneFamilyName, ?regex, "_"))) AS ?tuneFamilyURI)
+
+} 
+
+}

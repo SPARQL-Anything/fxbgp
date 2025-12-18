@@ -1,0 +1,13 @@
+# https://api.github.com/repositories/386684662/contents/queries/file.sparql?ref=4d890833f9e5ab51b23dca183718d906056ce134
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX fx:  <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX mei: <http://www.music-encoding.org/ns/mei#>
+PREFIX xml: <http://www.w3.org/XML/1998/namespace#>
+
+SELECT ?fileId ?title
+WHERE {
+ SERVICE <x-sparql-anything:location=CNW/cnw0001.xml,blank-nodes=false> {
+   [] a mei:fileDesc ; xml:id ?fileId ; ?includes [ a mei:titleStmt ; ?includes2 [ a mei:title; rdf:_1 ?title ] ]
+ }
+}

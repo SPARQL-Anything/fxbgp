@@ -1,0 +1,26 @@
+# https://api.github.com/repositories/429763137/contents/queries/child.sparql?ref=045e452f1fdaa6a3896d39d748b34985ed90380f
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX fx:   <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz:  <http://sparql.xyz/facade-x/data/>
+PREFIX led:  <http://led.kmi.open.ac.uk/term/>
+PREFIX dc: <http://purl.org/dc/terms/>
+prefix xsd: <http://www.w3.org/2001/XMLSchema#>
+prefix schema: <http://schema.org/>
+
+SELECT ?file ?led_entity WHERE {
+	# 
+	SERVICE <x-sparql-anything:> {
+		fx:properties fx:location "./CHILD exemplar sources.xlsx" .
+		[] a fx:root ; 
+			?row [ rdf:_2 ?link ; ?cell ?expstr ] .
+		filter ( fx:after(?row, rdf:_2 ) ) . # skip the first two rows
+		filter ( ?link != "" ) . # ignore sources without reusable text
+		filter ( fx:after(?cell, rdf:_3 ) ) . # any cell after the second
+		BIND ( replace( ?expstr, "https://led.kmi.open.ac.uk/entity/lexp/", "http://data.open.ac.uk/led/lexp/" ) as ?expuri ) .
+		BIND ( replace( ?link, ".*/","") as ?file ) .
+		BIND ( fx:entity( fx:String.trim(?expuri) ) as ?led_entity ) .
+		FILTER (?expstr != "" )
+	} .
+
+}

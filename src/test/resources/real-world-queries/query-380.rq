@@ -1,0 +1,105 @@
+# https://api.github.com/repositories/386684662/contents/queries/notes.sparql?ref=4d890833f9e5ab51b23dca183718d906056ce134
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX fx:  <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX mei: <http://www.music-encoding.org/ns/mei#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+
+SELECT DISTINCT ?measureNo (?_staffNo as ?staff) ?signature ?layerNo ?it ?notePos ?noteVal ?acc ?noteOct ?dur
+WHERE {
+	VALUES (?anonLayer) {("1")}
+	SERVICE <x-sparql-anything:> {
+		fx:properties
+			fx:location "./sample-encodings/MEI_4.0/Music/Complete_examples/Parker-Gillespie_ShawNuff.mei" ;
+			fx:blank-nodes false ;
+			fx:media-type "application/xml" 
+		.
+		# Staff definitions
+		?staffDef a mei:staffDef ; xyz:n ?_staffNo . # Join Staff Number!
+		OPTIONAL { ?staffDef xyz:key.sig ?signature }
+		# Measures
+		?measure a mei:measure .
+		?measure xyz:n ?measureNo .
+		?measure ?li [
+		   a mei:staff ;
+		   xyz:n ?_staffNo ;
+		   ?layerLi ?layer 
+		]
+		.
+		FILTER(STRSTARTS(STR(?layerLi), STR(rdf:_))) .
+		
+		# Layers
+		?layer a mei:layer .
+		?layer ?layerItem ?item .
+		FILTER (isIRI(?item) && ?layerItem != rdf:type ) .
+		FILTER(STRSTARTS(STR(?layerItem), STR(rdf:_))) .
+		OPTIONAL { ?layer xyz:n ?layerNo_ } 
+		.
+
+		# Notes
+		{
+			# Beam > Note
+			?item a ?itemType .
+			FILTER(?itemType = mei:beam ) .
+			BIND("Beam" as ?it)
+			# get the notes
+			?item ?toNoteItem ?note .
+			?note a mei:note ; ?pname ?noteVal ; xyz:oct ?noteOct ; xyz:dur ?dur .
+			OPTIONAL { ?note xyz:accid ?acc } .
+			FILTER ( ?pname = xyz:pname || ?pname = xyz:pname.ges ) .
+			BIND (  REPLACE(STR(?toNoteItem), STR(rdf:_), '') AS ?notePos ) .			 
+		} UNION {
+			# Rest
+			?item a ?itemType .
+			FILTER(?itemType = mei:rest ) .
+			?item xyz:dur ?dur .
+			BIND("Rest" as ?it) .
+			BIND("-" AS ?noteVal ) .
+			BIND("-" AS ?noteOct ) .
+			BIND ( REPLACE( STR(?layerItem), STR(rdf:_), '') AS ?notePos )
+		} UNION {
+			# Chord > Note
+			?item a ?itemType .
+			FILTER(?itemType = mei:chord ) .
+			BIND("Chord" as ?it) .
+			# get the notes
+			?item ?toNoteItem ?note .
+			?note a mei:note ; ?pname ?noteVal ; xyz:oct ?noteOct ; xyz:dur ?dur .
+			OPTIONAL { ?note xyz:accid ?acc } .
+			FILTER ( ?pname = xyz:pname || ?pname = xyz:pname.ges ) .
+			BIND ( REPLACE(STR(?toNoteItem), STR(rdf:_), '') AS ?notePos ) .
+		} UNION {
+			# Note
+			?item a ?itemType .
+			FILTER(?itemType = mei:note ) .
+			BIND("Note" as ?it) .
+			?item ?pname ?noteVal ; 
+				xyz:oct ?noteOct ; 
+				xyz:dur ?dur .
+			OPTIONAL { ?item xyz:accid ?acc } .
+			FILTER ( ?pname = xyz:pname || ?pname = xyz:pname.ges ) .
+			BIND ( REPLACE(STR(?layerItem), STR(rdf:_), '') AS ?notePos )
+		} UNION {
+			# Beam > Chord > Note
+			?item a ?itemType .
+			FILTER(?itemType = mei:beam ) .
+			BIND("Beam/Chord" as ?it) .
+			?item ?toChord ?chord .
+			?chord a mei:chord .
+			?chord ?toNoteItem ?note .
+			?note a mei:note ; ?pname ?noteVal ; xyz:oct ?noteOct ; xyz:dur ?dur .
+			OPTIONAL { ?item xyz:accid ?acc } .
+			FILTER ( ?pname = xyz:pname || ?pname = xyz:pname.ges ) .
+			BIND ( REPLACE(STR(?toNoteItem), STR(rdf:_), '') AS ?notePos ) .
+		}
+		.
+	}
+	
+	# GIVE A ANONYMOUS LAYER AN ID
+	BIND( IF (BOUND(?layerNo_), ?layerNo_, ?anonLayer) AS ?layerNo) .
+	# Order by layer item
+	BIND ( REPLACE(STR(?layerItem), STR(rdf:_), '') AS ?itemOrder) .
+}
+ORDER BY xsd:int(?measureNo) xsd:int(?staffNo) xsd:int(?layerNo) xsd:int(?itemOrder) xsd:int(?notePos)

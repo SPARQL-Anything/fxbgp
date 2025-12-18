@@ -1,0 +1,162 @@
+# https://api.github.com/repositories/415324251/contents/linelyric_sim_etl/queries/linelyr-similarity-latest.sparql?ref=d43873b1a046361e0d8d009f77dfc618ea5fb6df
+# Query to extract data from preprocessed file with line lyric similarity related to Music domain
+# and build a Knowledge Graph according to Polifonia ontology network, using sparql.anything
+#
+# Raw file:
+# 
+# Polifonia KG ontology: https://github.com/polifonia-project/sonar2021_demo/issues/14
+
+
+# POLIFONIA prefixes
+PREFIX core:    <https://w3id.org/polifonia/ON/core/> 
+PREFIX mp:      <https://w3id.org/polifonia/ON/musical-performance/>
+PREFIX mc:      <https://w3id.org/polifonia/ON/musical-composition/>
+PREFIX mf:      <https://w3id.org/polifonia/ON/musical-feature/>
+PREFIX cm:      <https://w3id.org/polifonia/ON/comparative-measure/>
+PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX pr:      <https://w3id.org/polifonia/resource/>
+
+# SPARQL anything prefixes
+PREFIX fx:  <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+
+
+
+# [!] Warning: Version 1 has lyrics line similarity disabled as in data there's a fake value to produce IDs
+
+CONSTRUCT { 
+
+    # Recording
+    ?recordingAIRI  a mp:Recording ;
+                    mf:hasLyrics ?lyricsAIRI ;
+                    mf:hasLyricLine ?lyricLineAIRI ;
+                    cm:isLineLyricallySimilarTo ?recordingBIRI ;
+                    cm:isInvolvedinLineLyricSimilarity ?lyricLineSimIRI .
+
+    ?recordingBIRI a mp:Recording ;
+                    mf:hasLyrics ?lyricsBIRI ;
+                    mf:hasLyricLine ?lyricLineBIRI ;
+                    cm:isLineLyricallySimilarTo ?recordinAIRI ;
+                    cm:isInvolvedinLineLyricSimilarity ?lyricLineSimIRI .
+
+    # Lyrics
+    ?lyricsAIRI a mf:Lyrics ;
+                mf:hasPart ?lyricLineAIRI .
+
+    ?lyricsBIRI a mf:Lyrics ;
+                mf:hasPart ?lyricLineBIRI .
+
+    # line lyric
+    ?lyricLineAIRI  a mf:LyricLine ;
+                    rdfs:label ?lineALabel ;
+                    mf:isPartOf ?lyricsAIRI ;
+                    mf:isLineLyricOfRecording ?recordingAIRI ;
+#                    mf:hasLineNumber ?lineNumberA ;                    
+                    cm:isInvolvedinLyricLineSimilarity ?lyricLineSimIRI .
+
+
+    ?lyricLineBIRI  a mf:LyricLine ;
+                    rdfs:label ?lineBLabel ;
+                    mf:isPartOf ?lyricsBIRI ;
+                    mf:isLineLyricOfRecording ?recordingBIRI ;
+#                    mf:hasLineNumber ?lineNumberB ;                    
+                    cm:isInvolvedinLyricLineSimilarity ?lyricLineSimIRI .
+
+
+
+    # LineLyricSimilarity
+    ?lyricLineSimIRI a cm:LyricLineSimilarity ;
+                    cm:involvesRecording ?recordingAIRI ;
+                    cm:involvesRecording ?recordingBIRI ;
+                    cm:involvesLyricLine ?linelyricAIRI ;
+                    cm:involvesLyricLine ?linelyricBIRI ;
+                    cm:hasCompSimScore ?compSimScore ;
+                    cm:hasHumanSimScore ?humanSimScore .
+
+}
+    
+
+    WHERE {
+
+
+    SERVICE <x-sparql-anything:> {
+
+        fx:properties fx:location "data/lyr_sim_v1.json"  ;
+        fx:media-type "application/json" ;
+        fx:blank-nodes false    .
+
+            {
+                # Similarities
+
+                # ! Note: we assume that to exist, a similarity should have lineA lineB the recordingId each line belongs to and the line labels
+                ?similarity xyz:lyrSimId ?lyrSimId ;
+                        xyz:lineA ?lineAobject ;
+                        xyz:lineB ?lineBobject .
+
+                ?lineAobject xyz:lineLabel ?lineALabel ;
+                    xyz:recordingId ?recordingAId .
+
+                ?lineBobject xyz:lineLabel ?lineBLabel ;
+                    xyz:recordingId ?recordingBId .
+
+            } 
+            UNION
+            {
+                # Similarities with computed score
+                ?similarity xyz:lyrSimId ?lyrSimId ;
+                        xyz:compSimScore ?compSimScore ;
+                        xyz:lineA ?lineAobject ;
+                        xyz:lineB ?lineBobject .
+                
+                ?lineAobject xyz:lineLabel ?lineALabel ;
+                    xyz:recordingId ?recordingAId .
+
+                ?lineBobject xyz:lineLabel ?lineBLabel ;
+                    xyz:recordingId ?recordingBId .
+
+            }
+            UNION
+            {
+                # Similarities with human computed score
+                ?similarity xyz:lyrSimId ?lyrSimId ;
+                        xyz:humanSimScore ?humanSimScore ;
+                        xyz:lineA ?lineAobject ;
+                        xyz:lineB ?lineBobject .
+
+                ?lineAobject xyz:lineLabel ?lineALabel ;
+                    xyz:recordingId ?recordingAId .
+
+                ?lineBobject xyz:lineLabel ?lineBLabel ;
+                    xyz:recordingId ?recordingBId .
+
+            }
+            UNION
+            {
+                # Similarities with line numbers
+                ?similarity xyz:lyrSimId ?lyrSimId ;
+                        xyz:lineA ?lineAobject ;
+                        xyz:lineB ?lineBobject .
+            }
+
+            ?lineAobject xyz:lineLabel ?lineALabel ;
+                    xyz:recordingId ?recordingAId ;
+                    xyz:lineNumber ?lineNumberA .
+
+            ?lineBobject xyz:lineLabel ?lineBLabel ;
+                    xyz:recordingId ?recordingBId ;
+                    xyz:lineNumber ?lineNumberB .
+            
+        } 
+
+
+    # generate resources IRIs from string IDs
+    BIND(IRI(CONCAT( STR(pr:) , "Recording/", ENCODE_FOR_URI(?recordingAId))) AS ?recordingAIRI)
+    BIND(IRI(CONCAT( STR(pr:) , "Recording/", ENCODE_FOR_URI(?recordingBId))) AS ?recordingBIRI)
+    BIND(IRI(CONCAT( STR(pr:) , "Lyrics/lyric_", ENCODE_FOR_URI(?recordingAId))) AS ?lyricsAIRI)
+    BIND(IRI(CONCAT( STR(pr:) , "Lyrics/lyric_", ENCODE_FOR_URI(?recordingBId))) AS ?lyricsBIRI)
+    BIND(IRI(CONCAT( STR(pr:) , "LyricLine/", ENCODE_FOR_URI(?recordingAId), "_", ENCODE_FOR_URI(?lineNumberA))) AS ?lyricLineAIRI)
+    BIND(IRI(CONCAT( STR(pr:) , "LyricLine/", ENCODE_FOR_URI(?recordingBId), "_", ENCODE_FOR_URI(?lineNumberB))) AS ?lyricLineBIRI)
+    BIND(IRI(CONCAT( STR(pr:) , "LyricLineSimilarity/", ENCODE_FOR_URI(?lyrSimId))) AS ?lyricLineSimIRI)
+
+}

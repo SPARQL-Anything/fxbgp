@@ -1,0 +1,179 @@
+# https://api.github.com/repositories/630944765/contents/conversion/mei2pon.sparql?ref=d2c32702c88f0891b8262419275c236af8ed64b7
+# TODO: Handle time signature, midi instrument, key signature from staffDef
+
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+PREFIX mei: <http://www.music-encoding.org/ns/mei#>
+PREFIX xml: <http://www.w3.org/XML/1998/namespace#>
+
+PREFIX res: <http://my-resource-iri/>
+
+PREFIX mm: <https://w3id.org/polifonia/ontology/music-meta/>
+PREFIX mr: <https://w3id.org/polifonia/ontology/music-representation/>
+PREFIX mp: <https://w3id.org/polifonia/ontology/music-projection/>
+PREFIX core: <https://w3id.org/polifonia/ontology/core/>
+
+CONSTRUCT {
+  # Signal classes and properties with their type. Needed to load in Protege.
+  ?ontologyIRI a owl:Ontology .
+  core:hasEndMusicTimeIndex a owl:ObjectProperty .
+  core:hasMusicTimeDuration a owl:ObjectProperty .
+  core:hasMusicTimeIndexComponent a owl:ObjectProperty .
+  core:hasStartMusicTimeIndex a owl:ObjectProperty .
+  core:hasValue a owl:DataTypeProperty .
+  core:hasValueType a owl:ObjectProperty .
+  core:isDerivedFrom a owl:ObjectProperty .
+  core:isPartOf a owl:ObjectProperty .
+  mp:hasDuration a owl:ObjectProperty .
+  mp:hasOctave a owl:DataTypeProperty .
+  mp:hasPitch a owl:ObjectProperty .
+  mp:hasPitchClass a owl:ObjectProperty .
+  mr:describesFragment a owl:ObjectProperty .
+  mr:hasFragment a owl:ObjectProperty .
+  mr:hasObservation a owl:ObjectProperty .
+  mr:hasSubject a owl:ObjectProperty .
+  mr:hasTemporalLocation a owl:ObjectProperty .
+  core:MusicTimeDuration a owl:Class .
+  core:MusicTimeIndex a owl:Class .
+  core:MusicTimeIndexComponent a owl:Class .
+  core:MusicTimeInterval a owl:Class .
+  mm:DigitalScore a owl:Class .
+  mp:Note a owl:Class .
+  mp:Pitch a owl:Class .
+  mr:Annotation a owl:Class .
+  mr:Fragment a owl:Class .  
+  
+  ?scoreIRI a mm:DigitalScore .
+
+  # handle the different score lines
+  ?scoreIRI mr:hasFragment ?staffIRI .
+  ?staffIRI a mr:Fragment ;
+            rdfs:label ?staffLabel ;
+            mr:hasTemporalLocation [ a core:MusicTimeInterval ; 
+                                     core:hasStartMusicTimeIndex core:Start ; 
+                                     core:hasEndMusicTimeIndex core:End ] .
+
+  ?measureIRI a mr:Annotation ;
+              mr:describesFragment ?measureFragmentIRI .
+              
+  ?measureFragmentIRI a mr:Fragment ; 
+                      core:isPartOf ?staffIRI ;
+                      mr:hasTemporalLocation [ 
+                        a core:MusicTimeInterval ;
+                        # Start index
+                        core:hasStartMusicTimeIndex [
+                          a core:MusicTimeIndex ;
+                          core:hasMusicTimeIndexComponent [ a core:MusicTimeIndexComponent ; core:hasValue ?measureIdNum ; core:hasValueType core:Measure ]
+                        ] ;
+                        # Duration
+                        core:hasMusicTimeDuration [ a core:MusicTimeDuration ; core:hasValue "1" ; core:hasValueType core:Measure ]
+                      ] .
+  
+  ?noteAnnotationIRI a mr:Annotation ;
+                     core:isDerivedFrom ?measureIRI ;
+                      mr:describesFragment [ 
+                        a mr:Fragment ; 
+                        core:isPartOf ?measureFragmentIRI ;
+                        mr:hasTemporalLocation [ 
+                          a core:MusicTimeInterval ;
+                          # Start index
+                          core:hasStartMusicTimeIndex [
+                            a core:MusicTimeIndex ;
+                            core:hasMusicTimeIndexComponent [ a core:MusicTimeIndexComponent ; core:hasValue ?notePosition ; core:hasValueType core:Index ]
+                        ] ;
+                        # Duration
+                        core:hasMusicTimeDuration [ a core:MusicTimeDuration ; core:hasValue ?noteDurationIRI ; core:hasValueType core:Beat ]
+                      ]
+                     ] ;
+                     mr:hasObservation [ mr:hasSubject ?noteIRI ] .
+    
+    ?noteIRI a mp:Note ;
+             mp:hasPitch ?notePitchIRI ;
+             mp:hasDuration ?noteDurationIRI ;
+             mp:hasAccidental ?noteAccidentalIRI .
+    ?noteIRI owl:sameAs ?sameNoteIRI .
+
+    ?notePitchIRI a mp:Pitch ; 
+                  mp:hasPitchClass ?notePitchClassIRI ; 
+                  mp:hasOctave ?pitchOctave .
+}
+WHERE {
+  SERVICE <x-sparql-anything:> { 
+    BIND (fx:entity(res:, ?_scoreID) AS ?ontologyIRI)
+    BIND (fx:entity(?ontologyIRI, "/", "score") AS ?scoreIRI)
+	  
+    fx:properties fx:location ?_path .
+    fx:properties fx:media-type  "application/xml" .
+    fx:properties fx:blank-nodes "false" .
+
+    ?staff a mei:staffDef ;
+           xyz:n ?staffIdNum .
+    OPTIONAL {
+      ?staff fx:anySlot* [ a mei:label ; fx:anySlot ?staffLabel ]
+    }
+      
+    ?measure a mei:measure ;
+             xyz:n ?measureIdNum .
+
+    # TODO: Handle chord
+    ?measure fx:anySlot* [ a mei:staff ; xyz:n ?staffIdNum ; fx:anySlot* [ ?noteMember ?note ]] .
+      # bind the note position within the measure
+    ?note a mei:note ;
+          xyz:pname ?notePitchClass ;
+          xyz:dur ?noteDuration ;
+          xyz:oct ?pitchOctave ;
+          xml:id ?noteId .
+    BIND (fx:cardinal(?noteMember) AS ?notePosition)
+    OPTIONAL { ?note xyz:accidental ?noteAccidental }
+
+    # Map values for pitch classes
+    OPTIONAL { FILTER (?notePitchClass = "a") BIND(mp:A AS ?notePitchClassIRI) }
+    OPTIONAL { FILTER (?notePitchClass = "b") BIND(mp:B AS ?notePitchClassIRI) }
+    OPTIONAL { FILTER (?notePitchClass = "c") BIND(mp:C AS ?notePitchClassIRI) }
+    OPTIONAL { FILTER (?notePitchClass = "d") BIND(mp:D AS ?notePitchClassIRI) }
+    OPTIONAL { FILTER (?notePitchClass = "e") BIND(mp:E AS ?notePitchClassIRI) }
+    OPTIONAL { FILTER (?notePitchClass = "f") BIND(mp:F AS ?notePitchClassIRI) }
+    OPTIONAL { FILTER (?notePitchClass = "g") BIND(mp:G AS ?notePitchClassIRI) }
+
+    # Map values for durations
+    OPTIONAL { FILTER (?noteDuration = "long") BIND(mp:Long AS ?noteDurationIRI) }
+    OPTIONAL { FILTER (?noteDuration = "breve") BIND(mp:Breve AS ?noteDurationIRI) }
+    OPTIONAL { FILTER (?noteDuration = "1") BIND(mp:Whole AS ?noteDurationIRI) }
+    OPTIONAL { FILTER (?noteDuration = "2") BIND(mp:Half AS ?noteDurationIRI) }
+    OPTIONAL { FILTER (?noteDuration = "4") BIND(mp:Quarter AS ?noteDurationIRI) }
+    OPTIONAL { FILTER (?noteDuration = "8") BIND(mp:Eighth AS ?noteDurationIRI) }
+    OPTIONAL { FILTER (?noteDuration = "16") BIND(mp:Sixteenth AS ?noteDurationIRI) }
+    OPTIONAL { FILTER (?noteDuration = "32") BIND(mp:32th AS ?noteDurationIRI) }
+    OPTIONAL { FILTER (?noteDuration = "64") BIND(mp:64th AS ?noteDurationIRI) }
+    OPTIONAL { FILTER (?noteDuration = "128") BIND(mp:128th AS ?noteDurationIRI) }
+    OPTIONAL { FILTER (?noteDuration = "256") BIND(mp:256th AS ?noteDurationIRI) }
+    OPTIONAL { FILTER (?noteDuration = "512") BIND(mp:512th AS ?noteDurationIRI) }
+    OPTIONAL { FILTER (?noteDuration = "1024") BIND(mp:1024th AS ?noteDurationIRI) }
+    OPTIONAL { FILTER (?noteDuration = "2048") BIND(mp:2048th AS ?noteDurationIRI) }
+
+    # Map values for note accidentals
+    OPTIONAL { FILTER (?noteAccidental = "s") BIND(mp:Sharp AS ?noteAccidental) }
+    OPTIONAL { FILTER (?noteAccidental = "f") BIND(mp:Flat AS ?noteAccidental) }
+    OPTIONAL { FILTER (?noteAccidental = "ss") BIND(mp:DoubleSharp AS ?noteAccidental) }
+    OPTIONAL { FILTER (?noteAccidental = "x") BIND(mp:DoubleSharp AS ?noteAccidental) }
+    OPTIONAL { FILTER (?noteAccidental = "xs") BIND(mp:TripleSharp AS ?noteAccidental) }
+    OPTIONAL { FILTER (?noteAccidental = "sx") BIND(mp:TripleSharp AS ?noteAccidental) }
+    OPTIONAL { FILTER (?noteAccidental = "ts") BIND(mp:TripleSharp AS ?noteAccidental) }
+    OPTIONAL { FILTER (?noteAccidental = "ff") BIND(mp:DoubleFlat AS ?noteAccidental) }
+    OPTIONAL { FILTER (?noteAccidental = "tf") BIND(mp:TripleFlat AS ?noteAccidental) }
+    OPTIONAL { FILTER (?noteAccidental = "n") BIND(mp:Natural AS ?noteAccidental) }
+	}
+
+  BIND (fx:entity(?scoreIRI, "/", "staff", "/", ?staffIdNum) AS ?staffIRI)
+  BIND (fx:entity(?staffIRI, "/", "measure", "/", ?measureIdNum) AS ?measureIRI)
+  BIND (fx:entity(?measureIRI, "/", ?measureIdNum, "/", STRUUID()) AS ?measureFragmentIRI)
+  # IRI for the annotation of a specific note
+  BIND (fx:entity(?measureIRI, "/", "annotation", "/", STRUUID()) AS ?noteAnnotationIRI)
+  BIND (fx:entity(?staffIRI, "/", ?noteId) AS ?noteIRI)
+  BIND (fx:entity(?ontologyIRI, "_", ?noteId) AS ?sameNoteIRI)
+  BIND (fx:entity(?noteIRI, "/pitch/", STRUUID()) AS ?notePitchIRI)
+}

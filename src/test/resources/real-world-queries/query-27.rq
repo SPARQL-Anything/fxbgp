@@ -1,0 +1,36 @@
+# https://api.github.com/repositories/708677389/contents/query-roles.sparql?ref=df621a7ccc1262db58f277f3524d06e402bed787
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX mm:  <http://w3id.org/polifonia/ontology/music-meta/>
+PREFIX core:  <http://w3id.org/polifonia/ontology/core/>
+PREFIX tunes:  <http://w3id.org/polifonia/ontology/tunes/>
+PREFIX pon-resource: <http://w3id.org/polifonia/resource/tunes/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+
+CONSTRUCT {
+    ?role_iri a core:Role ;
+        core:id ?role_iri_local ;
+        core:name ?role_name .
+}
+
+WHERE {
+    SERVICE <x-sparql-anything:> {
+
+        fx:properties fx:location ?_filepath ;
+            fx:media-type  "application/json" .
+
+        ?base_root a fx:root ;
+            ?role_slot ?role_base .
+
+        ?role_base 
+            xyz:iri_local ?role_iri_local .
+
+        BIND(IRI(concat(str(pon-resource:), ?role_iri_local)) AS ?role_iri)
+
+        OPTIONAL { ?role_base xyz:name ?role_name . }
+
+    }
+}

@@ -1,0 +1,11 @@
+# https://api.github.com/repositories/411578102/contents/gtfs/sparql-anything-query-templates/q6.sparql?ref=ffd435c678cff4f2a4391f4ffa46b9feaecc8953
+PREFIX fx:  <http://sparql.xyz/facade-x/ns/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+SELECT (count(?route_url) as ?nRoutes) WHERE {
+		SERVICE <x-sparql-anything:location=../result/datasets/%format/%size/ROUTES.%format,%param,slice=%slice,strategy=%strategy> {
+			?r xyz:route_url ?route_url .
+			?r xyz:agency_id ?agency_id.
+			FILTER (?agency_id="00000000000000000005")
+		}
+}

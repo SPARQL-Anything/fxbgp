@@ -1,0 +1,106 @@
+# https://api.github.com/repositories/415324251/contents/harmonic_sim_etl/queries/transformations/harmonic-similarity-0.0.2.sparql?ref=d43873b1a046361e0d8d009f77dfc618ea5fb6df
+# Query to extract data from preprocessed file with harmonic similarity related to Music domain
+# and build a Knowledge Graph according to Polifonia ontology network, using sparql.anything
+#
+# Raw file:
+# 
+# Polifonia KG ontology: https://github.com/polifonia-project/sonar2021_demo/issues/14
+
+
+# POLIFONIA prefixes
+PREFIX core:    <https://w3id.org/polifonia/ON/core/> 
+PREFIX mp:      <https://w3id.org/polifonia/ON/musical-performance/>
+PREFIX mc:      <https://w3id.org/polifonia/ON/musical-composition/>
+PREFIX mf:      <https://w3id.org/polifonia/ON/musical-feature/>
+PREFIX cm:      <https://w3id.org/polifonia/ON/comparative-measure/>
+PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX pr:      <https://w3id.org/polifonia/resource/>
+
+# SPARQL anything prefixes
+PREFIX fx:  <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+
+
+CONSTRUCT { 
+
+    # Recording
+    ?recordingAIRI  a mp:Recording ;
+                    mf:hasChordProgression ?chordProgressionAIRI ;
+                    cm:isHarmonicallySimilarTo ?recordingBIRI ;
+                    cm:isInvolvedInHarmonicSimilarity ?harmonicSimIRI .
+
+    ?recordingBIRI a mp:Recording ;
+                    mf:hasChordProgression ?chordProgressionBIRI ;
+                    cm:isHarmonicallySimilarTo ?recordingAIRI ;
+                    cm:isInvolvedInHarmonicSimilarity ?harmonicSimIRI .
+
+    # ChordProgression
+    ?chordProgressionAIRI   a mf:ChordProgression ;
+                    mf:isChordProgressionOf ?recordingAIRI ;
+                    mf:hasStartInRecording ?beginCPA ;
+                    mf:hasEndInRecording ?endCPA ;                    
+                    cm:isInvolvedInHarmonicSimilarity ?harmonicSimIRI ;
+                    cm:hasSimilarChordProgression ?chordProgressionBIRI .
+                    
+
+
+    ?chordProgressionBIRI   a mf:ChordProgression ;
+                    mf:isChordProgressionOf ?recordingBIRI ;
+                    mf:hasStartInRecording ?beginCPB ;
+                    mf:hasEndInRecording ?endCPB ;
+                    cm:isInvolvedInHarmonicSimilarity ?harmonicSimIRI ;
+                    cm:hasSimilarChordProgression ?chordProgressionAIRI .
+
+
+    # HarmonicSimilarity
+    ?harmonicSimIRI a cm:HarmonicSimilarity ;
+                    cm:involves ?recordingAIRI ;
+                    cm:involves ?recordingBIRI ;
+                    cm:involves ?chordProgressionAIRI ;
+                    cm:involves ?chordProgressionBIRI ;
+                    cm:hasSimScore ?simScore .
+
+}
+    
+
+    WHERE {
+
+
+    SERVICE <x-sparql-anything:> {
+
+        fx:properties fx:location "data/harm_sim_full_v2.json"  ;
+        fx:media-type "application/json" ;
+        fx:blank-nodes false    .
+
+            ?similarity xyz:recordingA ?recordingAid ;
+                        xyz:recordingB ?recordingBid ;
+                        xyz:compSimScore ?simScore ;
+                        xyz:cpMatches ?cpMatchesList .
+
+            ?cpMatchesList ?li ?cpMatch .
+
+            ?cpMatch xyz:cpMatchId ?cpMatchId ;
+                    xyz:cpaA ?chordProgressionA ;
+                    xyz:cpaB ?chordProgressionB .
+
+            ?chordProgressionA xyz:id ?chordProgressionAid ;
+                            xyz:start ?beginCPA ;
+                            xyz:end ?endCPA .
+
+            ?chordProgressionB xyz:id ?chordProgressionBid ;
+                            xyz:start ?beginCPB ;
+                            xyz:end ?endCPB .
+            
+        } 
+
+
+    # generate resources IRIs from string IDs
+    BIND(IRI(CONCAT( STR(pr:) , "Recording/", ENCODE_FOR_URI(?recordingAid))) AS ?recordingAIRI)
+    BIND(IRI(CONCAT( STR(pr:) , "Recording/", ENCODE_FOR_URI(?recordingBid))) AS ?recordingBIRI)
+    BIND(IRI(CONCAT( STR(pr:) , "ChordProgression/", ENCODE_FOR_URI(?recordingAid), "_", ENCODE_FOR_URI(?chordProgressionAid))) AS ?chordProgressionAIRI)
+    BIND(IRI(CONCAT( STR(pr:) , "ChordProgression/", ENCODE_FOR_URI(?recordingBid), "_", ENCODE_FOR_URI(?chordProgressionBid))) AS ?chordProgressionBIRI)
+    BIND(IRI(CONCAT( STR(pr:) , "HarmonicSimilarity/harm_sim_", ENCODE_FOR_URI(?recordingAid), "_", ENCODE_FOR_URI(?recordingBid))) AS ?harmonicSimIRI)
+
+
+}

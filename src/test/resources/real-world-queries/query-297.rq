@@ -1,0 +1,15 @@
+# https://api.github.com/repositories/488894000/contents/queries/list-components.sparql?ref=8521237b5c63ec0675cd0260889c6835ee84e06b
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX fx:   <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz:  <http://sparql.xyz/facade-x/data/>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+
+SELECT ?file
+WHERE {
+	SERVICE <x-sparql-anything:> {
+		fx:properties fx:location "./ecosystem/content/" ; fx:archive.matches ".+.md" .
+		[] fx:anySlot ?file .
+	}	
+
+}

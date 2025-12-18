@@ -1,0 +1,14 @@
+# https://api.github.com/repositories/411578102/contents/gtfs/sparql-anything-query-templates_xml/q6_xml.sparql?ref=ffd435c678cff4f2a4391f4ffa46b9feaecc8953
+PREFIX fx:  <http://sparql.xyz/facade-x/ns/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT (count(?route_url) as ?nRoutes) WHERE {
+		SERVICE <x-sparql-anything:location=../result/datasets/%format/%size/ROUTES.%format,%param,slice=%slice,strategy=%strategy,use-rdfs-member=true> {
+			?r rdfs:member [ a xyz:route_url ; rdfs:member ?route_url ] .
+			?r rdfs:member [ a xyz:agency_id ; rdfs:member ?agency_id ] .
+			FILTER (?agency_id="00000000000000000005")
+		}
+}

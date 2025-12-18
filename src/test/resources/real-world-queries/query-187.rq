@@ -1,0 +1,16 @@
+# https://api.github.com/repositories/521574081/contents/queries/getCSVPaths.sparql?ref=94460711922dc7268a535bd5a51097a99f1029ea
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+# Query to extract the CSV files from the local directory.
+SELECT ?filePath ?fileName
+WHERE 
+{
+  SERVICE<x-sparql-anything:>{
+  	fx:properties fx:location "./EssenFolk".               
+    	
+	[] a fx:root;
+       	   ?mProp ?filePath.
+    
+    FILTER(CONTAINS(?filePath, ".csv"))
+    BIND (replace(replace(?filePath, ".*?\\/",""), ".csv","") as ?fileName) .
+  }
+}

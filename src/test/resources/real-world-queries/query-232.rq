@@ -1,0 +1,59 @@
+# https://api.github.com/repositories/521574081/contents/queries/getMelodyTest.sparql?ref=94460711922dc7268a535bd5a51097a99f1029ea
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+# Melody Extraction Query.
+SELECT ?step ?alteration ?octave ?pitch ?type ?duration ?noteCount ?measureCount ?partCount ?voice
+#SELECT ?measure ?note ?step ?octave ?pitch 
+WHERE
+{
+    SERVICE<x-sparql-anything:>{
+        fx:properties fx:location "./musicXMLFiles/Altdeu10/AltDeu-017.musicxml";
+                      fx:media-type "application/xml".  
+        ?score a fx:root .
+	# Extracts the parts:
+        ?score ?mProperty ?part .
+	?part a xyz:part . 
+        # Extracts the measures:
+        ?part ?mPropPart ?measure.
+	?measure a xyz:measure .
+	# Extracts the notes from each measure:
+        ?measure ?mPropMeas ?note.
+        ?note a xyz:note.	
+        {   
+	    # Extracts the pitch from the note element:
+            ?note ?mPropNote ?pitch_.
+            ?pitch_ a xyz:pitch.
+            # Extracts the pitch's step:
+            ?pitch_ ?mPropPitch1 ?stepElmnt.
+            ?stepElmnt a xyz:step.
+            ?stepElmnt rdf:_1 ?step.
+            # Extracts the corresponding octave:
+            ?pitch_ ?mPropPitch2 ?octaveElmnt.
+            ?octaveElmnt a xyz:octave.
+            ?octaveElmnt rdf:_1 ?octave.
+	    # Extracts the note's alterations, if present:
+      	    OPTIONAL{
+                ?pitch_ fx:anySlot [ a xyz:alter ; rdf:_1 ?alteration ].
+      	    }
+      	    BIND( CONCAT(?step, IF(BOUND(?alteration) && ?alteration != "0", CONCAT("[",?alteration,"]"), ""), ?octave) AS ?pitch ) .
+	} 
+	UNION 
+	{ 
+	    # Abstracts the rest if present instead:
+            ?note ?mPropNote ?restElmnt.
+            ?restElmnt a xyz:rest.
+            BIND(IF(BOUND(?restElmnt), "Rest", "") AS ?step)
+	    BIND(IF(BOUND(?restElmnt), "Rest", "") AS ?pitch)
+        }
+        # Extracts the corresponding type:
+        OPTIONAL { ?note fx:anySlot [ a xyz:type ; rdf:_1 ?type ] } .
+        # Extracts the corresponding duration:
+        OPTIONAL { ?note fx:anySlot [ a xyz:duration ; rdf:_1 ?duration ] } .
+    }
+    # Generates measure and note position counters:
+    BIND(fx:cardinal(?mPropPart) AS ?measureCount)
+    BIND(fx:cardinal(?mPropMeas) AS ?noteCount)
+    BIND(fx:cardinal(?mProperty) AS ?partCount)
+} 
+ORDER BY ?partCount ?measureCount ?noteCount

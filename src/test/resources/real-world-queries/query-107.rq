@@ -1,0 +1,16 @@
+# https://api.github.com/repositories/303967701/contents/sparql-anything-it/src/test/resources/issues/issue173-1.sparql?ref=23626c6522e626253fd88da4a8674fd46004d205
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+select *
+WHERE {
+service <x-sparql-anything:> {
+fx:properties fx:location "https://sparql-anything.cc/example1.json" .
+{
+    [] xyz:genres [ ?p ?o ]
+}
+union
+{
+    [] xyz:stars [ ?p ?o ]
+}
+}
+}

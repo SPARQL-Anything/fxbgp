@@ -1,0 +1,26 @@
+# https://api.github.com/repositories/386684662/contents/queries/ontology.sparql?ref=4d890833f9e5ab51b23dca183718d906056ce134
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX fx:  <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX mei: <http://www.music-encoding.org/ns/mei#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+CONSTRUCT {
+	<http://www.music-encoding.org/ns/mei#> a owl:Ontology .
+	?component a ?type	
+}
+WHERE {
+ SERVICE <x-sparql-anything:location=CNW/cnw0001.xml,namespace=http://www.music-encoding.org/ns/mei#> {
+
+   {  [] a ?component . BIND (owl:Class as ?type) . } 
+   UNION 
+   { 
+	   [] ?listItem [ a ?meiType ] . 
+	   BIND ( owl:ObjectProperty as ?type ) .  
+   	   BIND ( IRI(CONCAT( STR(mei:), "has-", REPLACE( STR(?meiType) , STR(mei:), '' ))) as ?component )
+   }
+   UNION 
+   { [] ?component ?o . FILTER(isLiteral(?o)) . BIND (owl:DataProperty as ?type) . FILTER(!STRSTARTS(STR(?component), STR(rdf:))) . }   
+   FILTER(?component != fx:root )
+ }
+}

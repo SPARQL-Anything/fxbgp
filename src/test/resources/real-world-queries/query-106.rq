@@ -1,0 +1,2 @@
+# https://api.github.com/repositories/303967701/contents/sparql-anything-cli/src/test/resources/CLITestOnFileQuery1.sparql?ref=23626c6522e626253fd88da4a8674fd46004d205
+PREFIX fx:   <http://sparql.xyz/facade-x/ns/> SELECT * {  SERVICE <x-sparql-anything:> { fx:properties fx:location ?_loc . ?s ?p ?o OPTIONAL {?s a ?c}} }

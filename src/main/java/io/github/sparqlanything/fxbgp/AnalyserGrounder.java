@@ -4,6 +4,7 @@ import com.google.common.collect.Sets;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.algebra.op.OpBGP;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,9 +71,20 @@ public class AnalyserGrounder implements Analyser {
 			if(!possible.containsKey(t.getPredicate())){
 				possible.put(t.getPredicate(), new HashSet<>());
 			}
-			for(FX predicateTerm : predicateTerms){
-				possible.get(t.getPredicate()).add(FXM.getIF().make(bgp, t.getPredicate(), predicateTerm));
-			}
+            // We can filter the possible terms for predicates that are not variables
+            if(t.getPredicate().isVariable()){
+                for(FX predicateTerm : predicateTerms){
+                    possible.get(t.getPredicate()).add(FXM.getIF().make(bgp, t.getPredicate(), predicateTerm));
+                }
+            }else{
+                if(t.getPredicate().equals(RDF.type.asNode())){
+                    possible.get(t.getPredicate()).add(FXM.getIF().make(bgp, t.getPredicate(), FX.TypeProperty));
+                }else if(t.getPredicate().getURI().startsWith("http://www.w3.org/1999/02/22-rdf-syntax-ns#_")){
+                    possible.get(t.getPredicate()).add(FXM.getIF().make(bgp, t.getPredicate(), FX.SlotNumber));
+                }else{
+                    possible.get(t.getPredicate()).add(FXM.getIF().make(bgp, t.getPredicate(), FX.SlotString));
+                }
+            }
 			nodes.add(t.getObject());
 			if(!possible.containsKey(t.getObject())){
 				possible.put(t.getObject(), new HashSet<>());
@@ -88,6 +100,19 @@ public class AnalyserGrounder implements Analyser {
 				return Collections.emptySet();
 			}
 		}
+        // We reduce the number of combinations with triple-level rules
+        for(Triple t : bgp.getPattern()){
+            // If a node is a subject, it can only be a container
+            possible.get(t.getSubject()).removeIf(i -> !i.getTerm().equals(FX.Container));
+            // If a predicate is concrete, the object can be determined
+            if(t.getPredicate().equals(RDF.type.asNode())){
+                possible.get(t.getObject()).removeIf(i -> i.getTerm().equals(FX.Container) || i.getTerm().equals(FX.Value));
+            }else if(t.getPredicate().isURI() && t.getPredicate().getURI().startsWith("http://www.w3.org/1999/02/22-rdf-syntax-ns#_")){
+                possible.get(t.getObject()).removeIf(i -> i.getTerm().equals(FX.Type) || i.getTerm().equals(FX.Root));
+            }else if(t.getPredicate().isURI()){
+                possible.get(t.getObject()).removeIf(i -> i.getTerm().equals(FX.Type) || i.getTerm().equals(FX.Root));
+            }
+        }
 
 		if(L.isTraceEnabled()) {
 			for (Map.Entry<Node, Set<FXNodeAnnotation>> entry : possible.entrySet()) {

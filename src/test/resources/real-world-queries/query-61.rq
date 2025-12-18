@@ -1,0 +1,351 @@
+# https://api.github.com/repositories/857079652/contents/kg-generation/query2.sparql?ref=b26a3e82e151e9493d9721c33c99f1794bae8b79
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX mei: <http://www.music-encoding.org/ns/mei#>
+PREFIX res: <https://w3id.org/memuk/resource>
+PREFIX mm: <https://w3id.org/polifonia/ontology/music-meta/>
+PREFIX mr: <https://w3id.org/polifonia/ontology/music-representation/>
+PREFIX mp: <https://w3id.org/polifonia/ontology/music-projection/>
+PREFIX core: <https://w3id.org/polifonia/ontology/core/>
+
+CONSTRUCT {
+
+    ## METADATA ##
+
+    ?artistIRI a mm:Musician ;
+               rdfs:subClassOf [ a mm:MusicArtist ;
+                                 core:isInvolvedIn [ a mm:CreativeProcess ;
+                                                     mm:InvolvesCreativeAction [ a mm:CreativeAction ;
+                                                                                 mm:involvesAgent mm:MusicArtist ;
+                                                                                 core:executesTask [ a core:CreativeTask ;
+                                                                                                     rdf:type mm:MusicWriting ;
+                                                                                                     rdf:type mm:Instrumentation 
+                                                                                                    ] ;
+                                                                                ] ;
+                                                     mm:creates ?entityIRI 
+                                                    ] ;
+                                ] ;
+		       rdfs:subClassOf [ a core:Person ;
+		                         core:name ?persName
+		                        ] .
+
+    ?entityIRI a mm:MusicEntity ;
+                core:hasTitle ?titleIRI ;
+                core:hasPart [ a mm:AbstractScore ;
+                                mm:hasInstrumentation ?instrumentIRI ;
+                                mm:isRealisedBY ?scoreIRI
+                            ] .
+    ?scoreIRI a mm:Score .
+
+    ?digitalScoreIRI a mm:DigitalScore ;
+                     rdfs:subClassOf ?scoreIRI ;
+                     mr:hasFragment ?staffIRI .
+
+
+
+    ?titleIRI a core:Title ;
+              core:hasValue ?titlePart .
+
+    
+    ?staffIRI a mr:Fragment ;
+              mr:hasTemporalLocation [ a core:MusicTimeInterval ; 
+                                       core:hasStartMusicTimeIndex core:Start ; 
+                                       core:hasEndMusicTimeIndex core:End ] .
+
+    ?instrumentIRI a mm:Instrumentation ;
+                   mm:hasScore ?scoreIRI ;
+                   core:hasValue ?instrument .
+
+    ## MEASURE ##
+
+    ?measureIRI a mr:Annotation ;
+                mr:describesFragment ?measureFragmentIRI .
+              
+    ?measureFragmentIRI a mr:Fragment ; 
+                        core:isPartOf ?staffIRI ;
+                        mr:hasTemporalLocation [ a core:MusicTimeInterval ;
+                                                 # Start index
+                                                 core:hasStartMusicTimeIndex [ a core:MusicTimeIndex ;
+                                                                               core:hasMusicTimeIndexComponent [ a core:MusicTimeIndexComponent ; 
+                                                                                                                 core:hasValue ?measureNo ; 
+                                                                                                                 core:hasValueType core:Measure ] ;
+                                                                              ] ;
+                                                 # Duration
+                                                 core:hasMusicTimeDuration [ a core:MusicTimeDuration ; 
+                                                                             core:hasValue "1" ; 
+                                                                             core:hasValueType core:Measure ] ;
+                                                ] .
+
+    ## NOTE ##
+  
+    ?noteAnnotationIRI a mr:Annotation ;
+                       core:isDerivedFrom ?measureIRI ;
+                       mr:describesFragment [ a mr:Fragment ; 
+                                              core:isPartOf ?measureFragmentIRI ;
+                                              mr:hasTemporalLocation [ a core:MusicTimeInterval ;
+                                                                       # Start index
+                                                                       core:hasStartMusicTimeIndex [ a core:MusicTimeIndex ;
+                                                                                                     core:hasMusicTimeIndexComponent [ a core:MusicTimeIndexComponent ; 
+                                                                                                                                       core:hasValue ?notePosition ; 
+                                                                                                                                       core:hasValueType core:Index ] ;
+                                                                                                    ] ;
+                                                                       # Duration
+                                                                       core:hasMusicTimeDuration [ a core:MusicTimeDuration ; 
+                                                                                                   core:hasValue ?noteDuration ; 
+                                                                                                   core:hasValueType core:Beat ]
+                                                                     ] ;
+                     ] ;
+                     mr:hasObservation [ a mr:Observation ; 
+                                         mr:hasSubject ?noteIRI ] .
+
+    ?noteIRI a mp:Note ;
+             mp:hasPitch ?notePitchIRI ;
+             mp:hasDuration ?noteDuration ;
+             mp:hasAccidental ?noteAccidentalIRI ;
+             owl:sameAs ?sameNoteIRI ;
+             owl:sameAs ?samePitchIRI .
+
+    ?notePitchIRI a mp:Pitch ; 
+                  mp:hasPitchClass ?notePitchClassIRI ; 
+                  mp:hasOctave ?pitchOctave ;
+                  mp:Accidental ?noteAccidentalIRI .
+    
+    ## CLEF ##
+
+    ?clefAnnotationIRI a mr:Annotation ;
+                       core:isDerivedFrom ?measureIRI ;
+                       mr:describesFragment [ a mr:Fragment ; 
+                                              core:isPartOf ?measureFragmentIRI ;
+                                            ] ;
+                       mr:hasObservation [ a mr:Observation ;
+                                           mr:hasSubject ?clefIRI ] .
+
+    ?clefIRI a mp:Clef ;
+             mp:isOnStaffLine ?clefLine ;
+             rdf:type ?clefSignIRI .
+
+    ## TEMPO ##
+
+    ?tempoAnnotationIRI a mr:Annotation ;
+                  core:isDerivedFrom ?measureIRI ;
+                  mr:describesFragment [ a mr:Fragment ; 
+                                         core:isPartOf ?measureFragmentIRI ;
+                                       ] ;
+                  mr:hasObservation ?tempoIRI .
+    ?tempoIRI a mr:Observation ;
+              core:hasName "tempo";
+              mm:tempo ?tempoBpm .
+
+    ## METER ##
+
+    ?meterAnnotationIRI a mr:Annotation ;
+                        core:isDerivedFrom ?measureIRI ;
+                        mr:describesFragment [ a mr:Fragment ; 
+                                              core:isPartOf ?measureFragmentIRI ;
+                                              ] ;
+                        mr:hasObservation ?meterIRI .
+
+    ?meterIRI a mr:Observation ;
+              core:hasName "meter" ;
+              core:hasValue ?meterSignature .
+
+    ## KEY SIGNATURE ##
+
+    ?keySignatureAnnotationIRI a mr:Annotation ;
+                            core:isDerivedFrom ?measureIRI ;
+                            mr:describesFragment [ 
+                                a mr:Fragment ; 
+                                core:isPartOf ?measureFragmentIRI ;
+                            ] ;
+                            mr:hasObservation [ a mr:Observation ; 
+                                                mr:hasSubject ?keySignatureIRI ] .
+
+    ?keySignatureIRI a mm:Key ;
+                     core:hasValue ?keyValue .
+
+  
+}
+WHERE {
+  SERVICE <x-sparql-anything:> { 
+
+    #TODO ?_filePath instead of "./Melosol_000003.mei"
+    fx:properties fx:location ?_filePath ;
+        fx:media-type  "application/xml" ;
+        fx:blank-nodes true .
+
+
+    ?staff a mei:staffDef ;
+           xyz:n ?staffNo .
+       
+    OPTIONAL {
+    ?title a mei:title ;
+           fx:anySlot* [ a mei:titlePart ; 
+                         fx:anySlot ?titlePart ]
+    } 
+    
+    
+    OPTIONAL { 
+    ?composerName a mei:composer ;
+              fx:anySlot* [ a mei:persName ; 
+                            fx:anySlot ?persName ]
+    } 
+   
+    OPTIONAL { 
+    ?staffGrp a mei:staffGrp ;
+              fx:anySlot* [ a mei:label ; 
+                            fx:anySlot ?instrument ]
+    } 
+
+
+    OPTIONAL {
+    ?key a mei:keySig ;
+         xyz:pname ?keyPname ;
+         xyz:mode ?keyMode ; 
+         xyz:accid ?keyAccid ;
+         xyz:sig ?keySig .
+    BIND(CONCAT(STR(?keyPname), " ", STR(?keyMode), " ", STR(?keySig)) AS ?keyValue)
+    }
+    
+    OPTIONAL {
+      ?clef a mei:clef ;
+            xyz:shape ?clefShape ;
+            xyz:line ?clefLine .
+    } 
+
+    OPTIONAL {
+    ?meterSig a mei:meterSig ;
+              xyz:count ?meterCount ;
+              xyz:unit ?meterUnit .
+    BIND (CONCAT(STR(?meterCount), "/", STR(?meterUnit)) AS ?meterSignature)
+    } 
+    
+    OPTIONAL {
+    ?tempo a mei:tempo ;
+           xyz:midi.bpm ?tempoBpm .
+    }
+    
+    OPTIONAL { 
+    ?staffGrp a mei:staffGrp ;
+              fx:anySlot* [ a mei:label ; 
+                            fx:anySlot ?instrument ] .
+    } 
+    
+    ?measure fx:anySlot* [ a mei:staff ; 
+                           xyz:n ?staffNo ; 
+                           fx:anySlot* [ ?noteMember ?note ]] .
+    
+    ?measure a mei:measure ;
+             xyz:n ?measureNo .
+    
+    ?note a mei:note ;
+    	 xyz:pname ?notePitchClass ;
+    	 xyz:dur ?noteDuration ;
+    	 xyz:oct ?pitchOctave .
+
+    BIND(REPLACE(REPLACE(REPLACE(STR(?note), ".*layer/", ""),":beam/", "n"), ":note", "") AS ?notePosition)
+    
+    OPTIONAL { ?note xyz:accid.ges ?noteAccidental }
+
+    # Handle case where note accidental is missing (bind it to Natural)
+    OPTIONAL { 
+      FILTER NOT EXISTS { ?note xyz:accid.ges ?noteAccidental }
+      BIND(mp:Natural AS ?noteAccidentalIRI)
+    }
+      
+    # Map values for pitch classes
+    OPTIONAL { FILTER (?notePitchClass = "a") BIND(mp:A AS ?notePitchClassIRI) }
+    OPTIONAL { FILTER (?notePitchClass = "b") BIND(mp:B AS ?notePitchClassIRI) }
+    OPTIONAL { FILTER (?notePitchClass = "c") BIND(mp:C AS ?notePitchClassIRI) }
+    OPTIONAL { FILTER (?notePitchClass = "d") BIND(mp:D AS ?notePitchClassIRI) }
+    OPTIONAL { FILTER (?notePitchClass = "e") BIND(mp:E AS ?notePitchClassIRI) }
+    OPTIONAL { FILTER (?notePitchClass = "f") BIND(mp:F AS ?notePitchClassIRI) }
+    OPTIONAL { FILTER (?notePitchClass = "g") BIND(mp:G AS ?notePitchClassIRI) }
+    
+	# Map values for note accidentals
+    OPTIONAL { FILTER (?noteAccidental = "s") BIND(mp:Sharp AS ?noteAccidentalIRI) }
+    OPTIONAL { FILTER (?noteAccidental = "f") BIND(mp:Flat AS ?noteAccidentalIRI) }
+    OPTIONAL { FILTER (?noteAccidental = "ss") BIND(mp:DoubleSharp AS ?noteAccidentalIRI) }
+    OPTIONAL { FILTER (?noteAccidental = "x") BIND(mp:DoubleSharp AS ?noteAccidentalIRI) }
+    OPTIONAL { FILTER (?noteAccidental = "xs") BIND(mp:TripleSharp AS ?noteAccidentalIRI) }
+    OPTIONAL { FILTER (?noteAccidental = "sx") BIND(mp:TripleSharp AS ?noteAccidentalIRI) }
+    OPTIONAL { FILTER (?noteAccidental = "ts") BIND(mp:TripleSharp AS ?noteAccidentalIRI) }
+    OPTIONAL { FILTER (?noteAccidental = "ff") BIND(mp:DoubleFlat AS ?noteAccidentalIRI) }
+    OPTIONAL { FILTER (?noteAccidental = "tf") BIND(mp:TripleFlat AS ?noteAccidentalIRI) }
+    OPTIONAL { FILTER (?noteAccidental = "n") BIND(mp:Natural AS ?noteAccidentalIRI) }
+
+  # Map values for clefs
+    OPTIONAL { FILTER (?clefShape = "G") BIND(mp:GClef AS ?clefSignIRI)}
+    OPTIONAL { FILTER (?clefShape = "C") BIND(mp:CClef AS ?clefSignIRI)}
+    OPTIONAL { FILTER (?clefShape = "F") BIND(mp:FClef AS ?clefSignIRI)}
+  }
+  
+  ## METADATA ##
+
+  #artistIRI
+  BIND(IRI(CONCAT(STR(res:),"/Musician/", REPLACE(?persName, " ", "_"))) AS ?artistIRI)
+  #entityIRI   #todo ?_scoreId al posto di "15"
+  BIND (IRI(CONCAT(STR(res:), "/MusicEntity/", ?_scoreId)) AS ?entityIRI)
+  #titleIRI
+  BIND (IRI(CONCAT(STR(res:), "/Title/", REPLACE(?titlePart, " ", "_"))) AS ?titleIRI)
+  #instrumentIRI
+  BIND (IRI(CONCAT(STR(res:),"/Instrumentation/", REPLACE(?instrument, " ", "_"))) AS ?instrumentIRI)
+  #scoreIRI
+  BIND (IRI(CONCAT(STR(res:), "/Score/", ?_scoreId)) AS ?scoreIRI)
+  #digitalScoreIRI
+  BIND (IRI(CONCAT(STR(res:), "/DigitalScore/", ?_scoreId)) AS ?digitalScoreIRI)
+  #staffIRI
+  BIND (IRI(CONCAT(STR(res:), "/Fragment/", "staff_",?staffNo)) AS ?staffIRI)
+  
+
+  ## MEASURE ##
+
+  #measureIRI
+  BIND (IRI(CONCAT(STR(res:), "/Annotation/", "measure_", ?measureNo)) AS ?measureIRI)
+  #measureFragmentIRI
+  BIND (IRI(CONCAT(STR(res:), "/Fragment/", "measure_frag_", STRUUID())) AS ?measureFragmentIRI)
+
+  ## NOTE ##
+
+  #noteAnnotationIRI
+  BIND (IRI(CONCAT(STR(res:), "/Annotation/", "note_", STRUUID())) AS ?noteAnnotationIRI)
+  #noteIRI
+  BIND (CONCAT(REPLACE(STR(?notePitchClassIRI), ".+/", ""),"_", (?noteDuration), "_", STR(?notePosition), "_", STR(?measureNo)) AS ?noteId)
+  BIND (IRI(CONCAT(STR(res:), "/Note/", ?noteId)) AS ?noteIRI)
+  #notePitchIRI
+  BIND (IRI(CONCAT(STR(res:), "/Pitch/", REPLACE(STR(?notePitchClassIRI), ".+/", ""), "_" , REPLACE(STR(?noteAccidentalIRI), ".+/", ""), "_", STRUUID() )) AS ?notePitchIRI)
+  #samePitchIRI
+  BIND (IRI(CONCAT(STR(res:),"/Pitch/", REPLACE(STR(?notePitchClassIRI), ".+/", ""), "_", REPLACE(STR(?noteAccidentalIRI), ".+/", ""), "_", STR(?pitchOctave))) AS ?samePitchIRI)
+  # sameNoteIRI with rhythm included
+  BIND (IRI(CONCAT(STR(res:), "/Note/", REPLACE(STR(?notePitchClassIRI), ".+/", ""), "_", REPLACE(STR(?noteAccidentalIRI), ".+/", ""), "_", STR(?pitchOctave), "_", REPLACE(STR(?noteDuration), ".+/", ""))) AS ?sameNoteIRI)
+
+  ## CLEF ##
+  
+  #clefAnnotationIRI
+  BIND (IRI(CONCAT(STR(res:), "/Annotation/", "clef_",STRUUID())) AS ?clefAnnotationIRI)
+  #clefIRI
+  BIND (IRI(CONCAT(STR(res:), "/Clef/", REPLACE(STR(?clefSignIRI), ".+/", ""), "_", ?clefLine)) as ?clefIRI)
+  
+  ## TEMPO ##
+  
+  #tempoAnnotation
+  BIND (IRI(CONCAT(STR(res:), "/Annotation/", "tempo_", STRUUID())) AS ?tempoAnnotationIRI)
+  # tempoIRI
+  BIND (IRI(CONCAT(STR(res:), "/Observation/", "tempo_",STR(?tempoBpm))) AS ?tempoIRI)
+  
+  ## METER ##
+  
+  #meterAnnotation
+  BIND (IRI(CONCAT(STR(res:), "/Annotation/", "meter_",STRUUID())) AS ?meterAnnotationIRI)
+  # meterIRI
+  BIND (IRI(CONCAT(STR(res:), "/Observation/", "meter_", ?meterCount , "_", ?meterUnit, "_")) AS ?meterIRI)
+  
+  ## KEY SIGNATURE ##
+  #keySignatureAnnotationIRI
+  BIND (IRI(CONCAT(STR(res:), "/Annotation/", "key_", STRUUID())) AS ?keySignatureAnnotationIRI)
+  #keySignature
+  BIND (IRI(CONCAT(STR(res:), "/Observation/", "key_", REPLACE(?keyValue, " ", "_"))) AS ?keySignatureIRI)
+
+} ORDER BY ?note

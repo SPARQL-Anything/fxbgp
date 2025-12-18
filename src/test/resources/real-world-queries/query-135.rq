@@ -1,0 +1,8 @@
+# https://api.github.com/repositories/297704362/contents/src/main/resources/saQuery.sparql?ref=e91ed65de181948d77effb29130641fe4a2bfc9b
+CONSTRUCT {
+	?s ?p ?o 
+} WHERE {
+	SERVICE<x-sparql-anything:location=%s,root=%s,blank-nodes=false> {
+		?s ?p ?o
+	}
+}

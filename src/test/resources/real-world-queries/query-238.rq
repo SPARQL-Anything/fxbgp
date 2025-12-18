@@ -1,0 +1,31 @@
+# https://api.github.com/repositories/435455864/contents/union-multiple-sources/joinExample.sparql?ref=f046df9e4c94723833d04c57811692c03d6af1d4
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+PREFIX fx:   <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz:  <http://sparql.xyz/facade-x/data/>
+
+SELECT ?title GROUP_CONCAT(?source) {
+  {
+
+   SERVICE <x-sparql-anything:> {
+      fx:properties fx:location "https://raw.githubusercontent.com/polifonia-project/lyrics_similarity/main/lyrics/lyrics-genius.csv" ;
+	  		fx:csv.headers true .
+			# lang,dataset,file,artist,title,lyrics
+	  [] xyz:hash ?hash ; xyz:title ?title
+	  BIND ("genius" AS ?source)
+   }
+#   (hash,title,source)*
+   
+  } UNION {
+	  
+   SERVICE <x-sparql-anything:> {
+	    # hash,lang,dataset,file,artist,title,lyrics
+      fx:properties fx:location "https://raw.githubusercontent.com/polifonia-project/lyrics_similarity/main/lyrics/lyrics-songfacts.csv" ;
+	       fx:csv.headers true .
+	  [] xyz:hash ?hash ; xyz:title ?title .
+	  BIND ("songfacts" AS ?source)
+    }
+#   (hash,title,source)*
+  }
+} GROUP BY ?title 

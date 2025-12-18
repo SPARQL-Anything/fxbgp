@@ -1,0 +1,29 @@
+# https://api.github.com/repositories/415324251/contents/harmonic_sim_etl/queries/raw-data/harmonic-sim-score-gt-0_5.sparql?ref=d43873b1a046361e0d8d009f77dfc618ea5fb6df
+# SPARQL anything prefixes
+PREFIX fx:  <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+
+
+SELECT DISTINCT (COUNT(?sym) as ?count)
+WHERE {
+
+    SERVICE <x-sparql-anything:> {
+
+        fx:properties fx:location "data/harm_sim_full.json"  ;
+        fx:media-type "application/json" ;
+        fx:blank-nodes false    .
+
+        {   SELECT DISTINCT ?sym ?score WHERE {
+                ?file xyz:harSimPairs ?symList .
+    
+                ?symList ?li ?sym .
+
+                ?sym xyz:compSimScore ?score .
+
+                FILTER (?score > 0.5)
+            }
+        }
+
+    } .
+
+}

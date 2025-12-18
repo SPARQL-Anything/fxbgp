@@ -1,0 +1,36 @@
+# https://api.github.com/repositories/708677389/contents/query-formtypes.sparql?ref=df621a7ccc1262db58f277f3524d06e402bed787
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX mm:  <http://w3id.org/polifonia/ontology/music-meta/>
+PREFIX core:  <http://w3id.org/polifonia/ontology/core/>
+PREFIX tunes:  <http://w3id.org/polifonia/ontology/tunes/>
+PREFIX pon-resource: <http://w3id.org/polifonia/resource/tunes/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+
+CONSTRUCT {
+    ?form_type_iri a mm:FormType ;
+        core:id ?ft_iri_local ;
+        core:name ?form_type_name .
+}
+
+WHERE {
+    SERVICE <x-sparql-anything:> {
+
+        fx:properties fx:location ?_filepath ;
+            fx:media-type  "application/json" .
+
+        ?base_root a fx:root ;
+            ?ft_slot ?ft_base .
+
+        ?ft_base 
+            xyz:iri_local ?ft_iri_local .
+
+        BIND(IRI(concat(str(pon-resource:), ?ft_iri_local)) AS ?form_type_iri)
+
+        OPTIONAL { ?ft_base xyz:name ?form_type_name . }
+
+    }
+}

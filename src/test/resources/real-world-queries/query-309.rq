@@ -1,0 +1,238 @@
+# https://api.github.com/repositories/415324251/contents/places_etl/queries/transformations/places0.0.7.sparql?ref=d43873b1a046361e0d8d009f77dfc618ea5fb6df
+# Query to extract data from preprocessed file with places related to Music domain
+# and build a Knowledge Graph according to Polifonia places ontology, using sparql.anything
+
+
+
+# POLIFONIA prefixes
+PREFIX core:    <https://w3id.org/polifonia/ON/core/> 
+PREFIX mp:      <https://w3id.org/polifonia/ON/musical-performance/>
+PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX pr:      <https://w3id.org/polifonia/resource/>
+
+# SPARQL anything prefixes
+PREFIX fx:  <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+
+
+CONSTRUCT { 
+
+    # Recording
+    ?recordingIRI   a mp:Recording ;
+                    core:hasTitle ?titleIRI ;
+                    core:hasYoutubeID ?youtubeID ;
+                    mp:isRecordingProducedBy ?recordingProcessIRI;
+                    mp:hasRecordingPerformer ?artistIRI .
+
+    # Title
+    ?titleIRI   a core:Title ;
+                rdfs:label ?titleLabel .
+
+    # Agent
+    ?artistIRI  a core:Agent ; 
+                rdfs:label ?artistLabel ;
+                core:hasBirthPlace ?artistBirthPlaceCodeIRI ;
+                core:hasStartCareerPlace ?artistCareerStartPlaceIRI .
+
+
+    # RecordingProcess  
+    ?recordingProcessIRI    rdf:type mp:RecordingProcess ;
+                            mp:hasSession ?sessionIRI .
+
+
+
+    # Session
+    ?sessionIRI core:hasType ?sessionTypeIndividualIRI ;
+                rdf:type mp:Session ;
+                core:hasPlace ?placeIRI ;
+                core:hasTimeInterval ?timeIntervalIRI . 
+                
+    # TimeInterval
+    ?timeIntervalIRI    a core:TimeInterval ;
+                        core:startTime ?startTime ;
+                        core:endTime ?endTime .
+    
+    # PhysicalSite
+    ?placeIRI a core:PhysicalSite ;
+              rdfs:label ?placeLabel ;
+              core:hasAddress ?addressIRI ;
+              core:hasGeometry ?geometryIRI .
+
+    ?artistCareerStartPlaceIRI a core:Place ;
+            rdfs:label ?artistCareerStartPlace .
+
+	?artistBirthPlaceCodeIRI a core:Country ;
+		rdfs:label ?artistBirthPlaceCode .
+    
+
+    # Address
+    ?addressIRI a core:Address ;
+                rdfs:label ?fullAddress ;
+                core:fullAddress ?fullAddress .
+
+    # Geometry
+    ?geometryIRI    a core:Geometry ;
+                    core:lat ?lat ;
+                    core:long ?long .
+}
+    WHERE {
+
+    SERVICE <x-sparql-anything:> {
+
+        # location for json preprocessed file
+        fx:properties fx:location "data/places_v4.json"  ;
+        fx:media-type "application/json" ;
+        fx:blank-nodes false    .
+
+
+        # UNION pattern to avoid nested OPTIONAL complexity, causing timeout issues
+        # 
+        #   { ?recording xyz:track_id ?recordingID . } UNION { ?recording  xyz:track_id ?recordingID ; xyz:youtube_id ?youtubeID . }
+        #       should be equivalent to:
+        #   { ?recording  xyz:track_id ?recordingID . OPTIONAL { ?recording xyz:youtube_id ?youtubeID . } }
+        #       but faster to resolve
+
+
+        {
+            # Recording with just ID
+            ?recording  xyz:track%5Fid ?recordingID .
+        }
+        UNION
+        {
+            # Recording with youtube ID
+            ?recording  xyz:track%5Fid ?recordingID ;
+                        xyz:youtube%5Fid ?youtubeID .
+        } 
+        UNION
+        {
+            # Recording with title label and title ID
+            ?recording  xyz:track%5Fid ?recordingID ;
+                        xyz:title ?titleLabel ;
+                        xyz:title%5Ffor%5Firi ?titleID .
+        }
+        UNION
+        {
+            # Recordings with artists
+            ?recording  xyz:track%5Fid ?recordingID ;
+                    xyz:artists ?artistList .
+                    # artist
+                    ?artistList ?li ?artist .
+                    ?artist xyz:name%5Firi ?artistID .
+        }
+        UNION
+        {
+            # Recordings with artists
+            ?recording  xyz:track%5Fid ?recordingID ;
+                    xyz:artists ?artistList .
+                    # artist
+                    ?artistList ?li ?artist .
+                    ?artist xyz:name%5Firi ?artistID ;
+                            xyz:name ?artistLabel .
+        }
+        UNION
+        {
+            # Recordings with artists
+            ?recording  xyz:track%5Fid ?recordingID ;
+                    xyz:artists ?artistList .
+                    # artist
+                    ?artistList ?li ?artist .
+                    ?artist xyz:name%5Firi ?artistID ;
+                            xyz:name ?artistLabel ;
+                            xyz:country ?artistBirthPlaceCode .
+        }
+        UNION
+        {
+            # Recordings with artists and artistLabel and artistBirthPlace and artistCareerStartPlace
+            ?recording  xyz:track%5Fid ?recordingID ;
+                    xyz:artists ?artistList .
+                    # artist
+                    ?artistList ?li ?artist .
+                    ?artist xyz:name%5Firi ?artistID ;
+                          xyz:name ?artistLabel ;
+                          xyz:country ?artistBirthPlaceCode ;
+                          xyz:start%5Fplace ?artistCareerStartPlace .
+
+        }
+
+        UNION        
+        {
+            # Recordings with Sessions
+            ?recording  xyz:track%5Fid ?recordingID ;
+                    xyz:recording%5Fplaces ?recordingSessionList .
+                    # Session
+                    ?recordingSessionList ?li ?recordingSession .
+                    ?recordingSession xyz:session%5Fid ?sessionID ;
+                          xyz:session%5Ftype ?sessionType ;
+                          xyz:place ?place ;
+                          xyz:begin ?startTime ;
+                          xyz:end ?endTime .
+        }
+        UNION
+        {
+            # Recordings with Session and session Places
+            ?recording  xyz:track%5Fid ?recordingID ;
+                    xyz:recording%5Fplaces ?recordingSessionList .
+
+            # Session
+            ?recordingSessionList ?li ?recordingSession .
+            ?recordingSession xyz:session%5Fid ?sessionID ;
+                          xyz:session%5Ftype ?sessionType ;
+                          xyz:place ?place ;
+                          xyz:begin ?startTime ;
+                          xyz:end ?endTime .
+
+            # PhysicalSite
+            ?place  xyz:id ?placeID .        
+        }
+        UNION
+        {
+            # Recordings with Session and session Places, Geometries and labels
+
+            ?recording  xyz:track%5Fid ?recordingID ;
+                    xyz:recording%5Fplaces ?recordingSessionList .
+
+            # Session
+            ?recordingSessionList ?li ?recordingSession .
+            ?recordingSession xyz:session%5Fid ?sessionID ;
+                          xyz:session%5Ftype ?sessionType ;
+                          xyz:place ?place ;
+                          xyz:begin ?startTime ;
+                          xyz:end ?endTime .
+        
+        
+
+            # PhysicalSite
+            ?place  xyz:id ?placeID ;
+                    xyz:name ?placeLabel ;
+                    xyz:address ?fullAddress ;
+                    xyz:coordinates ?coordinates .
+        
+
+
+            # Geometry
+            ?coordinates xyz:latitude ?lat ;
+                         xyz:longitude ?long .
+
+        }
+
+    }
+
+
+
+    # generate resources IRIs from string IDs
+    BIND(IRI(CONCAT( STR(pr:) , "Recording/", ENCODE_FOR_URI(?recordingID))) AS ?recordingIRI)
+    BIND(IRI(CONCAT( STR(pr:) , "Title/", ENCODE_FOR_URI(?titleID))) AS ?titleIRI) # ENCODE_FOR_URI fix issues with unicode char in strings e.g. "wheni\u00e2\u20ac\u2122msixty\u00e2\u20ac\u0090four"
+    BIND(IRI(CONCAT( STR(pr:) , "Agent/", ENCODE_FOR_URI(?artistID))) AS ?artistIRI)
+    BIND(IRI(CONCAT( STR(pr:) , "Country/", ENCODE_FOR_URI(?artistBirthPlaceCode))) AS ?artistBirthPlaceCodeIRI)
+    BIND(IRI(CONCAT( STR(pr:) , "RecordingProcess/", ENCODE_FOR_URI(?recordingID))) AS ?recordingProcessIRI)
+    BIND(IRI(CONCAT( STR(pr:) , "Session/", ENCODE_FOR_URI(?sessionID))) AS ?sessionIRI)
+    BIND(IRI(CONCAT( STR(pr:) , "TimeInterval/", ENCODE_FOR_URI(?startTime), "_", ENCODE_FOR_URI(?endTime))) AS ?timeIntervalIRI)
+    BIND(IRI(CONCAT( STR(pr:) , "PhysicalSite/", ENCODE_FOR_URI(?placeID))) AS ?placeIRI)
+    BIND(IRI(CONCAT( STR(pr:) , "Place/", ENCODE_FOR_URI(?artistCareerStartPlace))) AS ?artistCareerStartPlaceIRI)
+    BIND(IRI(CONCAT( STR(pr:) , "Address/", ENCODE_FOR_URI(?fullAddress))) AS ?addressIRI)
+    BIND(IRI(CONCAT( STR(pr:) , "Geometry/", ENCODE_FOR_URI(REPLACE(?lat, "\\.", "_")), "_", ENCODE_FOR_URI(REPLACE(?long, "\\.", "_")))) AS ?geometryIRI)
+    # individuals IRIs from string IRI
+    BIND(IRI(?sessionType) AS ?sessionTypeIndividualIRI)
+
+} 

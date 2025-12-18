@@ -1,0 +1,28 @@
+# https://api.github.com/repositories/521574081/contents/queries/trigKGBuildParam.sparql?ref=94460711922dc7268a535bd5a51097a99f1029ea
+PREFIX ex: <http://example.org/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+# This query constructs a knowledge graph of the 3-grams from the given melody.
+CONSTRUCT
+{
+    ?entity a rdf:Seq;
+       rdf:_1 ?note ;
+       rdf:_2 ?note1 ;
+       rdf:_3 ?note2 .
+}
+WHERE 
+{	
+    BIND (IRI(CONCAT("x-sparql-anything:media-type=text/csv,location=", ?_filePath)) AS ?fx)
+    SERVICE ?fx {
+        fx:properties fx:csv.headers true. 
+    [] a fx:root;
+       ?mProp [ xyz:pitch ?note ] ;
+       ?mProp1 [ xyz:pitch ?note1 ] ;
+       ?mProp2 [ xyz:pitch ?note2 ] ;
+       FILTER ( fx:previous(?mProp1) = 
+       	  ?mProp && fx:previous(?mProp2) = ?mProp1)
+    }
+    BIND((fx:serial("trigram")) AS ?trigram) .
+    BIND(fx:entity(ex:, ?trigram) AS ?entity) .
+}

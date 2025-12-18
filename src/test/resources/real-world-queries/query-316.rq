@@ -1,0 +1,18 @@
+# https://api.github.com/repositories/598502070/contents/issue531/query.sparql?ref=53dcc5377587eb7f804ed54c9be1acb3dc26a434
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX ex: <http://example.org/>
+
+CONSTRUCT {
+  ?s ?p ?o .
+}
+WHERE { 
+  SERVICE <x-sparql-anything:> { 
+    fx:properties
+      fx:xml.path     "//root" ;
+      fx:location     ?_location ; # local path to the xml-file
+    .
+
+    ?s ?p ?o .
+  }
+}
