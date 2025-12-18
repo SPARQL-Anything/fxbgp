@@ -93,19 +93,20 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         // Does the node match the current node in the tree pattern?
 
         // Is it a container?
-        if(this.matches.isEmpty()){ //this.matches.isEmpty() &&
+        if(this.matches.isEmpty() && component.equals(FX.Container)){ //this.matches.isEmpty() &&
             // We haven't matched any node yet
             // We take the root of the pattern, and attempt a match
             FXNode rnode = pattern.getRoot();
             // If the root node matches, register the match and set the cursor on it
             if(Matching.nodeMatches(rnode.getNode(), node)){
-                Matching matching = new Matching(rnode, node);
+                Matching matching = new Matching(rnode, node, new ArrayList<>(path));
                 matches.add(matching);
                 //registerMatch(matching, rnode, node);
             }
             // If it doesn't match, continue
             return;
         }else if(component.equals(FX.Container)){
+//            System.out.println(node);
             // Other containers that are not root
             // If it is a container, let's attempt a match from
             // the root of the pattern. If that works, we spawn
@@ -128,7 +129,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
                 completed.add(matching);
             }
         }
-//        L.info("completed {} spawned {}", completed.size(), spawned.size());
+//      L.info("completed {} spawned {}", completed.size(), spawned.size());
         this.matches.removeAll(completed);
         this.matches.addAll(spawned);
     }
@@ -148,8 +149,8 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     private void addQuerySolution(Matching matching){
         Map<String, RDFNode> solution = new HashMap<>();
         for(Map.Entry<FXNode, Node> entry : matching.getMap().entrySet()){
-//            L.info(" >>>>> {} {} <<<<<", entry.getKey(), entry.getValue());
-//            L.info(" ----- {} {} <<<<<", entry.getKey(), entry.getKey().getNode().isVariable());
+            L.info(" >>>>> {} {} <<<<<", entry.getKey(), entry.getValue());
+            L.info(" ----- {} {} <<<<<", entry.getKey(), entry.getKey().getNode().isVariable());
             if(entry.getKey().getNode().isVariable()){
                 String var = entry.getKey().getNode().getName();
                 RDFNode val = toRDFNode(entry.getValue());

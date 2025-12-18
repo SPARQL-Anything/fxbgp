@@ -1,6 +1,7 @@
 package io.github.sparqlanything.fxbgp.stream;
 
 import io.github.sparqlanything.fxbgp.FX;
+import io.github.sparqlanything.fxbgp.FXNodeAnnotation;
 import io.github.sparqlanything.jdbc.QueryComponentFactory;
 import org.apache.jena.graph.Node;
 import org.apache.jena.vocabulary.RDF;
@@ -23,6 +24,7 @@ class Matching {
     private List<Node> path = new ArrayList<>();
     // The first cursor is always the root of the pattern
     Matching(FXNode cursor, Node node) {
+        if(cursor == null) throw new RuntimeException("cursor is null");
         this.cursor = new HashSet<>();
         this.cursor.add(cursor);
         this.map = new HashMap<>();
@@ -39,7 +41,9 @@ class Matching {
 //        L.info("Spawn matching on cursor {} / path {} / size {}",
 //                cursor, path, map.size());
     }
+
     Matching(FXNode cursor, Node node, List<Node> path) {
+        if(cursor == null) throw new RuntimeException("cursor is null");
         this.cursor = new HashSet<>();
         this.cursor.add(cursor);
         this.map = new HashMap<>();
@@ -53,6 +57,9 @@ class Matching {
     private void set(FXNode patternNode, Node sourceNode) {
         if (map.containsKey(patternNode)) {
             throw new RuntimeException("Duplicate matching");
+        }else if(sourceNode.isLiteral() && sourceNode.getLiteral().getLexicalForm().equals("H1")) {
+            //throw new RuntimeException("WTF!");
+            System.out.println(sourceNode.getLiteralLexicalForm());
         }
         // Now we set the new matching node and we move the cursor
         map.put(patternNode, sourceNode);
@@ -77,10 +84,14 @@ class Matching {
     public void rollback(int steps) {
         Set<FXNode> next = new HashSet<>();
         for (FXNode c : this.cursor) {
+            FXNode nc = null;
             for (int i = 0; i < steps; i++) {
-                c = c.getParent();
+                nc = c.getParent();
             }
-            next.add(c);
+            if(nc == null) {
+                throw new RuntimeException("cursor is null");
+            }
+            next.add(nc);
         }
         this.cursor = next;
     }
@@ -100,8 +111,16 @@ class Matching {
         // Is the last node matching the cursor in the same scope of the last container in the path?
         if(!component.equals(FX.Container)) {
             FXNode scope;
+            if(!cursor.iterator().hasNext()){
+                System.out.println("WTF");
+            }
             // If the cursor is a container, the scope is itself
-            if(cursor.iterator().next().getAnnotation().getTerm().equals(FX.Container)){
+            FXNode as = cursor.iterator().next();
+            if(as == null){
+                System.out.println("WTF");
+            }
+            FXNodeAnnotation ann = as.getAnnotation();
+            if(ann.getTerm().equals(FX.Container)){
                 scope = cursor.iterator().next();
             }else{
                 // Otherwise, cursors must be on keys (one or more)
@@ -117,6 +136,7 @@ class Matching {
 
         Set<Matching> spawned = new HashSet<>();
         // Is it matching (any) next node in the tree pattern?
+        Set<FXNode> cursorsMatched = new HashSet<>();
         Set<FXNode> childrenFound = new HashSet<>();
 //        L.info("proceed -- {} -- {} ({})", cursor.iterator().next().goToRoot().toString(), node, component);
         for(FXNode c : this.cursor) {
@@ -129,55 +149,72 @@ class Matching {
 //                        L.info("On node {} {}", node, component);
 //                        L.info("Matches child node {}", child.getNode());
                         childrenFound.add(child);
-                        // Does the map already contains a match for this cursor child?
-                        if(map.containsKey(child)){
-                            // If it does, spawn a new matching with the coming node
-                            Matching copy = this.copy();
-                            copy.unset(child); // remove the last solution from the copy
-                            copy.set(child, node); // reset it with the coming node
-                            spawned.add(copy);
-                        } else {
-                            // Otherwise, Before setting the match
-                            if (component.equals(FX.Value) ||
-                                    component.equals(FX.Type) ||
-                                    component.equals(FX.Container)){
-                                // If the cursor is a leaf, spawn a copy of this matching and rollback the
-                                // cursor to the last container
-                                Matching copy = this.copy();
-                                copy.unset(c); // Remove the key from the cursor
-                                copy.rollback(1);
-                                spawned.add(copy);
-                            }
-                            this.set(child, node);
-                        }
+                        cursorsMatched.add(c);
                     }
                 }
             }
         }
-
+        // If the number of matches is less then the size of the cursor
+        // We are having an asimmetric match
+        // Remove the unmatched key
+        if(!childrenFound.isEmpty() &&
+                childrenFound.size() != cursor.size()){
+            cursor.retainAll(cursorsMatched);
+        }
+        Set<FXNode> removeFromCursor = new HashSet<>();
+        Set<FXNode> addToCursor = new HashSet<>();
         // the node matches any of the children of the cursors
-        for(FXNode c : childrenFound) {
-            this.cursor.remove(c.getParent()); // remove the cursor
-            if(c.getAnnotation().getTerm().equals(FX.Value) ||
-                    c.getAnnotation().getTerm().equals(FX.Type)||
-                    c.getAnnotation().getTerm().equals(FX.Root)
+        for(FXNode child : childrenFound) {
+            // Does the map already contains a match for this cursor child?
+            if(map.containsKey(child)){
+                // If it does, spawn a new matching with the coming node
+                Matching copy = this.copy();
+                copy.unset(child); // remove the last solution from the copy
+                copy.set(child, node); // reset it with the coming node
+                spawned.add(copy);
+            } else {
+                // Otherwise, Before setting the match
+                if (component.equals(FX.Value) ||
+                        component.equals(FX.Type) ||
+                        component.equals(FX.Container)){
+                    // If the cursor is a leaf, spawn a copy of this matching and rollback the
+                    // cursor to the last container
+                    Matching copy = this.copy();
+                    copy.unset(child.getParent());
+                    //if(!component.equals(FX.Container)){
+                    copy.rollback(1);
+                    //}
+                    spawned.add(copy);
+                }
+                this.set(child, node);
+            }
+            removeFromCursor.add(child.getParent()); // remove the cursor
+            if(child.getAnnotation().getTerm().equals(FX.Value) ||
+                    child.getAnnotation().getTerm().equals(FX.Type)||
+                    child.getAnnotation().getTerm().equals(FX.Root)
             ){
                 // Let's reset the cursor to the container
-                this.cursor.add(c.getParent().getParent());
-            }else if(c.getAnnotation().getTerm().equals(FX.SlotString) ||
-                    c.getAnnotation().getTerm().equals(FX.SlotNumber) ||
-                    c.getAnnotation().getTerm().equals(FX.TypeProperty)
+                FXNode cont = child.getParent().getParent();
+                if(cont == null){
+                    System.out.println("WTF");
+                }
+                addToCursor.add(cont);
+            }else if(child.getAnnotation().getTerm().equals(FX.SlotString) ||
+                    child.getAnnotation().getTerm().equals(FX.SlotNumber) ||
+                    child.getAnnotation().getTerm().equals(FX.TypeProperty)
             ){
                 // Let's set the cursor to the predicate node, waiting for the value/type/container
-                this.cursor.add(c);
-            }else if (c.getAnnotation().getTerm().equals(FX.Container)){
+                addToCursor.add(child);
+            }else if (child.getAnnotation().getTerm().equals(FX.Container)){
                 // If it is a container, it can only be in the object position (because it is a child in the tree pattern)
                 // We set the cursor on the child node, waiting for keys
-                this.cursor.add(c);
+                addToCursor.add(child);
             }else{
                 throw new RuntimeException("Unexpected FX term");
             }
         }
+        this.cursor.removeAll(removeFromCursor);
+        this.cursor.addAll(addToCursor);
         return spawned;
     }
 

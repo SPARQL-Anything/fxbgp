@@ -8,15 +8,19 @@ import org.apache.jena.query.QuerySolution;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.core.Var;
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Properties;
+import java.util.Set;
 
 public class FXStreamExecutorTest extends BGPTestUtils {
     FXStreamExecutor executor;
@@ -32,36 +36,70 @@ public class FXStreamExecutorTest extends BGPTestUtils {
 
     @Test
     public void test1_csv_all() throws IOException, NotATreeException {
-        String name = testName.getMethodName();
-        prepare(name);
-        Iterator<QuerySolution> it = executor.exec(new OpBGP(bp), properties());
-        show(it);
+        prepare(testName.getMethodName());
+        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Assert.assertEquals(21, it.size());
+        show(it.iterator());
     }
 
     @Test
     public void test1_csv_s1() throws IOException, NotATreeException {
-        String name = testName.getMethodName();
-        prepare(name);
-        Iterator<QuerySolution> it = executor.exec(new OpBGP(bp), properties());
-        show(it);
+        prepare(testName.getMethodName());
+        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Assert.assertEquals(1, it.size());
+        show(it.iterator());
     }
 
 
     @Test
     public void test1_csv_s2() throws IOException, NotATreeException {
-        String name = testName.getMethodName();
-        prepare(name);
-        Iterator<QuerySolution> it = executor.exec(new OpBGP(bp), properties());
-        show(it);
+        prepare(testName.getMethodName());
+        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Assert.assertEquals(1, it.size());
+        show(it.iterator());
     }
 
 
     @Test
     public void test1_csv_s3() throws IOException, NotATreeException {
-        String name = testName.getMethodName();
-        prepare(name);
-        Iterator<QuerySolution> it = executor.exec(new OpBGP(bp), properties());
-        show(it);
+        prepare(testName.getMethodName());
+        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Assert.assertEquals(1, it.size());
+        show(it.iterator());
+    }
+
+    @Test
+    public void test1_csv_s4() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Assert.assertEquals(5, it.size());
+        show(it.iterator());
+    }
+
+
+    @Test
+    public void test1_csv_s5() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Assert.assertEquals(1, it.size());
+        show(it.iterator());
+    }
+
+    @Test
+    public void test1_csv_s6() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Assert.assertEquals(1, it.size());
+        show(it.iterator());
+    }
+
+    @Ignore
+    @Test
+    public void test1_csv_s7() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        //Assert.assertEquals(1, it.size());
+        show(it.iterator());
     }
 
     private void show(Iterator<QuerySolution> qit){
@@ -98,6 +136,14 @@ public class FXStreamExecutorTest extends BGPTestUtils {
         this.input = getClass().getClassLoader().getResource("./stream/" + inputName);
 
         this.bp = readBGP("./stream/" + easyBGPName);
+    }
+
+    public Set<QuerySolution> set(Iterator<QuerySolution> qit){
+        Set<QuerySolution> set = new HashSet<>();
+        while(qit.hasNext()){
+            set.add(qit.next());
+        }
+        return set;
     }
 
     @Test

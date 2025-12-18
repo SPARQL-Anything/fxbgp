@@ -58,12 +58,19 @@ public class FXTreePatternTest extends BGPTestAbstract {
         printTrees();
     }
 
+    @Test
+    public void TPT4() throws IOException, NotATreeException {
+        loadBGP(name.getMethodName());
+        patterns = buildPatterns(annotations());
+        printTrees();
+    }
+
     private void printTrees() {
         int c = 0;
         for (FXTreePattern p: patterns) {
             StringBuilder sb = new StringBuilder();
             printTree(c++, sb, p.getRoot());
-            System.out.println(sb.toString());
+            L.info("\n{}", sb.toString());
         }
     }
 
