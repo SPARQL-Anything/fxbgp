@@ -78,11 +78,17 @@ public class AnalyserGrounder implements Analyser {
                 }
             }else{
                 if(t.getPredicate().equals(RDF.type.asNode())){
-                    possible.get(t.getPredicate()).add(FXM.getIF().make(bgp, t.getPredicate(), FX.TypeProperty));
+                    for(FX gs : FXM.getGroundTermFor(FX.TypeProperty)){
+                        possible.get(t.getPredicate()).add(FXM.getIF().make(bgp, t.getPredicate(), gs));
+                    }
                 }else if(t.getPredicate().getURI().startsWith("http://www.w3.org/1999/02/22-rdf-syntax-ns#_")){
-                    possible.get(t.getPredicate()).add(FXM.getIF().make(bgp, t.getPredicate(), FX.SlotNumber));
+                    for(FX gs : FXM.getGroundTermFor(FX.SlotNumber)){
+                        possible.get(t.getPredicate()).add(FXM.getIF().make(bgp, t.getPredicate(), gs));
+                    }
                 }else{
-                    possible.get(t.getPredicate()).add(FXM.getIF().make(bgp, t.getPredicate(), FX.SlotString));
+                    for(FX gs: FXM.getGroundTermFor(FX.SlotString)) {
+                        possible.get(t.getPredicate()).add(FXM.getIF().make(bgp, t.getPredicate(), gs));
+                    }
                 }
             }
 			nodes.add(t.getObject());
@@ -103,14 +109,14 @@ public class AnalyserGrounder implements Analyser {
         // We reduce the number of combinations with triple-level rules
         for(Triple t : bgp.getPattern()){
             // If a node is a subject, it can only be a container
-            possible.get(t.getSubject()).removeIf(i -> !i.getTerm().equals(FX.Container));
+            possible.get(t.getSubject()).removeIf(i -> !FXM.getGroundTermFor(FX.Container).contains(i.getTerm()));
             // If a predicate is concrete, the object can be determined
             if(t.getPredicate().equals(RDF.type.asNode())){
-                possible.get(t.getObject()).removeIf(i -> i.getTerm().equals(FX.Container) || i.getTerm().equals(FX.Value));
+                possible.get(t.getObject()).removeIf(i -> FXM.getGroundTermFor(FX.Container).contains(i.getTerm()) || FXM.getGroundTermFor(FX.Value).contains(i.getTerm()));
             }else if(t.getPredicate().isURI() && t.getPredicate().getURI().startsWith("http://www.w3.org/1999/02/22-rdf-syntax-ns#_")){
-                possible.get(t.getObject()).removeIf(i -> i.getTerm().equals(FX.Type) || i.getTerm().equals(FX.Root));
+                possible.get(t.getObject()).removeIf(i -> FXM.getGroundTermFor(FX.Type).contains(i.getTerm()) || FXM.getGroundTermFor(FX.Root).contains(i.getTerm()));
             }else if(t.getPredicate().isURI()){
-                possible.get(t.getObject()).removeIf(i -> i.getTerm().equals(FX.Type) || i.getTerm().equals(FX.Root));
+                possible.get(t.getObject()).removeIf(i -> FXM.getGroundTermFor(FX.Type).contains(i.getTerm()) || FXM.getGroundTermFor(FX.Root).contains(i.getTerm()));
             }
         }
 
