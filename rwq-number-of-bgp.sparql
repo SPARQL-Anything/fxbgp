@@ -1,0 +1,31 @@
+PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl:   <http://www.w3.org/2002/07/owl#>
+PREFIX fx:    <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz:   <http://sparql.xyz/facade-x/data/>
+PREFIX xhtml: <http://www.w3.org/1999/xhtml#>
+
+SELECT (COUNT(?query) AS ?query_n) ?number_of_bgp
+WHERE {
+ {
+     {
+        SELECT ?query (COUNT(?bgp_n) as ?number_of_bgp)
+        WHERE {
+            SERVICE <x-sparql-anything:> {
+                
+                fx:properties fx:location "./REAL-WORLD-QUERIES-run-1.csv" .
+                ## B,false,query-1.rq,1, 1,  1, 1,     1,  2
+                ### name | bgpx     | found | varSize | size | ms | tested
+                
+                [] rdf:_1 ?_algorithm ;
+                   rdf:_2 "false" ; # Just look at one kind of run
+                   rdf:_3 ?query ;
+                   rdf:_4 ?bgp_n ;
+            }
+                
+         } GROUP BY ?query
+        }
+    }
+ }
+GROUP BY ?number_of_bgp 
+ORDER BY DESC(?query_n)

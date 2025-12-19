@@ -1,0 +1,19 @@
+PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl:   <http://www.w3.org/2002/07/owl#>
+PREFIX fx:    <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz:   <http://sparql.xyz/facade-x/data/>
+PREFIX xhtml: <http://www.w3.org/1999/xhtml#>
+
+SELECT (COUNT(DISTINCT ?query) AS ?queries)
+#SELECT ?file
+WHERE {
+    SERVICE <x-sparql-anything:> {
+            fx:properties fx:location "./REAL-WORLD-QUERIES-run-1.csv" .
+        ### name | bgpx | found | varSize | size | ms | tested
+        
+        [] rdf:_1 "B" ;
+           rdf:_2 "false" ; # Just look at one kind of run
+           rdf:_3 ?query .
+     }
+ }
