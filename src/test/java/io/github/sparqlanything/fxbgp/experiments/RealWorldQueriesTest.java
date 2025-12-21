@@ -41,6 +41,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static io.github.sparqlanything.fxbgp.experiments.FXBGPUtils.extract;
+
 public class RealWorldQueriesTest extends BGPTestAbstract {
     final protected static Logger L = LoggerFactory.getLogger(RealWorldQueriesTest.class);
     final static URI experimentsFolder;
@@ -211,4 +213,20 @@ public class RealWorldQueriesTest extends BGPTestAbstract {
         }
     }
 
+    @Ignore
+    @Test
+    public void test244() throws IOException {
+        AnalyserGrounder g = new AnalyserGrounder(properties, FXM());
+        String qname = "query-244.rq";
+        L.info("{}", qname);
+        String query = IOUtils.toString(getClass().getClassLoader().getResourceAsStream("./real-world-queries/" + qname), StandardCharsets.UTF_8);
+        L.info("{}", query);
+        boolean complete = true;
+        for(OpBGP bgp : extract(query)) {
+            long start = System.currentTimeMillis();
+            Set<FXBGPAnnotation> anns = g.annotate(bgp, complete);
+            long end = System.currentTimeMillis();
+            long durs = end - start;
+        }
+    }
 }

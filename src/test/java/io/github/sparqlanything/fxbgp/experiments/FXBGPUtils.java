@@ -1,6 +1,8 @@
 package io.github.sparqlanything.fxbgp.experiments;
 
 import io.github.sparqlanything.engine.FacadeX;
+import io.github.sparqlanything.fxbgp.AnalyserGrounder;
+import io.github.sparqlanything.fxbgp.FXBGPAnnotation;
 import io.github.sparqlanything.model.OpComponentsAnalyser;
 import org.apache.commons.io.IOUtils;
 import org.apache.jena.graph.Node;
@@ -79,8 +81,14 @@ public class FXBGPUtils {
     public static int varSize(OpBGP opBGP){
         Set<Node> vars = new HashSet<>();
         for(Triple t: opBGP.getPattern()){
-            if(!t.isConcrete()){
+            if(!t.getSubject().isConcrete()){
                 vars.add(t.getSubject());
+            }
+            if(!t.getPredicate().isConcrete()){
+                vars.add(t.getPredicate());
+            }
+            if(!t.getObject().isConcrete()){
+                vars.add(t.getObject());
             }
         };
         return vars.size();
