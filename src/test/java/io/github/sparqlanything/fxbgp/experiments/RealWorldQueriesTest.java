@@ -246,4 +246,27 @@ public class RealWorldQueriesTest extends BGPTestAbstract {
             long durs = end - start;
         }
     }
+
+    @Ignore
+    @Test
+    public void showBrokenBGPs()  throws IOException {
+        Map<String,Integer> queries = new HashMap();
+        queries.put("query-66.rq", 5);
+        queries.put("query-77.rq", 2);
+        queries.put("query-199.rq", 1);
+        queries.put("query-244.rq", 2);
+
+        for(Map.Entry<String,Integer> q : queries.entrySet()) {
+            String qs = IOUtils.toString(getClass().getClassLoader().getResourceAsStream("./real-world-queries/" + q.getKey()), StandardCharsets.UTF_8);
+            Integer bgpx = 0;
+            for(OpBGP bgp : extract(qs)) {
+                bgpx += 1;
+                if(bgpx == queries.get(q.getKey())) {
+                    System.out.println(q + " " + bgpx.toString());
+                    System.out.println(bgp);
+                    System.out.println("----");
+                }
+            }
+        }
+    }
 }
