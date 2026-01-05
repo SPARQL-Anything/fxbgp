@@ -229,4 +229,21 @@ public class RealWorldQueriesTest extends BGPTestAbstract {
             long durs = end - start;
         }
     }
+
+    @Ignore
+    @Test
+    public void test77() throws IOException {
+        AnalyserGrounder g = new AnalyserGrounder(properties, FXM());
+        String qname = "query-77.rq";
+        L.info("{}", qname);
+        String query = IOUtils.toString(getClass().getClassLoader().getResourceAsStream("./real-world-queries/" + qname), StandardCharsets.UTF_8);
+        L.info("{}", query);
+        boolean complete = true;
+        for(OpBGP bgp : extract(query)) {
+            long start = System.currentTimeMillis();
+            Set<FXBGPAnnotation> anns = g.annotate(bgp, complete);
+            long end = System.currentTimeMillis();
+            long durs = end - start;
+        }
+    }
 }
