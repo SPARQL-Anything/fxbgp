@@ -27,7 +27,7 @@ mvn test
 
 ## Run the experiments 10 times
 
-Use the script runAll.sh to generate 10 execution files EXPERIMENTS-run-`N`.md/.csv and REAL-WORLD-QUERIES-run-`N`.md/.csv
+Use the script runAll.sh to generate 10 execution files EXPERIMENTS-run-`N`.md/.csv, REAL-WORLD-QUERIES-run-`N`.md/.csv, and GTFS-QUERIES-run-`N`.md/.csv
 
 The script was tested only on a MacBook Pro environment.
 
@@ -42,6 +42,8 @@ fx -q experiments-tables.sparql -v algorithm=B -v complete=false -o "BottomUp_Sa
 fx -q experiments-tables.sparql -v algorithm=B -v complete=true -o "BottomUp_SolutionPatterns.csv"
 fx -q rwq-experiments-tables.sparql -v complete=false -o "RWQ_Satisfiability.csv"
 fx -q rwq-experiments-tables.sparql -v complete=true -o "RWQ_SolutionPatterns.csv"
+fx -q gtfs-experiments-tables.sparql -v complete=false -o "GTFS_Satisfiability.csv"
+fx -q gtfs-experiments-tables.sparql -v complete=true -o "GTFS_SolutionPatterns.csv"
 ```
 
 ## Real world queries
@@ -79,3 +81,7 @@ query\_n,number\_of\_bgp
 |1|31|
 |1|40|
 |1|8|
+
+## Data analysis
+
+See [this google spreadsheet for further analysis](https://docs.google.com/spreadsheets/d/11n7c101WLQBL8aApZs-fXNtHAYTIBIP9nZUDxD6TUa8/edit?usp=sharing)
