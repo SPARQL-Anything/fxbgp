@@ -6,11 +6,13 @@ Top down / Search: [AnalyserAsSearch](src/main/java/io/github/sparqlanything/fxb
 
 Bottom up / CSP: [AnalyserGrounder](src/main/java/io/github/sparqlanything/fxbgp/AnalyserGrounder.java) (efficient)
 
-See [EXPERIMENTS.md](EXPERIMENTS.md) for an example of output.
+We compare the two algorithms with designed queries, see [EXPERIMENTS.md](EXPERIMENTS.md) for an example of output.
 
-We only perform experiments with real world queries with the Bottom up/CSP algorithm.
+We then perform experiments with real world queries collected from GitHub public repositories, and with queries of the GTFS benchmark. With those, we only perform experiments with the Bottom up/CSP algorithm.
 
 See [REAL-WORLD-QUERIES.md](REAL-WORLD-QUERIES.md) for an example of output.
+
+See [GTFS-QUERIES.md](REAL-WORLD-QUERIES.md) for an example of output.
 
 ## Build and run experiments
 Building or running tests with maven will also re-generate the file EXPERIMENTS.md
@@ -27,13 +29,13 @@ mvn test
 
 ## Run the experiments 10 times
 
-Use the script runAll.sh to generate 10 execution files EXPERIMENTS-run-`N`.md/.csv and REAL-WORLD-QUERIES-run-`N`.md/.csv
+Use the script runAll.sh to generate 10 execution files EXPERIMENTS-run-`N`.md/.csv, REAL-WORLD-QUERIES-run-`N`.md/.csv, and GTFS-QUERIES-run-`N`.md/.csv
 
 The script was tested only on a MacBook Pro environment.
 
 ## Build tables
 
-We use SPARQL Anything, `fx` stands for `java -jar -Xmx=4g sparql-anything-v1.0.0.jar`:
+We use SPARQL Anything to aggregate the data from the 10 executions, `fx` stands for `java -jar -Xmx=4g sparql-anything-v1.0.0.jar`:
 
 ```bash
 fx -q experiments-tables.sparql -v algorithm=T -v complete=false -o "TopDown_Satisfiability.csv"
@@ -42,6 +44,8 @@ fx -q experiments-tables.sparql -v algorithm=B -v complete=false -o "BottomUp_Sa
 fx -q experiments-tables.sparql -v algorithm=B -v complete=true -o "BottomUp_SolutionPatterns.csv"
 fx -q rwq-experiments-tables.sparql -v complete=false -o "RWQ_Satisfiability.csv"
 fx -q rwq-experiments-tables.sparql -v complete=true -o "RWQ_SolutionPatterns.csv"
+fx -q gtfs-experiments-tables.sparql -v complete=false -o "GTFS_Satisfiability.csv"
+fx -q gtfs-experiments-tables.sparql -v complete=true -o "GTFS_SolutionPatterns.csv"
 ```
 
 ## Real world queries
@@ -79,3 +83,7 @@ query\_n,number\_of\_bgp
 |1|31|
 |1|40|
 |1|8|
+
+## Data analysis
+
+See [this google spreadsheet for further analysis](https://docs.google.com/spreadsheets/d/11n7c101WLQBL8aApZs-fXNtHAYTIBIP9nZUDxD6TUa8/edit?usp=sharing)
