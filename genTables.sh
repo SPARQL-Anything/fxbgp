@@ -7,3 +7,5 @@ fx -q experiments-tables.sparql -v algorithm=B -v complete=false -o "BottomUp_Sa
 fx -q experiments-tables.sparql -v algorithm=B -v complete=true -o "BottomUp_SolutionPatterns.csv"
 fx -q rwq-experiments-tables.sparql -v complete=false -o "RWQ_Satisfiability.csv"
 fx -q rwq-experiments-tables.sparql -v complete=true -o "RWQ_SolutionPatterns.csv"
+fx -q gtfs-experiments-tables.sparql -v complete=false -o "GTFS_Satisfiability.csv"
+fx -q gtfs-experiments-tables.sparql -v complete=true -o "GTFS_SolutionPatterns.csv"

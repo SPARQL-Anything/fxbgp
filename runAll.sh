@@ -10,6 +10,8 @@ do
     cp -rf EXPERIMENTS.csv EXPERIMENTS-run-$i.csv
     cp -rf REAL-WORLD-QUERIES.md REAL-WORLD-QUERIES-run-$i.md
     cp -rf REAL-WORLD-QUERIES.csv REAL-WORLD-QUERIES-run-$i.csv
+    cp -rf GTFS-QUERIES.md GTFS-QUERIES-run-$i.md
+    cp -rf GTFS-QUERIES.csv GTFS-QUERIES-run-$i.csv
 done
 
 

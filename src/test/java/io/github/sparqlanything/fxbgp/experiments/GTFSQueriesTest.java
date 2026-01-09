@@ -6,11 +6,8 @@ import io.github.sparqlanything.fxbgp.AnalyserGrounder;
 import io.github.sparqlanything.fxbgp.BGPTestAbstract;
 import io.github.sparqlanything.fxbgp.FXBGPAnnotation;
 import io.github.sparqlanything.fxbgp.FXModel;
-import org.apache.commons.io.IOUtils;
 import org.apache.jena.sparql.algebra.op.OpBGP;
-import org.apache.jena.sparql.core.BasicPattern;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -24,14 +21,11 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -41,15 +35,14 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static io.github.sparqlanything.fxbgp.experiments.FXBGPUtils.extract;
+public class GTFSQueriesTest extends BGPTestAbstract {
 
-public class RealWorldQueriesTest extends BGPTestAbstract {
-    final protected static Logger L = LoggerFactory.getLogger(RealWorldQueriesTest.class);
+    final protected static Logger L = LoggerFactory.getLogger(GTFSQueriesTest.class);
     final static URI experimentsFolder;
     final static Set<FileBGP> opBGPs = new HashSet<>();
     static {
         try {
-            experimentsFolder = RealWorldQueriesTest.class.getClassLoader().getResource("./real-world-queries/").toURI();
+            experimentsFolder = GTFSQueriesTest.class.getClassLoader().getResource("./gtfs-queries/").toURI();
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
@@ -57,7 +50,7 @@ public class RealWorldQueriesTest extends BGPTestAbstract {
 
     @Rule
     public TestName name = new TestName();
-    public RealWorldQueriesTest() {
+    public GTFSQueriesTest() {
         super(FXModel.getFXModel());
     }
     private static List<FileBGP> fileData = new ArrayList<>();
@@ -69,11 +62,12 @@ public class RealWorldQueriesTest extends BGPTestAbstract {
         PRINT_EXPERIMENTS_FILE.println(str);
     }
 
+
     @BeforeClass
     public static void beforeClass() throws IOException {
         // Create file EXPERIMENTS.md
-        File EXPERIMENTS = new File("./REAL-WORLD-QUERIES.md");
-        File EXPERIMENTSCSV = new File("./REAL-WORLD-QUERIES.csv");
+        File EXPERIMENTS = new File("./GTFS-QUERIES.md");
+        File EXPERIMENTSCSV = new File("./GTFS-QUERIES.csv");
         EXPERIMENTS.delete();
         EXPERIMENTSCSV.delete();
         try {
@@ -93,7 +87,7 @@ public class RealWorldQueriesTest extends BGPTestAbstract {
             }
         });
 
-        println("# Experiments with real world queries");
+        println("# Experiments with queries from the GTFS madrid benchmark");
         println("## Algorithms");
         println("\nTop down / Search: [AnalyserAsSearch](src/main/java/io/github/sparqlanything/fxbgp/AnalyserAsSearch.java)");
         println("\nBottom up / CSP: [AnalyserGrounder](src/main/java/io/github/sparqlanything/fxbgp/AnalyserGrounder.java)");
@@ -134,6 +128,7 @@ public class RealWorldQueriesTest extends BGPTestAbstract {
     }
 
     private static File[] files;
+
 
     @Test
     public void BottomUp() throws IOException {
@@ -208,67 +203,6 @@ public class RealWorldQueriesTest extends BGPTestAbstract {
                         analy = "T";
                     }
                     log(analy, complete, name, bgpx, null, varSize, size, (long) -1, -1);
-                }
-            }
-        }
-    }
-
-    @Ignore
-    @Test
-    public void test244() throws IOException {
-        AnalyserGrounder g = new AnalyserGrounder(properties, FXM());
-        String qname = "query-244.rq";
-        L.info("{}", qname);
-        String query = IOUtils.toString(getClass().getClassLoader().getResourceAsStream("./real-world-queries/" + qname), StandardCharsets.UTF_8);
-        L.info("{}", query);
-        boolean complete = true;
-        for(OpBGP bgp : extract(query)) {
-            long start = System.currentTimeMillis();
-            Set<FXBGPAnnotation> anns = g.annotate(bgp, complete);
-            long end = System.currentTimeMillis();
-            long durs = end - start;
-            L.info("====\n{} \nHypotheses: {}", bgp, g.getLastTestedHypotheses());
-            L.info("====\n{} \nSolutions: {}", bgp, anns.size());
-        }
-    }
-
-    @Ignore
-    @Test
-    public void test77() throws IOException {
-        AnalyserGrounder g = new AnalyserGrounder(properties, FXM());
-        String qname = "query-77.rq";
-        L.info("{}", qname);
-        String query = IOUtils.toString(getClass().getClassLoader().getResourceAsStream("./real-world-queries/" + qname), StandardCharsets.UTF_8);
-        L.info("{}", query);
-        boolean complete = true;
-        for(OpBGP bgp : extract(query)) {
-            long start = System.currentTimeMillis();
-            Set<FXBGPAnnotation> anns = g.annotate(bgp, complete);
-            long end = System.currentTimeMillis();
-            long durs = end - start;
-            L.info("====\n{} \nHypotheses: {}", bgp, g.getLastTestedHypotheses());
-            L.info("====\n{} \nSolutions: {}", bgp, anns.size());
-        }
-    }
-
-    @Ignore
-    @Test
-    public void showBrokenBGPs()  throws IOException {
-        Map<String,Integer> queries = new HashMap();
-        queries.put("query-66.rq", 5);
-        queries.put("query-77.rq", 2);
-        queries.put("query-199.rq", 1);
-        queries.put("query-244.rq", 2);
-
-        for(Map.Entry<String,Integer> q : queries.entrySet()) {
-            String qs = IOUtils.toString(getClass().getClassLoader().getResourceAsStream("./real-world-queries/" + q.getKey()), StandardCharsets.UTF_8);
-            Integer bgpx = 0;
-            for(OpBGP bgp : extract(qs)) {
-                bgpx += 1;
-                if(bgpx == queries.get(q.getKey())) {
-                    System.out.println(q + " " + bgpx.toString());
-                    System.out.println(bgp);
-                    System.out.println("----");
                 }
             }
         }
