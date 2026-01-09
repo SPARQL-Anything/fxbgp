@@ -6,11 +6,13 @@ Top down / Search: [AnalyserAsSearch](src/main/java/io/github/sparqlanything/fxb
 
 Bottom up / CSP: [AnalyserGrounder](src/main/java/io/github/sparqlanything/fxbgp/AnalyserGrounder.java) (efficient)
 
-See [EXPERIMENTS.md](EXPERIMENTS.md) for an example of output.
+We compare the two algorithms with designed queries, see [EXPERIMENTS.md](EXPERIMENTS.md) for an example of output.
 
-We only perform experiments with real world queries with the Bottom up/CSP algorithm.
+We then perform experiments with real world queries collected from GitHub public repositories, and with queries of the GTFS benchmark. With those, we only perform experiments with the Bottom up/CSP algorithm.
 
 See [REAL-WORLD-QUERIES.md](REAL-WORLD-QUERIES.md) for an example of output.
+
+See [GTFS-QUERIES.md](REAL-WORLD-QUERIES.md) for an example of output.
 
 ## Build and run experiments
 Building or running tests with maven will also re-generate the file EXPERIMENTS.md
@@ -33,7 +35,7 @@ The script was tested only on a MacBook Pro environment.
 
 ## Build tables
 
-We use SPARQL Anything, `fx` stands for `java -jar -Xmx=4g sparql-anything-v1.0.0.jar`:
+We use SPARQL Anything to aggregate the data from the 10 executions, `fx` stands for `java -jar -Xmx=4g sparql-anything-v1.0.0.jar`:
 
 ```bash
 fx -q experiments-tables.sparql -v algorithm=T -v complete=false -o "TopDown_Satisfiability.csv"
