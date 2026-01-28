@@ -86,7 +86,7 @@ class Matching {
         return this.map.size();
     }
 
-//    public void rollback(int steps) {
+//    public void jumpBack() {
 //        Set<FXNode> next = new HashSet<>();
 //        for (FXNode c : this.cursor) {
 //            FXNode nc = null;
@@ -101,9 +101,29 @@ class Matching {
 //        this.cursor = next;
 //    }
 
-//    public void unset(FXNode patternNode) {
-//        this.map.remove(patternNode);
-//    }
+    private void unset(FXNode patternNode) {
+        this.map.remove(patternNode);
+        if(isContainer(patternNode)) {
+            // Also remove its predicate
+            this.map.remove(patternNode.getParent());
+            this.cursor.remove(patternNode);
+            // And put cursor on the previous container
+            this.cursor.add(patternNode.getParent().getParent());
+        }else if(isValueOrTypeOrRoot(patternNode)) {
+            // Remove it and set its parent
+            this.map.remove(patternNode.getParent());
+            this.cursor.remove(patternNode);
+            // Remove its predicate
+            this.map.remove(patternNode.getParent());
+            // Place the cursor on its container
+            this.cursor.add(patternNode.getParent().getParent());
+        } else if(isPredicate(patternNode)) {
+            // XXX This should never happen...?
+            this.cursor.remove(patternNode);
+            this.cursor.add(patternNode.getParent());
+        }
+    }
+
     public void set(FXNode patternNode, List<Node> valuePath) {
         this.map.put(patternNode, valuePath);
         if(!patternNode.isRoot()) {
@@ -144,41 +164,55 @@ class Matching {
     }
 
     public Set<Matching> check(Node node, FX component) {
-        L.info("Path: {} ", path);
-        L.info("Context Path: {}", contextPath);
+        if(node.toString().contains("H2")) {
+            L.info("{} {}", node, component);
+        }
+        L.trace("Path: {} ", path);
+        L.trace("Context Path: {}", contextPath);
         Set<Matching> spawned = new HashSet<>();
         // Cursor is last matched node in the tree pattern
-        Set<FXNode> newCursors = new HashSet<>();
         // Check if the coming node matches any follower
+        Set<FXNode> matched = new HashSet<>();
         for(FXNode c: cursor){
             for(FXNode newCursor: c.getChildren()){
                 if(newCursor.getAnnotation().getTerm().equals(component) &&
                         nodeMatches(newCursor.getNode(), node)){
                     // Verify the values are in the right path
                     List<Node> cursorValue = map.get(c);
-
                     if(path.subList(0, path.size() - 1).equals(cursorValue)){
-                        L.info("Path matching success: \n{}\n{}", path, cursorValue);
-                        show(getMatches());
-                        if(map.containsKey(newCursor)){
-                            Matching m = copy();
-                            set(newCursor, new ArrayList<>(path));
-                            spawned.add(m);
-                        } else {
-                            set(newCursor, new ArrayList<>(path));
-                        }
-                    }else{
-                        L.info("Path matching failed: \n{}\n{}", path, cursorValue);
+                        //L.trace("Path matching success: \n{}\n{}", path, cursorValue);
+                        //show(getMatches());
+                        matched.add(newCursor);
                     }
                 }
             }
         }
+        for(FXNode newCursor: matched){
+            if (map.containsKey(newCursor)) {
+                // This never happens ...
+                throw new RuntimeException("This should never happen");
+//                Matching m = copy();
+//                m.set(newCursor, new ArrayList<>(path));
+//                spawned.add(m);
+            }
+            set(newCursor, new ArrayList<>(path));
+            // If value type or root, spawn and clear map keys
+            if(isValueOrTypeOrRoot(newCursor) || isContainer(newCursor)) {
+                Matching m = copy();
+                m.unset(newCursor);
+                spawned.add(m);
+            } else {
+
+            }
+        }
+        show(getMatches());
         return spawned;
     }
 
     public void endContainer(){
         // Check if the node we are leaving is bound to any match to the container we are leaving.
-        // If it is, mark it as unresolvable
+
+        // If it does, mark it as unresolvable
         if(map.values().contains(path)){
             this.unresolvable = true;
         }

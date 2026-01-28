@@ -134,10 +134,17 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
             L.trace("[start] checking {} against {} ", node, matching.getCursor());
             Set<Matching> spawn = matching.check(node, component);
             L.trace("[checked] checked, cursor now is {} ", matching.getCursor());
-            if(spawn.size() > 0){L.trace(" --> {} spawned", spawn.size());}
+            if(spawn.size() > 0){
+                L.info(" --> {} spawned", spawn.size());
+            }
             spawned.addAll(spawn);
-            if(matching.getMap().size() == pattern.nodes().size()){
-                L.trace(" --> solution found:", matching.getMap());
+            if(matching.getMap().size() == pattern.getSize()){
+                L.info(" --> SOLUTION", matching.getMap(), pattern.nodes().size(),pattern.nodes().size());
+                for(Map.Entry<FXNode,List<Node>> entry: matching.getMap().entrySet()){
+                    L.info(" KEY --> {} ", entry.getKey());
+                    L.info(" VAL --> {} ", entry.getValue().get(entry.getValue().size()-1));
+                    L.info(" PATH --> {} ", entry.getValue());
+                }
                 addQuerySolution(matching);
                 completed.add(matching);
             }

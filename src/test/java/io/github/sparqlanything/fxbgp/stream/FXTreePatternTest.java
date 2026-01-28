@@ -6,6 +6,7 @@ import io.github.sparqlanything.fxbgp.BGPTestAbstract;
 import io.github.sparqlanything.fxbgp.FXBGPAnnotation;
 import io.github.sparqlanything.fxbgp.FXModel;
 import org.h2.util.StringUtils;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -42,6 +43,9 @@ public class FXTreePatternTest extends BGPTestAbstract {
         loadBGP(name.getMethodName());
         patterns = buildPatterns(annotations());
         printTrees();
+        for(FXTreePattern p : patterns){
+            Assert.assertEquals(7, p.getSize());
+        }
     }
 
     @Test
@@ -49,6 +53,9 @@ public class FXTreePatternTest extends BGPTestAbstract {
         loadBGP(name.getMethodName());
         patterns = buildPatterns(annotations());
         printTrees();
+        for(FXTreePattern p : patterns){
+            Assert.assertEquals(7, p.getSize());
+        }
     }
 
     @Test
@@ -56,6 +63,9 @@ public class FXTreePatternTest extends BGPTestAbstract {
         loadBGP(name.getMethodName());
         patterns = buildPatterns(annotations());
         printTrees();
+        for(FXTreePattern p : patterns){
+            Assert.assertEquals(11, p.getSize());
+        }
     }
 
     @Test
@@ -63,6 +73,9 @@ public class FXTreePatternTest extends BGPTestAbstract {
         loadBGP(name.getMethodName());
         patterns = buildPatterns(annotations());
         printTrees();
+        for(FXTreePattern p : patterns){
+            Assert.assertEquals(7, p.getSize());
+        }
     }
 
     private void printTrees() {
@@ -70,7 +83,7 @@ public class FXTreePatternTest extends BGPTestAbstract {
         for (FXTreePattern p: patterns) {
             StringBuilder sb = new StringBuilder();
             printTree(c++, sb, p.getRoot());
-            L.info("\n{}", sb.toString());
+            L.info("\n{} [size == {}]", sb.toString(), p.getSize());
         }
     }
 

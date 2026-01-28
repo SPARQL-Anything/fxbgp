@@ -4,6 +4,7 @@ package io.github.sparqlanything.fxbgp.stream;
 import io.github.sparqlanything.csv.CSVTriplifier;
 import io.github.sparqlanything.model.IRIArgument;
 import io.github.sparqlanything.model.TriplifierHTTPException;
+import org.apache.jena.graph.Node;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -23,6 +24,44 @@ public class ParserEventListenerTest {
     public void test1() throws IOException, TriplifierHTTPException {
         String n = name.getMethodName();
         FXNodeEventListener listener = new FXAbstractNodeEventListener() {
+            public void startContainer(Node container) {
+                L.info("startContainer: {}", container);
+            }
+
+            @Override
+            public void onValue(Node value) {
+                L.info("onValue: {}", value);
+            }
+
+            @Override
+            public void onType(Node type) {
+                L.info("onType: {}", type);
+            }
+
+            @Override
+            public void onSlotNumber(Node predicate) {
+                L.info("onSlotNumber: {}", predicate);
+            }
+
+            @Override
+            public void onSlotString(Node predicate) {
+                L.info("onSlotString: {}", predicate);
+            }
+
+            @Override
+            public void onTypeRoot() {
+                L.info("onTypeRoot");
+            }
+
+            @Override
+            public void onTypeProperty() {
+                L.info("onTypeProperty");
+            }
+
+            @Override
+            public void endContainer() {
+                L.info("endContainer");
+            }
         };
         Properties properties = new Properties();
         String location = getClass().getClassLoader().getResource("stream/" + n + ".csv").getPath();

@@ -20,6 +20,7 @@ public class FXTreePattern {
     private Set<Node> nodes;
     private FXNode root;
     private Set<Node> variables;
+    private int size;
     private FXTreePattern(FXBGPAnnotation bpa) throws NotATreeException {
         // Verify it is a tree pattern
         // All but one subject must be objects as well
@@ -54,6 +55,19 @@ public class FXTreePattern {
         this.root = makeRoot(subjects.iterator().next(), bpa);
         this.variables = Collections.unmodifiableSet(variables);
         this.nodes = Collections.unmodifiableSet(nodes);
+        FXNode n = this.root;
+        this.size = 1 + countChildren(this.root);
+    }
+    public int getSize(){
+        return this.size;
+    }
+
+    private int countChildren(FXNode n){
+        int soFar = n.getChildren().size();
+        for(FXNode child : n.getChildren()){
+            soFar += countChildren(child);
+        }
+        return soFar;
     }
 
     public static FXTreePattern make(FXBGPAnnotation bpa) throws NotATreeException {
