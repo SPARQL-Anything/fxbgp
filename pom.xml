@@ -22,19 +22,50 @@
 	<parent>
 		<groupId>io.github.sparql-anything</groupId>
 		<artifactId>sparql-anything-parent</artifactId>
-		<version>1.0.0</version>
+		<version>1.2.0-NIGHTLY-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 	<properties>
-		<revision>1.1.0-SNAPSHOT</revision>
+		<revision>1.2.0-NIGHTLY-SNAPSHOT</revision>
 	</properties>
 	<artifactId>sparql-anything-fxbgp</artifactId>
+
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>snapshots</id>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
 	<dependencies>
         <dependency>
             <groupId>io.github.sparql-anything</groupId>
             <artifactId>sparql-anything-model</artifactId>
             <version>${revision}</version>
         </dependency>
+
+        <dependency>
+            <groupId>io.github.sparql-anything</groupId>
+            <artifactId>sparql-anything-engine</artifactId>
+            <version>${revision}</version>
+        </dependency>
+
 		<dependency>
 			<groupId>io.github.sparql-anything</groupId>
 			<artifactId>sparql-anything-csv</artifactId>
@@ -46,6 +77,13 @@
 			<version>${revision}</version>
 			<scope>test</scope>
 		</dependency>
+
+<!--        <dependency>-->
+<!--            <groupId>org.apache.jena</groupId>-->
+<!--            <artifactId>jena-arq</artifactId>-->
+<!--            <version>5.6.0</version>-->
+<!--&lt;!&ndash;            <type>pom</type>&ndash;&gt;-->
+<!--        </dependency>-->
 
 		<!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
 		<dependency>

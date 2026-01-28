@@ -5,6 +5,7 @@ import org.apache.jena.query.QuerySolution;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.StatementTerm;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -26,6 +27,7 @@ public class FXQuerySolution implements QuerySolution {
         return (Literal)  map.get(s);
     }
 
+    public StatementTerm getStatementTerm(String s) {return (StatementTerm) map.get(s); }
     @Override
     public boolean contains(String s) {
         return map.containsKey(s);
