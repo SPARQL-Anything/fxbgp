@@ -23,7 +23,6 @@
 		<groupId>io.github.sparql-anything</groupId>
 		<artifactId>sparql-anything-parent</artifactId>
 		<version>1.2.0-NIGHTLY-SNAPSHOT</version>
-		<relativePath>..</relativePath>
 	</parent>
 	<properties>
 		<revision>1.2.0-NIGHTLY-SNAPSHOT</revision>

@@ -26,7 +26,7 @@ public class FXStreamExecutor {
     private volatile Set<QuerySolution> solutions = new HashSet<>();
     private volatile boolean complete = false;
     public Iterator<QuerySolution> exec(OpBGP bgp, Properties properties) throws NotATreeException {
-        // TODO choose the FX model specific to the format.
+        // TODO choose the FX model specific to the format?
         AnalyserGrounder ag = new AnalyserGrounder(properties, FXModel.getFXModel());
         Set<FXBGPAnnotation> annotations = ag.annotate(bgp, true);
         final Set<FXQuerySolutionBuilder> patterns = new HashSet<>();

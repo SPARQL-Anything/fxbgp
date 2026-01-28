@@ -20,65 +20,73 @@ public class FXProxyEventListener implements FXNodeEventListener{
 
     @Override
     public void startContainer(Node container) {
-        L.trace("startContainer {}", container);
+        L.trace("[start] startContainer {}", container);
         for (FXNodeEventListener listener : listeners) {
             listener.startContainer(container);
         }
+        L.trace("[end] startContainer {}", container);
     }
 
     @Override
     public void onSlotNumber(Node n){
-        L.trace("onSlotNumber {}", n);
+        L.trace("[start] onSlotNumber {}", n);
         for (FXNodeEventListener listener : listeners) {
             listener.onSlotNumber(n);
         }
+        L.trace("[end] onSlotNumber {}", n);
     }
 
     @Override
     public void onSlotString(Node n){
-        L.trace("onSlotString {}", n);
+        L.trace("[start] onSlotString {}", n);
         for (FXNodeEventListener listener : listeners) {
             listener.onSlotString(n);
         }
+        L.trace("[end] onSlotString {}", n);
     }
 
     @Override
     public void onValue(Node value) {
-        L.trace("onValue {}", value);
+        L.trace("[start] onValue {}", value);
         for (FXNodeEventListener listener : listeners) {
             listener.onValue(value);
         }
+        L.trace("[end] onValue {}", value);
     }
 
     @Override
     public void onTypeProperty() {
-        L.trace("onTypeProperty");
+        L.trace("[start] onTypeProperty");
         for (FXNodeEventListener listener : listeners) {
             listener.onTypeProperty();
         }
+        L.trace("[end] onTypeProperty");
     }
 
     @Override
     public void onTypeRoot() {
-        L.trace("onTypeRoot");
+        L.trace("[start] onTypeRoot");
         for (FXNodeEventListener listener : listeners) {
             listener.onTypeRoot();
         }
+        L.trace("[end] onTypeRoot");
     }
 
     @Override
     public void onType(Node node) {
-        L.trace("onType {}", node);
+        L.trace("[start] onType {}", node);
         for (FXNodeEventListener listener : listeners) {
             listener.onType(node);
         }
+        L.trace("[end] onType {}", node);
     }
 
     @Override
     public void endContainer() {
-        L.trace("endContainer");
+        L.trace("[start] endContainer");
         for(FXNodeEventListener listener : listeners) {
             listener.endContainer();
         }
+        L.trace("[end] endContainer");
     }
 }
