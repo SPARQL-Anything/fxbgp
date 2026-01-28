@@ -1,0 +1,13 @@
+# https://api.github.com/repositories/598502070/contents/formats/triplify.sparql?ref=53dcc5377587eb7f804ed54c9be1acb3dc26a434
+PREFIX fx:  <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+
+CONSTRUCT {
+  ?x ?y ?z
+} WHERE {
+  SERVICE <x-sparql-anything:> {
+	  fx:properties fx:location ?_file ;
+	  fx:blank-nodes false . #;
+	?x ?y ?z
+  }
+}

@@ -1,0 +1,271 @@
+# https://api.github.com/repositories/847360089/contents/tarql/securities.rq?ref=d89f1b9118b5106ec45c9c4fcd8516b864fc7bb7
+PREFIX gist: <https://w3id.org/semanticarts/ns/ontology/gist/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX mg: <https://w3id.org/moneygraph/ns/ontology/>
+PREFIX mgx: <https://w3id.org/moneygraph/ns/taxonomy/>
+PREFIX mg3: <https://w3id.org/moneygraph/ns/data/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+
+CONSTRUCT
+{
+
+# Portfolio Account - holds many Securities
+    ?__portfolio_account a mg:PortfolioAccount .
+    ?__portfolio_account gist:isCategorizedBy ?__portfolio_account_type . # future feature
+    ?__portfolio_account gist:hasMember ?__security_account .
+    ?__portfolio_account gist:hasMember ?__cash_cad_account .
+    ?__portfolio_account gist:hasMember ?__cash_usd_account .
+
+# Security Account - for one Security
+    ?__security_account a gist:InvestmentAccount ;
+        gist:hasPositionIn ?__security ;
+        gist:hasCurrentBalance ?__qty_magn ;
+    .
+
+# Security - models stock, ETF, bond, etc.
+    ?__security a mg:MarketableSecurity, ?__security_class_iri .
+    ?__security gist:isIdentifiedBy ?__security_id .
+    ?__security rdfs:label ?Equity_Symbol .
+    ?__security skos:prefLabel ?Equity_Symbol .
+    ?__security gist:description ?Equity_Description .
+    ?__security gist:isCategorizedBy ?__security_type_iri .
+    ?__security gist:conformsTo ?__coupon_payment_terms .
+    ?__security gist:conformsTo ?__bond_repayment_conditions .
+
+    ?__security_id a gist:ID ;
+        gist:isCategorizedBy ?__security_id_type ;
+        gist:uniqueText ?__symbol_str_norm ;
+        skos:prefLabel ?__symbol_str_norm ;
+    .
+
+# Current balance of security account = the number of shares held, NOT their value
+    ?__qty_magn a gist:Magnitude ;
+        gist:hasUnitOfMeasure gist:_each ;
+        gist:numericValue ?__qty_amount ;
+        gist:isCategorizedBy mgx:_Aspect_securityShareCount ;
+        gist:isRecordedAt ?__report_datetime ;        
+    .
+
+# Cash Accounts
+# USD    
+    ?__cash_usd_account a mg:CashAccount ;
+        gist:hasMagnitude ?__usd_cash_magn ;
+        gist:isRecordedAt ?__report_datetime ;        
+    .
+# USD Cash Magnitude
+    ?__usd_cash_magn a gist:Magnitude ;
+        gist:hasUnitOfMeasure gist:_USDollar ;
+        gist:isCategorizedBy mgx:_Aspect_USD_cash_balance ;
+.
+
+# CAD
+    ?__cash_cad_account a mg:CashAccount ;
+        gist:hasMagnitude ?__cad_cash_magn ;
+        gist:isRecordedAt ?__report_datetime ;
+    .        
+# CAD Cash Magnitude
+    ?__cad_cash_magn a gist:Magnitude ;
+        gist:hasUnitOfMeasure mgx:_CADollar ;
+        gist:isCategorizedBy mgx:_Aspect_CAD_cash_balance ;
+    .
+
+########  BONDS ###########
+# This stuff should not change over time
+# Coupon payment terms
+    ?__coupon_payment_terms a mg:CouponPaymentTerms .
+    ?__coupon_payment_terms skos:prefLabel ?__coupon_terms_label .
+    ?__coupon_payment_terms gist:specifies ?__coupon_payment_schedule .
+    ?__coupon_payment_terms gist:specifies ?__coupon .
+    
+    ?__coupon_payment_schedule a mg:CouponPaymentSchedule .
+
+    ?__bond_repayment_conditions a mg:BondRepaymentTerms ;
+        gist:specifies ?__repayment_event ;
+    .
+
+# Bond repayment at due date
+    ?__repayment_event a gist:Event, gist:ScheduledEvent ;
+        gist:affects ?__security_account ;
+        gist:hasMagnitude ?__bond_repayment_magn ;
+        gist:isCharacterizedAs mgx:_FinancialBusinessEventType_debt_principal_repayment ;
+        mg:plannedOccursDate ?__maturity_datetime ;
+    .
+
+    ?__bond_repayment_magn a gist:Magnitude ;
+        gist:numericValue ?__qty_amount ;
+        gist:hasUnitOfMeasure ?__currency ;
+        gist:isCategorizedBy ?__quantity_aspect ;
+    .
+
+    ?__bond_issued_event a gist:Event, gist:HistoricalEvent ;
+        gist:affects ?__security_account ;
+        gist:hasMagnitude ?__security_position_cost_magn ;
+        gist:isCharacterizedAs mgx:_FinancialBusinessEventType_debt_instrument_outstanding ;
+        # gist:actualStartDateTime bond_issuance_date
+        gist:plannedEndDateTime ?__maturity_datetime ;
+    .
+
+# Coupon is < gist:ReferenceValue < gist:Magnitude
+    ?__coupon a mg:BondCoupon ;
+        gist:hasUnitOfMeasure mg:_RatioUnit_annualInterestRate ;
+        gist:numericValue ?__coupon_rate ;
+        gist:isCategorizedBy mgx:_Aspect_annualInterestRate ;
+    .
+    
+}
+
+WHERE
+
+{
+
+# Equity Symbol
+# ,Equity Description
+# ,Account Number
+# ,Currency
+# ,Cost Basis
+# ,Asset Class
+# ,Quantity
+# ,Cost Per Share
+# ,Position Cost
+# ,Market Price
+# ,Market Value
+# ,Profit And Loss
+# ,% Return
+# ,% of Portfolio
+
+    SERVICE <x-sparql-anything:> {
+        BIND(IRI(CONCAT("file://",?_loc)) AS ?__location)
+        BIND(STRDT(CONCAT(STR(?_dt),"T00:00:00"), xsd:dateTime) AS ?__report_datetime)
+
+        fx:properties
+            fx:location ?__location ;    
+            fx:csv.headers true ;
+            fx:blank-nodes false ;
+            fx:csv.null-string "" ;
+            fx:root ?__location ;
+        .
+
+        OPTIONAL { ?__csvline xyz:Equity%20Symbol ?Equity_Symbol }
+        OPTIONAL { ?__csvline xyz:Equity%5FSymbol ?Equity_Symbol }
+        OPTIONAL { ?__csvline xyz:Equity%20Description ?Equity_Description }
+        OPTIONAL { ?__csvline xyz:Equity%5FDescription ?Equity_Description }
+        OPTIONAL { ?__csvline xyz:Account%20Number ?Account_Number }
+        OPTIONAL { ?__csvline xyz:Account%5FNumber ?Account_Number }
+        ?__csvline xyz:Currency ?Currency .
+        OPTIONAL { ?__csvline xyz:Cost%20Basis ?Cost_Basis }
+        OPTIONAL { ?__csvline xyz:Cost%5FBasis ?Cost_Basis }
+        OPTIONAL { ?__csvline xyz:Asset%20Class ?Asset_Class }
+        OPTIONAL { ?__csvline xyz:Asset%5FClass ?Asset_Class }
+        ?__csvline xyz:Quantity ?Quantity .
+        # OPTIONAL { ?__csvline xyz:Cost%20Per%20Share ?Cost_Per_Share }
+        # OPTIONAL { ?__csvline xyz:Cost%5FPer%5FShare ?Cost_Per_Share }
+        # OPTIONAL { ?__csvline xyz:Position%20Cost ?Position_Cost }
+        # OPTIONAL { ?__csvline xyz:Position%5FCost ?Position_Cost }
+        # OPTIONAL { ?__csvline xyz:Market%20Price ?Market_Price }
+        # OPTIONAL { ?__csvline xyz:Market%5FPrice ?Market_Price }
+    }
+
+    BIND(STR(?_dt) AS ?__date_key)
+
+# Currency - CAD or USD
+    BIND(IF(?Currency="CAD", mgx:_CADollar, IF(?Currency="USD", gist:_USDollar, ?unbound)) AS ?__currency)
+
+
+# TODO Add "Warrant" as a security type. Questrade lists it as 'WR'. Not sure how this affects anything else...
+    OPTIONAL {
+        VALUES (?__acronym ?__assetclass ?__sectype ?__qtyaspect) {
+            ('STK' mgx:_MarketableSecurityType_common_stock mg:CommonStock mgx:_Aspect_securityShareCount)
+            ('ETF' mgx:_MarketableSecurityType_exchange_traded_fund mg:CommonStock mgx:_Aspect_securityShareCount)
+            ('DI' mgx:_MarketableSecurityType_bond mg:Bond mgx:_Aspect_debtPrincipalAmount)
+            ('WR' mgx:_MarketableSecurityType_warrant mg:PutWarrant mgx:_Aspect_securityShareCount)
+        }
+
+        FILTER(?Asset_Class = ?__acronym)
+        BIND(?__assetclass AS ?__security_type_iri)
+        BIND(?__sectype AS ?__security_class_iri)
+        BIND(?__qtyaspect AS ?__quantity_aspect)
+    }
+
+# Security Symbol - remove leading ., or .zz if xxxxx.zz
+    BIND(STR(?Equity_Symbol) AS ?__equity_symbol_str)
+    BIND(IF(
+        STRSTARTS(?__equity_symbol_str,"."), 
+        STRAFTER(?__equity_symbol_str,"."),
+        IF(CONTAINS(?__equity_symbol_str,"."),
+            STRBEFORE(?__equity_symbol_str,"."),
+            ?__equity_symbol_str)) AS ?__symbol_str_norm)
+    BIND(REPLACE(UCASE(STR(?__symbol_str_norm)), "\\W+", "-") AS ?__eq_symbol)
+
+# Account number
+    BIND(ENCODE_FOR_URI(LCASE(STR(?Account_Number))) AS ?__acct_key)
+
+# Portfolio Account
+    BIND(IRI(CONCAT(STR(mg3:),'_PortfolioAccount_',?__acct_key)) AS ?__portfolio_account)
+
+# Quantity
+    BIND(REPLACE(REPLACE(STR(?Quantity),"[^0-9.]",""), "(\\.\\d{2})\\d*$", "$1") AS ?__qty_clean_str)
+    BIND(ABS(xsd:integer(round(STRDT(?__qty_clean_str, xsd:decimal)))) AS ?__qty_amount)
+
+# Security Quantity Magnitude
+    BIND(IRI(CONCAT(STR(mg3:),'_Magnitude_shareQuantity_',?__acct_key,'_',?__eq_symbol,'_',?__date_key,'_',?__qty_clean_str)) AS ?__qty_magn)
+
+# Cash account CAD
+    BIND(IRI(CONCAT(STR(mg3:),?__acct_key,'_CashAccount_CAD')) AS ?__cash_cad_account)
+# CAD Magnitude
+    BIND(IRI(CONCAT(STR(mg3:),'_Magnitude_Cash_CAD_',?__acct_key,'_',?__date_key)) AS ?__cad_cash_magn)
+
+# Cash account USD
+    BIND(IRI(CONCAT(STR(mg3:),?__acct_key,'_CashAccount_USD')) AS ?__cash_usd_account)
+# USD Magnitude
+    BIND(IRI(CONCAT(STR(mg3:),'_Magnitude_Cash_USD_',?__acct_key,'_',?__date_key)) AS ?__usd_cash_magn)
+
+# Marketable Security
+    BIND(IRI(CONCAT(STR(mg3:),'_MarketableSecurity_',?__eq_symbol)) AS ?__security)
+
+# Security ID
+    BIND(IRI(CONCAT(STR(mg3:),'_ID_marketableSecurity_', ?__eq_symbol)) AS ?__security_id)
+    BIND(IF(?Asset_Class='DI',
+        mgx:_MarketableSecurityIdentifierType_qtBondId,
+        mgx:_MarketableSecurityIdentifierType_tickerSymbol) AS ?__security_id_type)
+
+# Security Account
+    BIND(IRI(CONCAT(STR(mg3:),'_InvestmentAccount_',?__acct_key,'_',?__eq_symbol)) AS ?__security_account)
+
+# Debt Principal Magnitude
+    BIND(IF(?Asset_Class='DI',IRI(CONCAT(STR(mg3:),'_Monetary_debtPrincipalAmount_',?__acct_key,'_',?__eq_symbol,'_',STR(?Quantity))),?unbound) AS ?__bond_repayment_magn)
+
+# Due
+    BIND(IF(REGEX(UCASE(?Equity_Description),"\\bDUE\\b"), 
+        REPLACE(?Equity_Description, "^.*DUE ([0-9/]+).*$","$1"),
+        ?unbound) AS ?__due_dt_str)
+    BIND(STRDT(REPLACE(?__due_dt_str,"(\\d{2})/(\\d{2})/(\\d{4})","$3-$1-$2T00:00:00"),xsd:dateTime) AS ?__maturity_datetime)
+
+# Repayment Event
+    BIND(IF(?Asset_Class='DI', IRI(CONCAT(STR(mg3:),'_Event_debtPrincipalRepayment_',STR(?Account_Number),'_',?__eq_symbol)), ?unbound) AS ?__repayment_event)
+
+# Year (should be same value as year component of Due date)
+    BIND(xsd:positiveInteger(?Year) AS ?__year)
+
+# Coupon - may need to strip off '%' character and divide by 100
+    BIND(IF(REGEX(UCASE(?Equity_Description),"\\bINT\\b"), 
+        REPLACE(?Equity_Description, "^.*INT\\s*([0-9.]+).*$","$1"),
+        ?unbound) AS ?__coupon_str)
+    BIND(xsd:decimal(?__coupon_str) as ?__coupon_rate)
+    BIND(IRI(CONCAT(STR(mg3:),'_Coupon_', ?__eq_symbol, '_', REPLACE(?__coupon_str, "\\W+","-"))) AS ?__coupon)
+
+# Repayment Conditions
+    BIND(IF(?Asset_Class='DI', IRI(CONCAT(STR(mg3:),'_BondRepaymentTerms_', ?__eq_symbol)), ?unbound) AS ?__bond_repayment_conditions)
+
+# Coupon Payment Terms
+    BIND(IF(?Asset_Class='DI', IRI(CONCAT(STR(mg3:),'_CouponPaymentTerms_', ?__eq_symbol)), ?unbound) AS ?__coupon_payment_terms)
+
+# Coupon Payment label
+    BIND(CONCAT(STR(?Equity_Symbol)," ", STR(?__coupon_rate),"%") AS ?__coupon_terms_label)
+    
+# Coupon Payment Schedule
+    BIND(IF(?Asset_Class='DI', IRI(CONCAT(STR(mg3:),'_CouponPaymentSchedule_',?__eq_symbol)), ?unbound) AS ?__coupon_payment_schedule)
+
+}

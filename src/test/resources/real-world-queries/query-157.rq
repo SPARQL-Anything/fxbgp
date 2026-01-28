@@ -1,0 +1,13 @@
+# https://api.github.com/repositories/358348278/contents/queries/webpage.sparql?ref=d7464a1acd45524564b309a893f6cd9ba3dafe98
+prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+prefix xhtml: <http://www.w3.org/1999/xhtml#>
+
+CONSTRUCT {
+  ?x ?y ?z
+} WHERE {
+    SERVICE <x-sparql-anything:media-type=text/html,html.selector=#az-group,location=https://imma.ie/artists/> {
+	    ?x ?y ?z
+    } .
+}
+
+

@@ -1,0 +1,19 @@
+# https://api.github.com/repositories/598502070/contents/issue283/jsonLinesQuery%202.sparql?ref=53dcc5377587eb7f804ed54c9be1acb3dc26a434
+PREFIX ex: <http://example/> 
+PREFIX fx:  <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+
+select ?s ?p ?o
+where {
+	SERVICE <x-sparql-anything:> {
+		SERVICE <x-sparql-anything:> {
+			fx:properties fx:content """{"aid": "Kate McKinnon", "url": "/Cast/?KaMc", "type": "cast"}
+{"aid": "Alex Moffat", "url": "/Cast/?AlMo", "type": "cast"}
+{"aid": "Ego Nwodim", "url": "/Cast/?EgNw", "type": "cast"}""" ; fx:media-type "text/plain" ; fx:txt.split "\n" .
+			[] fx:anySlot ?jsonLine
+		}
+		BIND (?jsonLine as ?json) .
+		fx:properties fx:content ?json ; fx:media-type "application/json" .
+		?s ?p ?o
+	}
+}

@@ -1,0 +1,36 @@
+# https://api.github.com/repositories/415324251/contents/places_etl/queries/raw-data/artist_count_v4.sparql?ref=d43873b1a046361e0d8d009f77dfc618ea5fb6df
+# POLIFONIA prefixes
+PREFIX core:    <https://w3id.org/polifonia/ON/core/> 
+PREFIX mp:      <https://w3id.org/polifonia/ON/musical-performance/>
+PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX pr:      <https://w3id.org/polifonia/resource/>
+
+# SPARQL anything prefixes
+PREFIX fx:  <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+
+SELECT
+    (COUNT(?artistID) as ?count ) 
+WHERE {
+
+    SERVICE <x-sparql-anything:> {
+
+        # location for json preprocessed file
+		fx:properties fx:location "data/places_v4.json"  ;
+	  	fx:media-type "application/json" ;
+		fx:blank-nodes false    .
+
+
+        { SELECT DISTINCT ?artistID WHERE {
+
+            # Recording with artists
+            ?recording  xyz:track%5Fid ?recordingID ;
+                    xyz:artists ?artistList .
+                    # artist
+                    ?artistList ?li ?artist .
+                    ?artist xyz:name%5Firi ?artistID .                    
+          }        
+	    }
+    } 
+}

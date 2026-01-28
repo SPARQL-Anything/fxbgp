@@ -843,4 +843,17 @@ public class FXModel {
 		}
 		return true;
 	}
+
+    /**
+     * Beware only use for FX ground terms (to get extensions)
+     * @param term
+     * @return
+     */
+    public Set<FX> getGroundTermFor(FX term){
+        Set<FX> s = groundedSpecialisations(term);
+        if(s.isEmpty()){
+            return Set.of(term);
+        }
+        return s;
+    }
 }

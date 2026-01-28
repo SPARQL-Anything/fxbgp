@@ -1,0 +1,24 @@
+# https://api.github.com/repositories/170743441/contents/Entity_Legal_Form/countries-skos-en.rq?ref=cb30874c692fdfff40717797f072f74cb7a37343
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX at: <http://publications.europa.eu/ontology/authority/>
+
+CONSTRUCT {
+    ?country skos:prefLabel ?label .
+    ?country skos:altLabel ?altLabel .
+}
+WHERE {
+ SERVICE <x-sparql-anything:countries-skos.rdf> {
+    
+      # extract the URI of the countries with their English label 
+      ?country rdf:type skos:Concept .
+      ?country skos:prefLabel ?label .
+      FILTER (lang(?label) = 'en') .
+      OPTIONAL {?country skos:altLabel ?altLabel .
+      FILTER (lang(?altLabel) = 'en') . }
+      
+      # filter out those countries that are active, otherwise you can get multiple URI
+      FILTER NOT EXISTS {?country at:end.use ?endUse} .
+    }
+}

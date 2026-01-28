@@ -1,0 +1,93 @@
+# https://api.github.com/repositories/787282677/contents/transformations/jobcategories.sparql?ref=59481b9ee9935ad9b4bef916aa1f364da8c6795b
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX schema: <http://schema.org/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+
+PREFIX o: <https://ontologies.brox.de/dwt24/>
+PREFIX d: <https://data.brox.de/dwt24/>
+
+CONSTRUCT {
+
+  ?iri_JobTag
+    a o:JobCategory ;
+    rdfs:label ?label_JobTag ;
+    dcterms:identifier ?jobTagId ;
+    dcterms:title ?jobTagName .
+
+  ?iri_Employment
+    a o:Job ;
+    rdfs:label ?label_Employment ;
+    o:jobId ?employerId ;
+    o:employee ?iri_PoolMember ;
+    o:belongsToJobCategory ?iri_JobTag .
+
+  ?iri_PoolMember
+    a foaf:Person ;
+    rdfs:label ?label_PoolMember ;
+    dcterms:identifier ?employerPoolMemberId .
+
+}
+
+WHERE {
+
+  SERVICE <x-sparql-anything:> {
+    fx:properties 
+      fx:blank-nodes true ;
+      fx:trim-strings true ;
+      fx:null-string "" .
+
+    # <GroupJobTags>
+    ?root
+      a xyz:GroupJobTags , fx:root ;
+      fx:anySlot ?jobTag .
+      
+    # <JobTag><Id>
+    ?jobTag
+      a xyz:JobTag ;
+      fx:anySlot [ a xyz:Id ; fx:anySlot ?jobTagId ] .
+        
+    # <JobTag><Name>
+    OPTIONAL { 
+      ?jobTag fx:anySlot [ a xyz:Name ; fx:anySlot ?jobTagName ] . 
+    }
+      
+    # <JobTag><GroupEmployers>
+    OPTIONAL { 
+      ?jobTag fx:anySlot [ a xyz:GroupEmployers ; fx:anySlot ?employer ] . 
+        
+      # <JobTag><GroupEmployers><Employer>
+      ?employer a xyz:Employer .
+          
+      # <JobTag><GroupEmployers><Employer><EmployerId>
+      ?employer fx:anySlot [ a xyz:EmployerId ; fx:anySlot ?employerId ] .
+
+      # <JobTag><GroupEmployers><Employer><PoolMemberId>
+      OPTIONAL { 
+        ?employer fx:anySlot [ a xyz:PoolMemberId ; fx:anySlot ?employerPoolMemberId ] . 
+      }
+
+    }
+
+    # IRIs
+    BIND( IRI(CONCAT( STR(d:), "JobCategory_", ENCODE_FOR_URI(?jobTagId) )) AS ?iri_JobTag ) .
+    BIND( IRI(CONCAT( STR(d:), "Job_", ENCODE_FOR_URI(?employerPoolMemberId), "_", ENCODE_FOR_URI(?employerId) )) AS ?iri_Employment ) .
+    BIND( IRI(CONCAT( STR(d:), "Person_", ENCODE_FOR_URI(?employerPoolMemberId) )) AS ?iri_PoolMember ) .
+
+    # Labels
+    BIND( CONCAT( "JobCategory", " ", ?jobTagId ) AS ?label_JobTag ) .
+    BIND( CONCAT( "Job", " ", ?employerPoolMemberId, "-", ?employerId ) AS ?label_Employment ) .
+    BIND( CONCAT( "Person", " ", ?employerPoolMemberId ) AS ?label_PoolMember ) .
+
+  }
+
+}

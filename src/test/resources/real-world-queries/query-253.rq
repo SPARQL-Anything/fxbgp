@@ -1,0 +1,17 @@
+# https://api.github.com/repositories/598502070/contents/issue523/coordinates.sparql?ref=53dcc5377587eb7f804ed54c9be1acb3dc26a434
+PREFIX xyz:  <http://sparql.xyz/facade-x/data/>
+PREFIX fx:   <http://sparql.xyz/facade-x/ns/>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+
+SELECT ?lat ?lon
+where {
+
+    service <x-sparql-anything:> {
+        fx:properties fx:location "./example.geojson" ;
+            fx:media-type "application/json" .
+        [] xyz:coordinates/fx:anySlot/fx:anySlot/fx:anySlot ?coords .
+        ?coords rdf:_1 ?lat ; rdf:_2 ?lon .
+    }
+}

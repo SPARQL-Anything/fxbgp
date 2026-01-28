@@ -1,0 +1,17 @@
+# https://api.github.com/repositories/521574081/contents/queries/getXMLPaths.sparql?ref=94460711922dc7268a535bd5a51097a99f1029ea
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX fn: <http://jena.apache.org/ARQ/function#>
+# Query to extract the music xml files from the local directory.
+SELECT ?filePath ?fileName
+WHERE 
+{
+  SERVICE<x-sparql-anything:>{
+  	fx:properties fx:location "./musicXMLFiles/AltDeu10".               
+    	
+	[] a fx:root;
+       	   ?mProp ?filePath.
+    
+    FILTER(CONTAINS(?filePath, ".musicxml")) .
+    BIND ( replace( replace ( ?filePath, ".*?\\/","" ), ".musicxml","") as ?fileName) .
+  }
+}

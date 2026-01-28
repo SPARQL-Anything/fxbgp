@@ -1,0 +1,12 @@
+# https://api.github.com/repositories/895729793/contents/old_queries/flights_to_rdf.rq?ref=88ff8c76b209d69ae2894da9de473e8936e9d647
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+
+CONSTRUCT { ?s ?p ?o }
+WHERE {
+  SERVICE <x-sparql-anything:> {
+    fx:properties fx:location "flights_sample.json" ;
+                  fx:media-type "application/json" .
+    ?s ?p ?o .
+  }
+}

@@ -1,0 +1,16 @@
+# https://api.github.com/repositories/946243277/contents/code_list/sparql-query.rq?ref=10b3a4a733d107709c5e52a4780892a95a258f4d
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?s ?keyword ?t ?keyword2 ?cosine
+WHERE {
+  SERVICE <x-sparql-anything:tasktypeclassification.nt> {
+  ?s <http://tasktype> ?keyword .
+  ?t <http://tasktype> ?keyword2 .
+  BIND(fx:CosineDistance(lcase(?keyword), lcase(?keyword2)) AS ?cosine) 
+  FILTER(?s != ?t)
+  }
+}
+ORDER BY ASC(?cosine)

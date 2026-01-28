@@ -1,0 +1,118 @@
+# https://api.github.com/repositories/787282677/contents/transformations/skills.sparql?ref=59481b9ee9935ad9b4bef916aa1f364da8c6795b
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX schema: <http://schema.org/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+
+PREFIX o: <https://ontologies.brox.de/dwt24/>
+PREFIX d: <https://data.brox.de/dwt24/>
+
+CONSTRUCT {
+
+  ?iri_PoolMember
+    a foaf:Person ;
+    rdfs:label ?label_PoolMember ;
+    dcterms:identifier ?poolMemberId .
+
+  ?iri_Employment
+    a o:Job ;
+    rdfs:label ?label_Employment ;
+    o:jobId ?employmentId ; # not unique
+    o:employee ?iri_PoolMember ;
+    o:jobTitle ?employmentJobTitle ;
+    o:companyName ?employmentCompanyName ;
+    o:startDate ?employmentStartDate ;
+    o:endDate ?employmentEndDate ;
+    o:involvesRelevantSkill ?iri_Competence .
+
+  ?iri_Competence
+    a o:Skill ;
+    rdfs:label ?label_Competence ;
+    dcterms:identifier ?competenceId ;
+    dcterms:title ?competenceName .  
+
+}
+
+WHERE {
+
+  SERVICE <x-sparql-anything:> {
+    fx:properties 
+      fx:blank-nodes true ;
+      fx:trim-strings true ;
+      fx:null-string "" .
+
+      ?root
+        a xyz:GroupPoolMembers , fx:root ;
+        fx:anySlot ?poolMember .
+
+      ?poolMember
+        a xyz:PoolMember ;
+        fx:anySlot [ a xyz:Id ; fx:anySlot ?poolMemberId ] .
+
+      # GroupEmployers
+      OPTIONAL {
+        ?poolMember fx:anySlot [ a xyz:GroupEmployers ; fx:anySlot ?element_Employer ] .
+
+        ?element_Employer
+          a xyz:Employer ;
+          
+          # Employment → Id
+          fx:anySlot [ a xyz:Id ; fx:anySlot ?employmentId ] .
+
+        # Employment → JobTitle
+        OPTIONAL { ?element_Employer fx:anySlot [ a xyz:JobTitle ; fx:anySlot ?employmentJobTitle ] . }
+
+        # Employment → CompanyName
+        OPTIONAL { ?element_Employer fx:anySlot [ a xyz:CompanyName ; fx:anySlot ?employmentCompanyName ] . }
+
+        # Employment → StartDate
+        OPTIONAL { ?element_Employer fx:anySlot [ a xyz:StartDate ; fx:anySlot ?employmentStartDate ] . }
+
+        # Employment → EndDate
+        OPTIONAL { ?element_Employer fx:anySlot [ a xyz:EndDate ; fx:anySlot ?employmentEndDate ] . }
+        
+        # Employment → GroupCompetences
+        OPTIONAL {
+          ?element_Employer fx:anySlot [ a xyz:GroupCompetences ; fx:anySlot ?element_Competence ] .
+
+          ?element_Competence
+            a xyz:Competence ;
+            fx:anySlot [ a xyz:Id ; fx:anySlot ?competenceId ] .
+
+          OPTIONAL { ?element_Competence fx:anySlot [ a xyz:Name ; fx:anySlot ?competenceName ] . }
+          
+          # OPTIONAL { ?element_Competence fx:anySlot [ a xyz:Top ; fx:anySlot ?competenceImportance ] . }
+          
+          }
+
+        }
+
+      # IRIs for PoolMember
+      BIND( IRI(CONCAT( STR(d:), "Person_", ENCODE_FOR_URI(?poolMemberId) )) AS ?iri_PoolMember ) .
+
+      # IRIs for Employment
+      BIND( IRI(CONCAT( STR(d:), "Job_", ENCODE_FOR_URI(?poolMemberId), "_", ENCODE_FOR_URI(?employmentId) )) AS ?iri_Employment ) .
+
+      # IRIs for Competence
+      BIND( IRI(CONCAT( STR(d:), "Skill_", ENCODE_FOR_URI(?competenceId) )) AS ?iri_Competence ) .
+      
+      # Property to link competences either as top1 or top0 competence
+      # BIND( IF( ?competenceImportance = "1", o:involvesRelevantSkill_top1, o:involvesRelevantSkill_top0 ) AS ?competenceProperty ) .
+      
+      # Labels
+      BIND( CONCAT( "Person", " ", ?poolMemberId ) AS ?label_PoolMember ) .
+      BIND( CONCAT( "Job", " ", ?poolMemberId, "-", ?employmentId ) AS ?label_Employment ) .
+      BIND( CONCAT( "Skill", " ", ?competenceId ) AS ?label_Competence ) .
+
+  }
+
+}

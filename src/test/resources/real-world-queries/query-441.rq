@@ -1,0 +1,62 @@
+# https://api.github.com/repositories/488894000/contents/queries/content.sparql?ref=8521237b5c63ec0675cd0260889c6835ee84e06b
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX fx:   <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz:  <http://sparql.xyz/facade-x/data/>
+PREFIX xsd:  <http://www.w3.org/2001/XMLSchema#>
+
+#CONSTRUCT { 
+	# #--> Step 6. Construct Knowledge Graph (when the Ontology evolves, change this!!!)
+	#?component a ?componentType ;
+		#rdfs:label ?label .
+	
+#} 
+SELECT ?content
+WHERE {
+	 
+	#SERVICE <x-sparql-anything:> { 
+		
+		SERVICE <x-sparql-anything:> { 
+			
+			SERVICE <x-sparql-anything:> { 
+				# --> Step 1. Find all .md files in relevant repositories (when the sources evolve, change only this!)
+				fx:properties fx:location "./ecosystem/content/" ; 
+					fx:archive.matches ".+.md" .
+				[] fx:anySlot ?file .
+			}	
+			# --> receives iterator over a query solution ( (?file) ) 
+	
+			BIND ( ?file as ?componentFile ) .	
+			
+			# --> Step 2. extract the YAML fontmatter from files with component annotations
+			fx:properties fx:location ?componentFile  .
+			[] a xyz:YamlFrontMatter ; fx:anySlot ?yaml
+		}
+	
+ 		BIND ( ?yaml as ?content ) .
+		
+		#--> Step 3. parse the YAML content
+		#fx:properties fx:content ?content ;
+		#	fx:triplifier "com.github.sparqlanything.yaml.YAMLTriplifier" ; fx:blank-nodes "false".
+		
+		#--> Step 4. Query the Ecosystem Schema annotations (when the schema evolves, change only this!)
+		#{
+		#	?x xyz:component-id ?id . filter (!isIRI(?id))
+	 	#	optional { ?x xyz:type ?type . filter (!isIRI(?type)) } .
+		#	optional { ?x xyz:type [ fx:anySlot ?type ] } .
+	 	#	optional { ?x xyz:description ?description } .
+		#} union {
+		#	?x xyz:component-id [ fx:anySlot ?id ] . 
+	 	#	optional { ?x xyz:type ?type . filter (!isIRI(?type)) } .
+	 	#	optional { ?x xyz:type [ fx:anySlot ?type ] } .
+	 	#	optional { ?x xyz:description ?description } .
+		#}
+		#filter (?id != "")
+	#}
+	
+	#--> Step 5. Build entities (when entity IRIs design change, modify this!)
+	#BIND ( fx:entity ( xyz:, "component/", ?id ) AS ?component ) .
+	#BIND ( fx:entity ( xyz:, "type/", replace(?type, " ", "") ) AS ?componentType ) .
+	#BIND ( fx:literal ( ?description, "en" ) AS ?label ) .
+
+}

@@ -1,0 +1,25 @@
+# https://api.github.com/repositories/435455864/contents/customize-http/spotlight.sparql?ref=f046df9e4c94723833d04c57811692c03d6af1d4
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX tate: <http://sparql.xyz/example/tate/>
+PREFIX tsub: <http://sparql.xyz/example/tate/subject/>
+PREFIX schema: <http://schema.org/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+prefix xhtml: <http://www.w3.org/1999/xhtml#> 
+PREFIX dom: <https://html.spec.whatwg.org/#>
+
+CONSTRUCT {
+ ?a ?b ?c
+} WHERE {
+	 SERVICE <x-sparql-anything:> {
+		 fx:properties fx:location <http://api.dbpedia-spotlight.org/en/annotate> ;
+		 	fx:http.query.text "The Beatles, Let it be" ;
+			fx:http.query.confidence "0.2" ;
+			fx:media-type "application/json" ;
+			fx:http.header.accept "application/json"
+			.
+	 ?a ?b ?c
+	 }
+}

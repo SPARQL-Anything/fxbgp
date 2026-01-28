@@ -1,0 +1,34 @@
+# https://api.github.com/repositories/384204205/contents/queries/scrape-table.sparql?ref=cc856eafafead8dae06b8999e35038d8d51e4a1b
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX tate: <http://sparql.xyz/example/tate/>
+PREFIX tsub: <http://sparql.xyz/example/tate/subject/>
+PREFIX schema: <http://schema.org/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+prefix xhtml: <http://www.w3.org/1999/xhtml#> 
+PREFIX dom: <https://html.spec.whatwg.org/#>
+
+SELECT *
+WHERE {
+	BIND(IRI(CONCAT("x-sparql-anything:location=", "http://www.open.ac.uk/Arts/minter/data.php?page=", ?_page , ",media-type=text/html")) AS ?service) .
+	SERVICE ?service {
+		[] a xhtml:table ;
+			rdf:_1 [ 
+				a xhtml:tbody ;
+				fx:anySlot [
+					a xhtml:tr ;
+					rdf:_1 [ a xhtml:td ; dom:innerText ?id ] ;
+					rdf:_2 [ a xhtml:td ; dom:innerText ?catno ] ;
+					rdf:_3 [ a xhtml:td ; dom:innerText ?composer ] ;
+					rdf:_4 [ a xhtml:td ; dom:innerText ?date ] ;
+					rdf:_5 [ a xhtml:td ; dom:innerText ?title ] ;
+					rdf:_6 [ a xhtml:td ; dom:innerText ?instruments ] ;
+					rdf:_7 [ a xhtml:td ; dom:innerText ?source ] ;
+					rdf:_8 [ a xhtml:td ; dom:innerText ?genre ] ;
+					rdf:_9 [ a xhtml:td ; dom:innerText ?notes ] ;
+				]
+			]
+	}
+}

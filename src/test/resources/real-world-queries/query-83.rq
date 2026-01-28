@@ -1,0 +1,18 @@
+# https://api.github.com/repositories/598502070/contents/issue344-488-fx-entity-datetime-bnodes/entity-datetime.sparql?ref=53dcc5377587eb7f804ed54c9be1acb3dc26a434
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+
+SELECT ?seriesName ?entityInside ?entityOutside ?entityInsideStr ?entityOutsideStr
+WHERE {
+
+    SERVICE <x-sparql-anything:https://sparql-anything.cc/example1.json> {
+        ?tvSeries xyz:name ?seriesName .
+        ?tvSeries xyz:stars ?star .
+        ?star fx:anySlot "Courteney Cox" .
+        BIND ( fx:entity(xyz:,"append/", bnode("1"), "/" , NOW() ) as ?entityInside ) .
+        BIND ( fx:entity(xyz:,"append/", bnode("2") , "/" , STR(NOW()) ) as ?entityInsideStr ) .
+    }
+    BIND ( fx:entity(xyz:,"append/", bnode("1") , "/" , NOW() ) as ?entityOutside ) .
+    BIND ( fx:entity(xyz:,"append/", bnode("2") , "/" , STR(NOW()) ) as ?entityOutsideStr ) .
+}

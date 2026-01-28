@@ -1,0 +1,20 @@
+# https://api.github.com/repositories/250588858/contents/queries/MultiClassification.csv--notebooks.sparql?ref=70c77a39004dd7134aa7c02a7010d558172ee8ba
+
+PREFIX fx:  <http://sparql.xyz/facade-x/ns/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+#SELECT *
+SELECT (count(distinct ?nb) as ?count)
+WHERE {
+  SERVICE <x-sparql-anything:> {
+	fx:properties fx:location "./MultiClassification.csv" ;
+	  fx:media-type "text/csv"
+	  .
+	  ?row rdf:_1 ?nb
+	  .
+	  filter ( isLiteral( ?nb ) )
+	  .
+  }
+}
+GROUP BY ?arc ?activity
+ORDER BY ?activity

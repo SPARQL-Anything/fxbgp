@@ -1,0 +1,49 @@
+# https://api.github.com/repositories/708677389/contents/query-collections.sparql?ref=df621a7ccc1262db58f277f3524d06e402bed787
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX mm:  <http://w3id.org/polifonia/ontology/music-meta/>
+PREFIX core:  <http://w3id.org/polifonia/ontology/core/>
+PREFIX tunes:  <http://w3id.org/polifonia/ontology/tunes/>
+PREFIX pon-resource: <http://w3id.org/polifonia/resource/tunes/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+
+CONSTRUCT {
+    ?collection_iri a core:Collection ;
+        core:isDefinedBy ?collection_concept_iri ;
+        core:name ?collection_name ;
+        core:id ?collection_iri_local ;
+        core:description ?collection_url ;
+        core:comment ?collection_description ;
+        core:comment ?collection_comment ;
+        core:hasVersion ?collection_version .
+
+}
+
+WHERE {
+    SERVICE <x-sparql-anything:> {
+
+        fx:properties fx:location ?_filepath ;
+            fx:media-type  "application/json" .
+
+        ?base_root a fx:root ;
+            ?collection_slot ?collection_base .
+
+        ?collection_base 
+            xyz:iri_local ?collection_iri_local ;
+            xyz:collectionconcept_iri_local ?collectionconcept_iri_local ;
+
+        BIND(IRI(concat(str(pon-resource:), ?collection_iri_local)) AS ?collection_iri)
+        BIND(IRI(concat(str(pon-resource:), ?collectionconcept_iri_local)) AS ?collection_concept_iri)
+
+        OPTIONAL { ?collection_base xyz:id ?collection_id . }
+        OPTIONAL { ?collection_base xyz:name ?collection_name . }
+        OPTIONAL { ?collection_base xyz:description ?collection_description . }
+        OPTIONAL { ?collection_base xyz:url ?collection_url . }
+        OPTIONAL { ?collection_base xyz:version ?collection_version . }
+        OPTIONAL { ?collection_base xyz:comment ?collection_comment . }
+
+    }
+}

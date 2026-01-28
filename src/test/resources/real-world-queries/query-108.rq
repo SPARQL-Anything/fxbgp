@@ -1,0 +1,10 @@
+# https://api.github.com/repositories/303967701/contents/sparql-anything-cli/src/test/resources/issue526-1.rq?ref=23626c6522e626253fd88da4a8674fd46004d205
+PREFIX  xyz:  <http://sparql.xyz/facade-x/data/>
+PREFIX  fx:   <http://sparql.xyz/facade-x/ns/>
+SELECT *
+WHERE
+  { SERVICE <x-sparql-anything:>
+      {
+ 	?s        ?p              ?o
+      }
+  }

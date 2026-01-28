@@ -1,0 +1,47 @@
+# https://api.github.com/repositories/603841724/contents/data/queries/cal.sparql?ref=1a0fd9200fac2636b7b41f5962ad42da7bbca503
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX ns: <http://sparql.xyz/facade-x/ns/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+prefix skos: <http://www.w3.org/2004/02/skos/core#>
+prefix what: <https://html.spec.whatwg.org/#>
+prefix xhtml: <http://www.w3.org/1999/xhtml#> 
+prefix ex: <http://www.example.com/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX gist: <https://ontologies.semanticarts.com/gist/>
+# construct {?s ?p ?o . ?o ?p2 ?o2 .}           
+#SELECT ?titleHref
+CONSTRUCT {
+  ?s gist:name ?titleHref .
+  ?tc ex:hasLink ?hrefLink ;
+      gist:conatainedText ?containedtext .
+}
+WHERE {                          
+  SERVICE <x-sparql-anything:> {                     
+    fx:properties fx:location "https://cal.huc.edu/get_a_chapter.php?file=60040&sub=1&cset=S"  .
+
+    fx:properties fx:media-type "text/html" .        
+    fx:properties fx:html.browser "firefox" .
+    fx:properties fx:html.browser.screenshot "file:///home/sgoodwin/Documents/app/screenie.png" .
+    fx:properties fx:html.browser.wait "5" .
+    fx:properties fx:http.header.User-Agent "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0" .
+    # fx:properties fx:html.selector ".syr" .
+    ?s rdf:type xhtml:center ;
+      ?a [ rdf:type xhtml:p ; ?b [ rdf:type xhtml:a ; xhtml:href ?titleHref ]  ] .
+    ?td rdf:type xhtml:td ;
+        ?c ?tc .
+    ?tc 
+            rdf:type xhtml:a ;
+            rdf:_1 ?containedtext ;
+            xhtml:href ?hrefLink ;
+            what:innerHTML ?innerHTML ;
+            what:innerText ?innerText ;
+    .
+    
+    
+
+  # ?tr ?p ?o .
+
+  }
+}
+

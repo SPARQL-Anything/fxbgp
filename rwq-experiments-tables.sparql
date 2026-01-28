@@ -1,0 +1,34 @@
+PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl:   <http://www.w3.org/2002/07/owl#>
+PREFIX fx:    <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz:   <http://sparql.xyz/facade-x/data/>
+PREFIX xhtml: <http://www.w3.org/1999/xhtml#>
+
+
+SELECT ?query ?bgpx ?found ?varSize ?size ?ms ?gen
+WHERE {
+    
+    SERVICE <x-sparql-anything:> {
+        
+        SERVICE <x-sparql-anything:> {
+            fx:properties fx:location "." ;
+                fx:archive.matches ".*REAL-WORLD-QUERIES-run-[0-9]{1,2}.csv$" .
+            [] fx:anySlot ?file .
+        }
+        
+        BIND ( ?file AS ?location ) .
+        
+        fx:properties fx:location ?location .
+        
+        [] # rdf:_1 ?_algorithm ;
+           rdf:_2 ?_complete ;
+           rdf:_3 ?query ;
+           rdf:_4 ?bgpx ;
+           rdf:_5 ?found ;
+           rdf:_6 ?varSize ;
+           rdf:_7 ?size ;
+           rdf:_8 ?ms ;
+           rdf:_9 ?gen ;
+    }
+ }

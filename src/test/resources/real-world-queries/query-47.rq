@@ -1,0 +1,33 @@
+# https://api.github.com/repositories/708677389/contents/query-collectionconcepts.sparql?ref=df621a7ccc1262db58f277f3524d06e402bed787
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX core:  <http://w3id.org/polifonia/ontology/core/>
+PREFIX tunes:  <http://w3id.org/polifonia/ontology/tunes/>
+PREFIX tunesresource: <http://w3id.org/polifonia/resource/tunes/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+CONSTRUCT {
+    ?collection_concept_iri a core:CollectionConcept ;
+        rdfs:label ?collection_concept_label .
+}
+
+WHERE {
+    SERVICE <x-sparql-anything:> {
+
+        fx:properties fx:location ?_filepath ;
+            fx:media-type  "application/json" .
+
+        ?base_root a fx:root ;
+            ?cc_slot ?cc_base .
+
+        ?cc_base 
+            xyz:cc_iri_local ?cc_iri_local ;
+            xyz:cc_id ?cc_id ;
+            xyz:cc_description ?collection_concept_label .
+
+        BIND(IRI(concat(str(tunesresource:), ?cc_iri_local)) as ?collection_concept_iri)
+
+    }
+}

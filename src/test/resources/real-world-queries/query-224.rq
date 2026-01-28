@@ -1,0 +1,69 @@
+# https://api.github.com/repositories/585261786/contents/organs-pictures.sparql?ref=4f42cd41dd79875539741ba805242c22f47c52b7
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX fx:   <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz:  <http://sparql.xyz/facade-x/data/>
+PREFIX organs: <http://w3id.org/polifonia/resource/organs/>
+PREFIX organ: <http://w3id.org/polifonia/ontology/organs/>
+PREFIX core: <https://w3id.org/polifonia/ontology/core/>
+PREFIX ins: <http://w3id.org/polifonia/ontology/instrument/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+construct {
+
+    #################
+    # Organ individual
+
+    ?organ_iri core:hasPicture ?blank_picture .
+
+    ?blank_picture a core:PictureDescription ;
+        core:isPrimary ?primary_picture ; # add to input True/False
+        core:name ?picture_id ;
+        core:id ?picture_id ;
+        core:url ?picture_url ;
+        core:hasDate ?blank_timeinterval ;
+        rdfs:label ?picture_caption ;
+        core:comment ?picture_comment ;
+        core:hasCreator ?picture_creator .
+
+    ?blank_timeinterval a core:TimeInterval ;
+        core:hasIntervalDate ?picture_date .
+
+}
+WHERE {
+
+    SERVICE <x-sparql-anything:> {
+
+        fx:properties fx:location ?_filepath .
+
+        ?organ_root a fx:root ;
+            ?organ_slot ?organ_base .
+
+        BIND(replace(str(?organ_slot), str(xyz:), "") AS ?organid)
+        BIND(IRI(replace(str(?organ_slot), str(xyz:), str(organs:))) AS ?organ_iri)
+        # Iterate over all pictures
+        ?organ_base ?picture_slot ?picture_base .
+
+        # Extract identifier for picture entity
+        BIND(replace(str(?picture_slot), str(rdf:), "") AS ?picture_slotid)
+
+        # Create globally unique identifer for picture
+        BIND(concat(?organid, ?picture_slotid, "base") AS ?blank_pictureid)
+        # Make the blind node
+        BIND(fx:bnode(?blank_pictureid) as ?blank_picture)
+
+        ?picture_base xyz:picture_id ?picture_id .
+        OPTIONAL { ?picture_base xyz:caption ?picture_caption . }
+        OPTIONAL { ?picture_base xyz:date ?picture_date . }
+        OPTIONAL { ?picture_base xyz:creator ?picture_creator . }
+        OPTIONAL { ?picture_base xyz:comment ?picture_comment . }
+        OPTIONAL { ?picture_base xyz:primary_picture ?primary_picture . }
+        OPTIONAL { ?picture_base xyz:picture_url ?picture_url . }
+
+        BIND(IF(BOUND(?picture_date), concat(?organid, ?picture_slotid, "time"), ?nothing) AS ?blank_timeintervalid)
+        BIND(IF(BOUND(?picture_date), fx:bnode(?blank_timeintervalid), ?nothing) as ?blank_timeinterval)
+
+
+    }
+
+}

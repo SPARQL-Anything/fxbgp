@@ -1,0 +1,9 @@
+# https://api.github.com/repositories/303967701/contents/sparql-anything-cli/src/test/resources/issue526-3.rq?ref=23626c6522e626253fd88da4a8674fd46004d205
+PREFIX  xyz:  <http://sparql.xyz/facade-x/data/>
+PREFIX  fx:   <http://sparql.xyz/facade-x/ns/>
+ASK  { SERVICE <x-sparql-anything:csv.headers=true>
+      {
+        ?s xyz:name              ?o
+        FILTER (?o = "alice")
+    }
+  }

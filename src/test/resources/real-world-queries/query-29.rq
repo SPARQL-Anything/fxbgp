@@ -1,0 +1,107 @@
+# https://api.github.com/repositories/787282677/contents/transformations/distances.sparql?ref=59481b9ee9935ad9b4bef916aa1f364da8c6795b
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX schema: <http://schema.org/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+
+PREFIX o: <https://ontologies.brox.de/dwt24/>
+PREFIX d: <https://data.brox.de/dwt24/>
+
+CONSTRUCT {
+
+  ?iriCompetence 
+    a o:Skill ;
+    rdfs:label ?label_Competence ;
+    dcterms:identifier ?competenceId ;
+    dcterms:title ?competenceName .
+
+  ?iriDistantCompetence
+    a o:Skill ;
+    rdfs:label ?label_DistanceCompetence ;
+    dcterms:identifier ?distanceCompetenceId ;
+    dcterms:title ?distanceCompetenceName .
+
+  ?iriDistance
+    a o:SkillDistance ;
+    rdfs:label ?label_Distance ;
+    o:distanceValue ?distanceValue_integer ;
+    o:ofSkill ?iriCompetence , ?iriDistantCompetence .
+
+}
+
+WHERE {
+
+  SERVICE <x-sparql-anything:> {
+    fx:properties 
+      fx:blank-nodes true ;
+      fx:trim-strings true ;
+      fx:null-string "" .
+
+  # GroupCompetences
+  ?root
+    a xyz:GroupCompetences , fx:root ;
+    fx:anySlot ?competence .
+
+  # Competence
+  ?competence
+    a xyz:Competence ;
+    
+    # Competence → Id
+    fx:anySlot [ a xyz:Id ; fx:anySlot ?competenceId ] .
+
+  # Competence → Name
+  OPTIONAL { ?competence fx:anySlot [ a xyz:Name ; fx:anySlot ?competenceName ] . }
+
+  # Competence → Lang # TODO: remove
+  OPTIONAL { ?competence fx:anySlot [ a xyz:Lang ; fx:anySlot ?competenceLang ] . }
+
+  # Competence → distances
+  OPTIONAL { 
+    ?competence fx:anySlot [ a xyz:distances ; fx:anySlot ?distance ] .
+    
+    # distance
+    ?distance
+      a xyz:distance ;
+      
+      # distance → distanceValue
+      fx:anySlot [ a xyz:distanceValue ; fx:anySlot ?distanceValue ] ;
+      
+      # distance → competenceId
+      fx:anySlot [ a xyz:competenceId ; fx:anySlot ?distanceCompetenceId ] .
+      
+    BIND( STRDT( STR(?distanceValue), xsd:integer ) AS ?distanceValue_integer ) .
+    
+    # distance → competenceName
+    OPTIONAL { ?distance fx:anySlot [ a xyz:competenceName ; fx:anySlot ?distanceCompetenceName ] . }
+
+    # distance → competenceLang
+    OPTIONAL { ?distance fx:anySlot [ a xyz:competenceLang ; fx:anySlot ?distanceCompetenceLang ] . }  
+  }
+
+  # Build IRIs for Competence
+  BIND( IRI(CONCAT( STR(d:), "Skill_", ENCODE_FOR_URI(?competenceId) )) AS ?iriCompetence ) .
+  BIND( IRI(CONCAT( STR(d:), "Skill_", ENCODE_FOR_URI(?distanceCompetenceId) )) AS ?iriDistantCompetence ) .
+
+  # Build IRI for Distance
+  BIND( IF( xsd:integer(?competenceId) < xsd:integer(?distanceCompetenceId) , ?competenceId, ?distanceCompetenceId ) AS ?competenceWithLowerID ) .
+  BIND( IF( xsd:integer(?competenceId) > xsd:integer(?distanceCompetenceId) , ?competenceId, ?distanceCompetenceId ) AS ?competenceWithHigherID ) .
+  FILTER( ?competenceId != ?distanceCompetenceId )
+  BIND( IRI(CONCAT( STR(d:), "SkillDistance_", ENCODE_FOR_URI(?competenceWithLowerID), "-to-", ENCODE_FOR_URI(?competenceWithHigherID) )) AS ?iriDistance ) .
+
+  # Labels
+  BIND( CONCAT( "Skill", " ", ?competenceId ) AS ?label_Competence ) .
+  BIND( CONCAT( "Skill", " ", ?distanceCompetenceId ) AS ?label_DistanceCompetence ) .
+  BIND( CONCAT( "SkillDistance", " ", ?competenceWithLowerID, " to ", ?competenceWithHigherID ) AS ?label_Distance ) .
+
+  }
+
+}

@@ -1,0 +1,62 @@
+# https://api.github.com/repositories/708677389/contents/query-similarity.sparql?ref=df621a7ccc1262db58f277f3524d06e402bed787
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX mm:  <http://w3id.org/polifonia/ontology/music-meta/>
+PREFIX mp:  <http://w3id.org/polifonia/ontology/music-projection/>
+PREFIX mr:  <http://w3id.org/polifonia/ontology/music-representation/>
+PREFIX core:  <http://w3id.org/polifonia/ontology/core/>
+PREFIX tunes:  <http://w3id.org/polifonia/ontology/tunes/>
+PREFIX src: <http://w3id.org/polifonia/ontology/source/>
+PREFIX pon-resource: <http://w3id.org/polifonia/resource/tunes/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX ma: <https://w3id.org/polifonia/ontology/music-algorithm/>
+
+CONSTRUCT {
+
+    ?similarity_task_iri a ma:Task ;
+        core:id ?similarity_task_iri_local ;
+        ma:measures [
+            a ma:Performance ;
+            ma:hasType [ 
+                a ma:PerformanceMeasure ;
+                ma:hasValue "HighlySimilar"
+            ]
+        ] ;
+        ma:requiresInput ?melodya_iri ;
+        ma:requiresInput ?melodyb_iri .
+
+    ?algorithm_iri a ma:Algorithm ;
+        core:id ?algorithm_iri_local ;
+        ma:performsTask ?similarity_task_iri ;
+
+}
+
+
+WHERE {
+    SERVICE <x-sparql-anything:> {
+
+        fx:properties fx:location ?_filepath ;
+            fx:media-type  "application/json" .
+        
+        ?base_root a fx:root ;
+            ?pair_slot ?pair_base .
+        
+        ?pair_base 
+            rdf:_1 ?melodya_iri_local ;
+            rdf:_2 ?melodyb_iri_local .
+
+
+        BIND(replace(str(?pair_slot), str(rdf:), "") AS ?pair_id)
+        BIND(IRI(concat(str(pon-resource:), ?melodya_iri_local)) AS ?melodya_iri)
+        BIND(IRI(concat(str(pon-resource:), ?melodyb_iri_local)) AS ?melodyb_iri)
+        BIND("Algorithm/AffineAlignment_ExactPitch40_IMA_0.6_0.2_min" as ?algorithm_iri_local)
+        BIND(IRI(concat(str(pon-resource:), "Algorithm/AffineAlignment_ExactPitch40_IMA_0.6_0.2_min")) as ?algorithm_iri)
+        BIND(concat("Task/MelodicSimilarity_", MD5(?_filepath), (?pair_id)) as ?similarity_task_iri_local)
+        BIND(IRI(concat(str(pon-resource:), "Task/MelodicSimilarity_", MD5(?_filepath), str(?pair_id))) as ?similarity_task_iri)
+
+    }
+}
