@@ -2,6 +2,7 @@ package io.github.sparqlanything.fxbgp.stream;
 
 import io.github.sparqlanything.fxbgp.BGPTestUtils;
 import io.github.sparqlanything.model.IRIArgument;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -35,18 +36,78 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     public TestName testName = new TestName();
     private URL input;
     private BasicPattern bp;
-
+    private String flavour;
     @Before
     public void before(){
         executor = new FXStreamExecutor();
     }
 
     @Test
-    public void test1_csv_all() throws IOException, NotATreeException {
+    public void test1_csv_all_basic() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
         Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
         show(it.iterator());
         Assert.assertEquals(21, it.size());
+        Assert.assertTrue(
+            rem(it,
+                new String[]{"a", "test1.csv\\#$", "b", "\\#type$", "c", "/[rR]oot$"},
+                    new String[]{"a", "test1.csv\\#$", "b", "\\#_1$", "c", "test1.csv\\#row1$"},
+                    new String[]{"a", "test1.csv\\#$", "b", "\\#_2$", "c", "test1.csv\\#row2$"},
+                    new String[]{"a", "test1.csv\\#$", "b", "\\#_3$", "c", "test1.csv\\#row3$"},
+                    new String[]{"a", "test1.csv\\#$", "b", "\\#_4$", "c", "test1.csv\\#row4$"},
+                    //
+                    new String[]{"a", "test1.csv\\#row1$", "b", "\\#_1$", "c", "^H1$"},
+                    new String[]{"a", "test1.csv\\#row1$", "b", "\\#_2$", "c", "^H2$"},
+                    new String[]{"a", "test1.csv\\#row1$", "b", "\\#_3$", "c", "^H3$"},
+                    new String[]{"a", "test1.csv\\#row1$", "b", "\\#_4$", "c", "^H4$"},
+                    //
+                    new String[]{"a", "test1.csv\\#row2$", "b", "\\#_1$", "c", "^A1$"},
+                    new String[]{"a", "test1.csv\\#row2$", "b", "\\#_2$", "c", "^A2$"},
+                    new String[]{"a", "test1.csv\\#row2$", "b", "\\#_3$", "c", "^A3$"},
+                    new String[]{"a", "test1.csv\\#row2$", "b", "\\#_4$", "c", "^A4$"},
+                    //
+                    new String[]{"a", "test1.csv\\#row3$", "b", "\\#_1$", "c", "^B1$"},
+                    new String[]{"a", "test1.csv\\#row3$", "b", "\\#_2$", "c", "^B2$"},
+                    new String[]{"a", "test1.csv\\#row3$", "b", "\\#_3$", "c", "^B3$"},
+                    new String[]{"a", "test1.csv\\#row3$", "b", "\\#_4$", "c", "^B4$"},
+                    //
+                    new String[]{"a", "test1.csv\\#row4$", "b", "\\#_1$", "c", "^C1$"},
+                    new String[]{"a", "test1.csv\\#row4$", "b", "\\#_2$", "c", "^C2$"},
+                    new String[]{"a", "test1.csv\\#row4$", "b", "\\#_3$", "c", "^C3$"},
+                    new String[]{"a", "test1.csv\\#row4$", "b", "\\#_4$", "c", "^C4$"}
+            ));
+    }
+
+    @Test
+    public void test1_csv_all_headers() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        show(it.iterator());
+        Assert.assertEquals(16, it.size());
+        Assert.assertTrue(
+                rem(it,
+                        new String[]{"a", "test1.csv\\#$", "b", "\\#type$", "c", "/[rR]oot$"},
+                        new String[]{"a", "test1.csv\\#$", "b", "\\#_1$", "c", "test1.csv\\#row1$"},
+                        new String[]{"a", "test1.csv\\#$", "b", "\\#_2$", "c", "test1.csv\\#row2$"},
+                        new String[]{"a", "test1.csv\\#$", "b", "\\#_3$", "c", "test1.csv\\#row3$"},
+                        //new String[]{"a", "test1.csv\\#$", "b", "\\#_4$", "c", "test1.csv\\#row4$"},
+                        //
+                        new String[]{"a", "test1.csv\\#row1$", "b", "/H1$", "c", "^A1$"},
+                        new String[]{"a", "test1.csv\\#row1$", "b", "/H2$", "c", "^A2$"},
+                        new String[]{"a", "test1.csv\\#row1$", "b", "/H3$", "c", "^A3$"},
+                        new String[]{"a", "test1.csv\\#row1$", "b", "/H4$", "c", "^A4$"},
+                        //
+                        new String[]{"a", "test1.csv\\#row2$", "b", "/H1$", "c", "^B1$"},
+                        new String[]{"a", "test1.csv\\#row2$", "b", "/H2$", "c", "^B2$"},
+                        new String[]{"a", "test1.csv\\#row2$", "b", "/H3$", "c", "^B3$"},
+                        new String[]{"a", "test1.csv\\#row2$", "b", "/H4$", "c", "^B4$"},
+                        //
+                        new String[]{"a", "test1.csv\\#row3$", "b", "/H1$", "c", "^C1$"},
+                        new String[]{"a", "test1.csv\\#row3$", "b", "/H2$", "c", "^C2$"},
+                        new String[]{"a", "test1.csv\\#row3$", "b", "/H3$", "c", "^C3$"},
+                        new String[]{"a", "test1.csv\\#row3$", "b", "/H4$", "c", "^C4$"}
+                        //
+                ));
     }
 
     @Test
@@ -124,9 +185,10 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     public void test1_csv_s7() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
         Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
-        //Assert.assertEquals(1, it.size());
+        Assert.assertEquals(1, it.size());
         show(it.iterator());
     }
+
     @Test
     public void squash(){
         String fx = "http://sparql.xyz/facade-x/ns/" ;
@@ -181,6 +243,9 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     private Properties properties() {
         Properties properties = new Properties();
         properties.setProperty(IRIArgument.LOCATION.toString(), input.toString());
+        if(flavour.equals("headers")){
+            properties.setProperty(CSVTriplifier2.PROPERTY_HEADERS.toString(), "true");
+        }
         return properties;
     }
 
@@ -188,8 +253,10 @@ public class FXStreamExecutorTest extends BGPTestUtils {
         String[] spl = testName.getMethodName().split("_");
         String inputName = spl[0] + "." + spl[1];
         String easyBGPName = spl[2];
+        if(spl.length == 4){
+            this.flavour = spl[3];
+        }
         this.input = getClass().getClassLoader().getResource("./stream/" + inputName);
-
         this.bp = readBGP("./stream/" + easyBGPName);
     }
 
@@ -204,6 +271,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     public boolean rem(Set<QuerySolution> qs, String[] ... var_regex_conditions){
         Set<QuerySolution> set = new HashSet<>(qs);
         Set<String[]> unmet = new HashSet<>();
+        Set<QuerySolution> foundd = new HashSet<>();
         for(String[] var_regex : var_regex_conditions){
             boolean found = false;
             // If a query solution resolves all conditions is removed
@@ -226,6 +294,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
                     //L.info("Successes {} vs {}", successes, var_regex.length/2);
                     set.remove(q);
                     found = true;
+                    foundd.add(q);
                 }
             }
             //
@@ -233,11 +302,22 @@ public class FXStreamExecutorTest extends BGPTestUtils {
                 unmet.add(var_regex);
             }
         }
+        L.info("Solutions matching: {}", foundd.size());
         if(!set.isEmpty()){
             L.error("Solutions not matching anything: {}", set.size());
+            L.error("Example:");
+            for (QuerySolution q : set) {
+                L.error(q.toString());
+                break;
+            }
         }
         if(!unmet.isEmpty()){
             L.error("Matches without solutions: {}", unmet.size());
+            L.error("Example:");
+            for (String[] q : unmet) {
+                L.error(StringUtils.join(q, ","));
+                break;
+            }
         }
         return set.isEmpty() && unmet.isEmpty();
     }
