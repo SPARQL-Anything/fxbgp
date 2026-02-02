@@ -198,20 +198,53 @@ public class FXStreamExecutorTest extends BGPTestUtils {
         Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
         Assert.assertEquals(1, it.size());
         show(it.iterator());
+        Assert.assertTrue(
+                rem(it,
+                        new String[]{"a", "test1.csv\\#row1$", "b", "\\#_2$"}
+                ));
+
     }
 
     @Test
-    public void squash(){
-        String fx = "http://sparql.xyz/facade-x/ns/" ;
-        String xyz = "http://sparql.xyz/facade-x/data/";
-        String rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-        String rdfs = "http://www.w3.org/2000/01/rdf-schema#";
+    public void test1_csv_s9() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Assert.assertEquals(1, it.size());
+        show(it.iterator());
+        Assert.assertTrue(
+                rem(it,
+                        new String[]{"a", "test1.csv\\#row1$", "b", "\\#_2$", "c", "\\#_2$", "d", "\\#_2$", "e", "\\#_2$"}
+                ));
 
-        String n = rdf + "_1";
-        System.err.println(n.toString().substring(n.lastIndexOf('#')));
-         n = fx + "root";
-        System.err.println(n.toString().substring(n.lastIndexOf('/')));
     }
+
+
+    @Test
+    public void test1_csv_s10_headers() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Assert.assertEquals(1, it.size());
+        show(it.iterator());
+        Assert.assertTrue(
+                rem(it,
+                        new String[]{"a", "test1.csv\\#row1$", "b", "H1$", "c", "H2$", "d", "H3$", "e", "H4$"}
+                ));
+    }
+
+
+    @Test
+    public void test1_csv_s11() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Assert.assertEquals(1, it.size());
+        show(it.iterator());
+        Assert.assertTrue(
+                rem(it,
+                        new String[]{"r", "test1.csv\\#$", "j", "\\#_1$", "a", "test1.csv\\#row1$", "b", "\\#_1$", "c", "\\#_2$", "d", "\\#_3$", "e", "\\#_4$"}
+                ));
+    }
+
+
     private void show(Iterator<QuerySolution> qit){
         while(qit.hasNext()){
             L.info(" ---- ");
@@ -258,29 +291,6 @@ public class FXStreamExecutorTest extends BGPTestUtils {
             properties.setProperty(CSVTriplifier2.PROPERTY_HEADERS.toString(), "true");
         }
         return properties;
-    }
-
-    @Test
-    public void testMatchingEquals(){
-        List<Node> n1 = new ArrayList<>();
-        List<Node> n2 = new ArrayList<>();
-        Node a = NodeFactory.createURI("http://example.org/a");
-        Node b = NodeFactory.createURI("http://example.org/a");
-        Node l1a = NodeFactory.createLiteral("1", XSDDatatype.XSDinteger);
-        Node l1b = NodeFactory.createLiteral("1", XSDDatatype.XSDinteger);
-        n1.add(a);
-        n1.add(l1a);
-        n2.add(b);
-        n2.add(l1b);
-        Assert.assertEquals(n1, n2);
-
-        Map<String,String> map1 = new HashMap<>();
-        Map<String,String> map2 = new HashMap<>();
-        map1.put("a", "1");
-        map2.put("a", "1");
-        map1.put("b", "1");
-        map2.put("b", "1");
-        Assert.assertEquals(map1, map2);
     }
 
     private void prepare(String methodName) throws IOException {
