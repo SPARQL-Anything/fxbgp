@@ -4,6 +4,7 @@ import io.github.sparqlanything.fxbgp.BGPTestUtils;
 import io.github.sparqlanything.model.IRIArgument;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.QuerySolution;
@@ -23,9 +24,11 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -190,6 +193,14 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     }
 
     @Test
+    public void test1_csv_s8() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Assert.assertEquals(1, it.size());
+        show(it.iterator());
+    }
+
+    @Test
     public void squash(){
         String fx = "http://sparql.xyz/facade-x/ns/" ;
         String xyz = "http://sparql.xyz/facade-x/data/";
@@ -243,10 +254,33 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     private Properties properties() {
         Properties properties = new Properties();
         properties.setProperty(IRIArgument.LOCATION.toString(), input.toString());
-        if(flavour.equals("headers")){
+        if("headers".equals(flavour)){
             properties.setProperty(CSVTriplifier2.PROPERTY_HEADERS.toString(), "true");
         }
         return properties;
+    }
+
+    @Test
+    public void testMatchingEquals(){
+        List<Node> n1 = new ArrayList<>();
+        List<Node> n2 = new ArrayList<>();
+        Node a = NodeFactory.createURI("http://example.org/a");
+        Node b = NodeFactory.createURI("http://example.org/a");
+        Node l1a = NodeFactory.createLiteral("1", XSDDatatype.XSDinteger);
+        Node l1b = NodeFactory.createLiteral("1", XSDDatatype.XSDinteger);
+        n1.add(a);
+        n1.add(l1a);
+        n2.add(b);
+        n2.add(l1b);
+        Assert.assertEquals(n1, n2);
+
+        Map<String,String> map1 = new HashMap<>();
+        Map<String,String> map2 = new HashMap<>();
+        map1.put("a", "1");
+        map2.put("a", "1");
+        map1.put("b", "1");
+        map2.put("b", "1");
+        Assert.assertEquals(map1, map2);
     }
 
     private void prepare(String methodName) throws IOException {

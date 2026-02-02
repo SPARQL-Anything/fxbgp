@@ -132,13 +132,13 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         }
 
         // WHAT IS HAPPENING?
-//        // If matches are empty, test root with the last container
+////        // If matches are empty, test root with the last container
 //        if( matches.isEmpty() && Matching.nodeMatches(pattern.getRoot().getNode(), contextPath.get(contextPath.size() - 1)) ){
 //            List<Node> containerPath = new ArrayList<>();
 //            if(component.equals(FX.Container)||component.equals(FX.Root)||component.equals(FX.Value)){
-//                containerPath = path.subList(0, path.size() - 3);
+//                containerPath = path.subList(0, path.size() - 4);
 //            }else{
-//                containerPath = path.subList(0, path.size() - 2);
+//                containerPath = path.subList(0, path.size() - 3);
 //            }
 //            matches.add(new Matching(pattern.getRoot(), new ArrayList<>(containerPath), Collections.unmodifiableList(contextPath), Collections.unmodifiableList(path)));
 //        }
@@ -168,6 +168,16 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         this.matches.removeAll(completed);
         this.matches.removeAll(removable);
         this.matches.addAll(spawned);
+        // TODO Remove duplicates!
+        Set<Matching> duplicates = new HashSet<>();
+        for(Matching matching1: matches){
+            for(Matching matching2: matches){
+                if(!matching1.equals(matching2) &&
+                    matching1.getMap().equals(matching2.getMap())){
+                    duplicates.remove(matching1);
+                }
+            }
+        }
         L.trace("=== [end] match: {} ===", string);
         endMatch(node, component);
     }

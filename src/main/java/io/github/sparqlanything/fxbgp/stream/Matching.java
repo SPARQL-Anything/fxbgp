@@ -1,6 +1,7 @@
 package io.github.sparqlanything.fxbgp.stream;
 
 import io.github.sparqlanything.fxbgp.FX;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Match;
 import org.jspecify.annotations.NonNull;
@@ -199,7 +200,16 @@ class Matching {
             // If cursor is a single container, ignore, otherwise, discard
             if(cursor.size() == 1 && cursor.iterator().next().getAnnotation().getTerm().equals(FX.Container )) {
 
-            }else {
+            } else if(isPredicate(cursor.iterator().next().getAnnotation().getTerm())){
+                // Restore container
+                FXNode unmatchedPredicate = cursor.iterator().next();
+                for(FXNode old: cursor){
+                    map.remove(old);
+                }
+                cursor = new HashSet<>();
+                cursor.add(unmatchedPredicate.getParent());
+                // This will generate duplicates!
+            } else{
                 this.unresolvable = true;
             }
             return Collections.emptySet();
@@ -369,5 +379,18 @@ class Matching {
             }
         }
         return out;
+    }
+
+    @Override
+    public int hashCode() {
+        return this.getMap().hashCode() + 100;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Matching) {
+            return this.getMap().equals(((Matching) obj).getMap());
+        }
+        return false;
     }
 }
