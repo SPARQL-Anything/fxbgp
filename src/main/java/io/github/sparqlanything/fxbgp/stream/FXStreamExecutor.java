@@ -70,8 +70,11 @@ public class FXStreamExecutor {
 
             @Override
             public QuerySolution next() {
-                QuerySolution solution = solutions.iterator().next();
-                solutions.remove(solution);
+                QuerySolution solution;
+                synchronized (solutions) {
+                    solution = solutions.iterator().next();
+                    solutions.remove(solution);
+                }
                 return solution;
             }
         };

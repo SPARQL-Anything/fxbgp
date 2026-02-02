@@ -1,13 +1,13 @@
 package io.github.sparqlanything.fxbgp.stream;
 
 import io.github.sparqlanything.fxbgp.FX;
-import io.github.sparqlanything.fxbgp.FXNodeAnnotation;
 import org.apache.jena.graph.Node;
+import org.apache.jena.sparql.core.Match;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -86,21 +86,6 @@ class Matching {
         return this.map.size();
     }
 
-//    public void jumpBack() {
-//        Set<FXNode> next = new HashSet<>();
-//        for (FXNode c : this.cursor) {
-//            FXNode nc = null;
-//            for (int i = 0; i < steps; i++) {
-//                nc = c.getParent();
-//            }
-//            if(nc == null) {
-//                throw new RuntimeException("cursor is null");
-//            }
-//            next.add(nc);
-//        }
-//        this.cursor = next;
-//    }
-
     private void unset(FXNode patternNode) {
         this.map.remove(patternNode);
         if(isContainer(patternNode)) {
@@ -118,7 +103,6 @@ class Matching {
             // Place the cursor on its container
             this.cursor.add(patternNode.getParent().getParent());
         } else if(isPredicate(patternNode)) {
-            // XXX This should never happen...?
             this.cursor.remove(patternNode);
             this.cursor.add(patternNode.getParent());
         }
@@ -159,19 +143,31 @@ class Matching {
         return t.equals(FX.SlotNumber) || t.equals(FX.SlotString) || t.equals(FX.TypeProperty);
     }
 
+    public boolean isValueOrTypeOrRoot(FX t) {
+        return t.equals(FX.Type) || t.equals(FX.Value) || t.equals(FX.Root);
+    }
+
+    public boolean isContainer(FX t) {
+        return t.equals(FX.Container);
+    }
+
+    public boolean isPredicate(FX t) {
+        return t.equals(FX.SlotNumber) || t.equals(FX.SlotString) || t.equals(FX.TypeProperty);
+    }
+
     public Matching copy(){
         return new Matching(new HashMap(this.map), new HashSet<>(this.cursor), new ArrayList<>(this.contextPath), this.path);
     }
 
     public Set<Matching> check(Node node, FX component) {
-        if(node.toString().contains("H2")) {
-            L.info("{} {}", node, component);
-        }
+//        if(node.toString().contains("H2")) {
+//            L.info("{} {}", node, component);
+//        }
         L.trace("Path: {} ", path);
         L.trace("Context Path: {}", contextPath);
         Set<Matching> spawned = new HashSet<>();
         // Cursor is last matched node in the tree pattern
-        // Check if the coming node matches any follower
+        // Check if the coming node matches any following FXNode
         Set<FXNode> matched = new HashSet<>();
         for(FXNode c: cursor){
             for(FXNode newCursor: c.getChildren()){
@@ -187,25 +183,140 @@ class Matching {
                 }
             }
         }
-        for(FXNode newCursor: matched){
-            if (map.containsKey(newCursor)) {
-                // This never happens ...
-                throw new RuntimeException("This should never happen");
-//                Matching m = copy();
-//                m.set(newCursor, new ArrayList<>(path));
-//                spawned.add(m);
-            }
-            set(newCursor, new ArrayList<>(path));
-            // If value type or root, spawn and clear map keys
-            if(isValueOrTypeOrRoot(newCursor) || isContainer(newCursor)) {
-                Matching m = copy();
-                m.unset(newCursor);
-                spawned.add(m);
-            } else {
 
+        // No match following this path
+        if(matched.size() == 0) {
+//            Set<FXNode> toRemove = new HashSet<>();
+//            for(FXNode c: cursor){
+//                if(isPredicate(c.getAnnotation().getTerm())) {
+//                    toRemove.add(c);
+//                }
+//            }
+//            for(FXNode c: toRemove){
+//                unset(c);
+//            }
+            // Do nothing
+            // If cursor is a single container, ignore, otherwise, discard
+            if(cursor.size() == 1 && cursor.iterator().next().getAnnotation().getTerm().equals(FX.Container )) {
+
+            }else {
+                this.unresolvable = true;
+            }
+            return Collections.emptySet();
+        }
+
+        // If any single cursor is matched, set it and spawn
+        if(matched.size() == 1){
+            // Partial matches are corrupted
+            if(cursor.size() != 1){
+                this.unresolvable = true;
+            }else {
+                spawned.addAll(setAndSpawn(matched));
+            }
+        }else if(matched.size() > 1){
+//            // If it's more than one, all or nothing
+//            if(cursor.size() != matched.size()) {
+//                this.unresolvable = true;
+//                return Collections.emptySet();
+//            }
+
+            // We spawn all combinations and unset this matching
+            // Group by distinct equal nodes (to tackle the case of two same variables in predicate position)
+            Map<Node, Set<FXNode>> dn = new HashMap<>();
+            for(FXNode c: matched){
+                if(!dn.containsKey(c.getNode())){
+                    dn.put(c.getNode(), new HashSet<>());
+                }
+                dn.get(c.getNode()).add(c);
+            }
+            // Take the keys and generate combinations from 1 up to their len
+            List input = new ArrayList<>();
+            for(Set<FXNode> nn: dn.values()){
+                input.add(new ArrayList<>(nn));
+            }
+//            L.info("Subset input: {}", input);
+            List<List> subsets = subsets(input);
+//            L.info("Subset output: {}", subsets);
+            for(List s: subsets){
+                if(s.isEmpty()){
+                    continue;
+                }
+                //L.info("Inspecting subset {}", s);
+                Set<FXNode> newSet = new HashSet<>();
+                for(Object sn: s){
+                    Set<FXNode> sns = new HashSet<>();
+                    for(FXNode c: (List<FXNode>) sn){
+                        newSet.add(c);
+                    }
+                }
+//                L.info("new set: {}", newSet);
+                //for(Set<FXNode> sns: newSet){
+//                L.info("Generating matching for {}", newSet);
+                Matching m = copy();
+                for(FXNode sn: newSet){
+                    m.set(sn, new ArrayList<>(path));
+                }
+                spawned.add(m);
+            }
+            // We spawn all possible combinations
+            this.unresolvable = true;
+        }
+
+        // Check if the matching is partial, i.e. there is one or more unpending slots
+        // One way to detect this is to check that all cursors are of the same type
+        for(FXNode c1: cursor){
+            for(FXNode c2: cursor){
+                if(!c1.getAnnotation().getTerm().equals(c2.getAnnotation().getTerm())){
+                    this.unresolvable = true;
+                }
             }
         }
-        show(getMatches());
+
+
+//        show(getMatches());
+        logSpawned(spawned);
+        return spawned;
+    }
+    private void logSpawned(Set<Matching> spawned){
+        if(spawned.isEmpty()){
+            return;
+        }
+        StringBuilder sb = new StringBuilder();
+        for(Matching m: spawned){
+            sb.append(m.hashCode() + " ");
+        }
+        L.info("  ... {} generates {} and {}.", this.hashCode(), sb.toString(), unresolvable != true ? "survives" : "dies");
+    }
+
+    private Set<Matching> spawn(Set<FXNode> matched){
+        Set<Matching> spawned = new HashSet<>();
+        for(FXNode match: matched){
+            FX component  = match.getAnnotation().getTerm();
+            // Set the matching cursor
+            if(isContainer(component)) {
+                // If matched FXNode is Container object
+                // (actually it is always object, because root never gets checked)
+                // How many matched cursors?
+                Matching m = copy();
+                m.unset(match);
+                spawned.add(m);
+            }else if(isValueOrTypeOrRoot(component)) {
+                Matching m = copy();
+                m.unset(match);
+                spawned.add(m);
+            }else if(isPredicate(component)) {
+                // Nothing to do
+            }
+        }
+        return spawned;
+    }
+
+    private Set<Matching> setAndSpawn(Set<FXNode> matched){
+        Set<Matching> spawned = new HashSet<>();
+        for(FXNode c: matched){
+            this.set(c, new ArrayList<>(path));
+        }
+        spawned.addAll(spawn(matched));
         return spawned;
     }
 
@@ -218,14 +329,14 @@ class Matching {
         }
     }
 
-    private static void show(Map<FXNode, Node> mmm){
-        StringBuilder sb = new StringBuilder();
-        for(Map.Entry<FXNode, Node> entry : mmm.entrySet()){
-            sb.append(entry);
-            sb.append("\n");
-        }
-        L.info("matches so far: \n{} ", sb.toString());
-    }
+//    private static void show(Map<FXNode, Node> mmm){
+//        StringBuilder sb = new StringBuilder();
+//        for(Map.Entry<FXNode, Node> entry : mmm.entrySet()){
+//            sb.append(entry);
+//            sb.append("\n");
+//        }
+//        //L.info("matches so far: \n{} ", sb.toString());
+//    }
     public boolean isUnresolvable() {
         return unresolvable;
     }
@@ -244,5 +355,19 @@ class Matching {
             return true;
         }
         return false;
+    }
+
+    private static <T> List<List<T>> subsets(List<T> in) {
+        List<List<T>> out = new ArrayList<>();
+        out.add(new ArrayList<>());
+        for (T elem : in) {
+            int size = out.size();
+            for (int i = 0; i < size; i++) {
+                List<T> newSubset = new ArrayList<>(out.get(i));
+                newSubset.add(elem);
+                out.add(newSubset);
+            }
+        }
+        return out;
     }
 }

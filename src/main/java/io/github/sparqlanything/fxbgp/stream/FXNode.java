@@ -54,13 +54,10 @@ public class FXNode {
     public String toString(){
         StringBuilder sb = new StringBuilder();
         sb.append(getNode().toString());
-        sb.append(" [");
-        sb.append(getAnnotation().toString());
-        sb.append("] {" );
-        for(FXNode child : children){
-            sb.append(child.toString());
-        }
-        sb.append("}" );
+        sb.append("-");
+        sb.append(getAnnotation().getTerm().getName());
+        sb.append(".");
+        sb.append(hashCode());
         return sb.toString();
     }
 }

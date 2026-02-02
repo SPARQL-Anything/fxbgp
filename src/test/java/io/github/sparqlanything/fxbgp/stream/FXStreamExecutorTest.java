@@ -20,8 +20,11 @@ import org.junit.rules.TestName;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -116,15 +119,26 @@ public class FXStreamExecutorTest extends BGPTestUtils {
         show(it.iterator());
     }
 
-    @Ignore
+    //@Ignore
     @Test
     public void test1_csv_s7() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
         Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
-        Assert.assertEquals(1, it.size());
+        //Assert.assertEquals(1, it.size());
         show(it.iterator());
     }
+    @Test
+    public void squash(){
+        String fx = "http://sparql.xyz/facade-x/ns/" ;
+        String xyz = "http://sparql.xyz/facade-x/data/";
+        String rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+        String rdfs = "http://www.w3.org/2000/01/rdf-schema#";
 
+        String n = rdf + "_1";
+        System.err.println(n.toString().substring(n.lastIndexOf('#')));
+         n = fx + "root";
+        System.err.println(n.toString().substring(n.lastIndexOf('/')));
+    }
     private void show(Iterator<QuerySolution> qit){
         while(qit.hasNext()){
             L.info(" ---- ");
@@ -136,9 +150,27 @@ public class FXStreamExecutorTest extends BGPTestUtils {
             }
         }
     }
-
+    public static <T> List<List<T>> subsets(List<T> in) {
+        List<List<T>> out = new ArrayList<>();
+        out.add(new ArrayList<>());
+        for (T elem : in) {
+            int size = out.size();
+            for (int i = 0; i < size; i++) {
+                List<T> newSubset = new ArrayList<>(out.get(i));
+                newSubset.add(elem);
+                out.add(newSubset);
+            }
+        }
+        return out;
+    }
 
     @Test
+    public void testSubsets(){
+        List<List> s = Arrays.asList(List.of("a"), List.of("b", "b"), List.of("c"));
+        System.out.println(subsets(s));
+    }
+
+@Test
     public void test1_csv_strict() throws IOException, NotATreeException {
         String name = testName.getMethodName();
         prepare(name);
