@@ -10,6 +10,15 @@ import java.util.Properties;
 public interface Triplifier2 extends Triplifier {
     // XXX Ignore old method
     default void triplify(Properties properties, FacadeXGraphBuilder builder) throws IOException, TriplifierHTTPException {}
-    default void triplify(Properties properties, TriplifierEventsHandler eventsHandler) throws IOException, TriplifierHTTPException {}
+    void triplify(Properties properties, TriplifierEventsHandler eventsHandler) throws IOException, TriplifierHTTPException;
+    static Triplifier2 get(Properties properties) {
+        String mediaType = (String)properties.get("media-type");
+        if(mediaType.contains("json")){
+            return new JSONTriplifier2();
+        }else if(mediaType.contains("csv")){
+            return new CSVTriplifier2();
+        }
+        throw new RuntimeException("media-type not found");
+    }
 
 }

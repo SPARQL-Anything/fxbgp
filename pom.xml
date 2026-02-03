@@ -19,14 +19,22 @@
 	xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>io.github.sparql-anything</groupId>
-		<artifactId>sparql-anything-parent</artifactId>
-		<version>1.2.0-NIGHTLY-SNAPSHOT</version>
-	</parent>
+<!--	<parent>-->
+<!--		<groupId>io.github.sparql-anything</groupId>-->
+<!--		<artifactId>sparql-anything-parent</artifactId>-->
+<!--		<version>1.2.0-NIGHTLY-SNAPSHOT</version>-->
+<!--        -->
+<!--	</parent>-->
+    <groupId>io.github.sparql-anything</groupId>
 	<properties>
-		<revision>1.2.0-NIGHTLY-SNAPSHOT</revision>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+
+        <revision>1.2.0-NIGHTLY-SNAPSHOT</revision>
 	</properties>
+    <version>${revision}</version>
 	<artifactId>sparql-anything-fxbgp</artifactId>
 
     <repositories>
@@ -57,39 +65,82 @@
             <groupId>io.github.sparql-anything</groupId>
             <artifactId>sparql-anything-model</artifactId>
             <version>${revision}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>io.github.sparql-anything</groupId>
             <artifactId>sparql-anything-engine</artifactId>
             <version>${revision}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
-		<dependency>
-			<groupId>io.github.sparql-anything</groupId>
-			<artifactId>sparql-anything-csv</artifactId>
-			<version>${revision}</version>
-		</dependency>
-		<dependency>
+        <dependency>
+            <groupId>io.github.sparql-anything</groupId>
+            <artifactId>sparql-anything-csv</artifactId>
+            <version>${revision}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>io.github.sparql-anything</groupId>
+            <artifactId>sparql-anything-json</artifactId>
+            <version>${revision}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
 			<groupId>io.github.sparql-anything</groupId>
 			<artifactId>sparql-anything-testutils</artifactId>
 			<version>${revision}</version>
 			<scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-simple</artifactId>
+                </exclusion>
+            </exclusions>
 		</dependency>
-
-<!--        <dependency>-->
-<!--            <groupId>org.apache.jena</groupId>-->
-<!--            <artifactId>jena-arq</artifactId>-->
-<!--            <version>5.6.0</version>-->
-<!--&lt;!&ndash;            <type>pom</type>&ndash;&gt;-->
-<!--        </dependency>-->
 
 		<!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<version>2.1.214</version>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+               <groupId>com.h2database</groupId>
+               <artifactId>h2</artifactId>
+               <version>2.1.214</version>
+               <scope>test</scope>
+       </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>2.25.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.25.3</version>
+            <scope>test</scope>
+        </dependency>
 	</dependencies>
 </project>

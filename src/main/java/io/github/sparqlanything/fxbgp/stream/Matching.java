@@ -207,26 +207,30 @@ class Matching {
             if(cursor.size() == 1 && cursor.iterator().next().getAnnotation().getTerm().equals(FX.Container )) {
 
             } else if(isPredicate(cursor.iterator().next().getAnnotation().getTerm())){
+                // If cursors are predicates, since the value didn't match,
                 // Restore container
-                FXNode unmatchedPredicate = cursor.iterator().next();
+                FXNode unmatchedPredicate = cursor.iterator().next(); // get the reference of one predicate
                 for(FXNode old: cursor){
+                    // Remove all cursors
                     map.remove(old);
                 }
                 cursor = new HashSet<>();
                 cursor.add(unmatchedPredicate.getParent());
-                // This will generate duplicates!
+                // This may generate duplicates (but we'll remove them later)
             } else{
                 this.unresolvable = true;
             }
             return Collections.emptySet();
         }
 
-        // If any single cursor is matched, set it and spawn
+        // If a single cursor is matched, set it and spawn
         if(matched.size() == 1){
-            // Partial matches are corrupted
+            // Partial matches are corrupted (e.g. if the cursor contains more than one
+            // predicate, but only one matches the object, discard)
             if(cursor.size() != 1){
                 this.unresolvable = true;
-            }else {
+            } else {
+                // We set the match and spawn, if needed
                 spawned.addAll(setAndSpawn(matched));
             }
         }else if(matched.size() > 1){

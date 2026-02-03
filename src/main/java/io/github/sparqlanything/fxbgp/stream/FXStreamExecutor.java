@@ -40,7 +40,7 @@ public class FXStreamExecutor {
         executor.execute(() -> {
             // Run the parser and attach the listening tree patterns.
             // TODO choose the FX Parser specific to the format
-            CSVTriplifier2 triplifier2 = new CSVTriplifier2();
+            Triplifier2 triplifier2 = Triplifier2.get(properties);
             try {
                 triplifier2.triplify(properties,
                         new StreamEventsHandler(properties,

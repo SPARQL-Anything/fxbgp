@@ -40,6 +40,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     private URL input;
     private BasicPattern bp;
     private String flavour;
+    private String mediaType;
     @Before
     public void before(){
         executor = new FXStreamExecutor();
@@ -253,10 +254,6 @@ public class FXStreamExecutorTest extends BGPTestUtils {
         for(QuerySolution w: it){
             Assert.assertTrue(w.get("b1").equals(w.get("b2")));
         }
-//        Assert.assertTrue(
-//                rem(it,
-//                        new String[]{"r", "test1.csv\\#$", "j", "\\#_1$", "a", "test1.csv\\#row1$", "b", "\\#_1$", "c", "\\#_2$", "d", "\\#_3$", "e", "\\#_4$"}
-//                ));
     }
 
 
@@ -306,14 +303,12 @@ public class FXStreamExecutorTest extends BGPTestUtils {
         Assert.assertEquals(0, it.size());
     }
 
-
     @Test
     public void test2_csv_n1() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
         Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
         Assert.assertEquals(0, it.size());
     }
-
 
     private void show(Iterator<QuerySolution> qit){
         while(qit.hasNext()){
@@ -327,11 +322,20 @@ public class FXStreamExecutorTest extends BGPTestUtils {
         }
     }
 
-@Test
+    @Test
     public void test1_csv_strict() throws IOException, NotATreeException {
         String name = testName.getMethodName();
         prepare(name);
         Iterator<QuerySolution> it = executor.exec(new OpBGP(bp), properties());
+        show(it);
+    }
+
+    @Test
+    public void test1_json_all() throws IOException, NotATreeException {
+        String name = testName.getMethodName();
+        prepare(name);
+        Iterator<QuerySolution> it = executor.exec(new OpBGP(bp), properties());
+        Assert.assertEquals(7,set(it).size());
         show(it);
     }
 
@@ -341,6 +345,13 @@ public class FXStreamExecutorTest extends BGPTestUtils {
         if("headers".equals(flavour)){
             properties.setProperty(CSVTriplifier2.PROPERTY_HEADERS.toString(), "true");
         }
+        String mediaType = null;
+        if(input.getPath().endsWith(".csv")){
+            mediaType = "text/csv";
+        }else if(input.getPath().endsWith(".json")){
+            mediaType = "application/json";
+        }
+        properties.setProperty("media-type", mediaType);
         return properties;
     }
 
@@ -377,16 +388,16 @@ public class FXStreamExecutorTest extends BGPTestUtils {
                     String regex = var_regex[index + 1];
                     RDFNode node = q.get(var);
                     String vvv = node.toString();
-                    //L.info("Testing {} vs {}", node, regex);
+                    //L.trace("Testing {} vs {}", node, regex);
                     if(Pattern.compile(regex).matcher(vvv).find()){
-                        //L.info("Success {} vs {}", node, regex);
+                        //L.trace("Success {} vs {}", node, regex);
                         successes ++;
                     }else {
                         break;
                     }
                 }
                 if(successes == var_regex.length/2){
-                    //L.info("Successes {} vs {}", successes, var_regex.length/2);
+                    //L.trace("Successes {} vs {}", successes, var_regex.length/2);
                     set.remove(q);
                     found = true;
                     foundd.add(q);
@@ -397,7 +408,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
                 unmet.add(var_regex);
             }
         }
-        L.info("Solutions matching: {}", foundd.size());
+        L.trace("Solutions matching: {}", foundd.size());
         if(!set.isEmpty()){
             L.error("Solutions not matching anything: {}", set.size());
             L.error("Example:");
@@ -421,13 +432,13 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     public void matchesTest(){
         boolean isFalse = NodeFactory.createVariable("v").matches(
                 NodeFactory.createURI("http://www.example.org/"));
-        System.out.println (isFalse);
+        //System.out.println (isFalse);
 //        PatternMatchData.execute()
         Node pnode = Var.alloc("a");
         Node dnode = NodeFactory.createURI("http://example.org/uri1");
-        L.info("Pattern node: {}", pnode);
-        L.info("Incoming node: {}", dnode);
-        L.info("Pattern matches Incoming: {}", Matching.nodeMatches(dnode, pnode));
-        L.info("Incoming matches Pattern: {}", Matching.nodeMatches(pnode, dnode));
+        L.trace("Pattern node: {}", pnode);
+        L.trace("Incoming node: {}", dnode);
+        L.trace("Pattern matches Incoming: {}", Matching.nodeMatches(dnode, pnode));
+        L.trace("Incoming matches Pattern: {}", Matching.nodeMatches(pnode, dnode));
     }
 }

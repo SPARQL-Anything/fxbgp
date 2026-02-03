@@ -5,7 +5,7 @@ import io.github.sparqlanything.fxbgp.AnalyserTest;
 import io.github.sparqlanything.fxbgp.BGPTestAbstract;
 import io.github.sparqlanything.fxbgp.FXBGPAnnotation;
 import io.github.sparqlanything.fxbgp.FXModel;
-import org.h2.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -101,7 +101,7 @@ public class FXTreePatternTest extends BGPTestAbstract {
 
         if(sb.length() > 0) {
             sb.append("\n");
-            sb.append(StringUtils.pad("", depth,"-", false));
+            sb.append(StringUtils.leftPad("", depth,"-"));
         }
         sb.append(focus.getNode());
         sb.append(" [");
