@@ -51,6 +51,7 @@ public class FXTreePattern {
         if(subjects.size() != 1){
             throw new NotATreeException(bpa.getOpBGP().getPattern());
         }
+        // TODO we don't check cycles or p_o s_o joins
         // Determine root first
         this.root = makeRoot(subjects.iterator().next(), bpa);
         this.variables = Collections.unmodifiableSet(variables);

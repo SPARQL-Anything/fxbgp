@@ -24,7 +24,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     private final Logger L = LoggerFactory.getLogger(FXQuerySolutionBuilder.class);
     private final String string;
     private Set<QuerySolution> solutions;
-        private FXTreePattern pattern;
+    private FXTreePattern pattern;
     private List<Matching> matches;
     private List<Node> contextPath;
     private List<Node> path;
@@ -62,7 +62,9 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
 
     @Override
     public void endContainer() {
-        beginEndContainer();
+        if(L.isDebugEnabled()){
+            beginEndContainer();
+        }
         super.endContainer();
         triggerEndContainer();
         contextPath.remove(contextPath.size() - 1);
@@ -71,7 +73,9 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
             // Go the prev container...
             path.remove(path.size() - 1);
         }
-        endEndContainer();
+        if(L.isDebugEnabled()) {
+            endEndContainer();
+        }
     }
 
     @Override
@@ -113,10 +117,9 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     }
 
     private void match(Node node, FX component){
-        beginMatch(node, component);
-        L.trace("=== [start] match: {} ===", string);
-        L.trace("node {} ({})", node, component.getName());
-        L.trace("matches: {}", matches.size());
+        if(L.isDebugEnabled()) {
+            beginMatch(node, component);
+        }
         Set<Matching> spawned = new HashSet<>();
         // Does the node match the current node in the tree pattern?
         if(component.equals(FX.Container) &&
@@ -130,37 +133,18 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
                 spawned.add(newMatching);
             }
         }
-
-        // WHAT IS HAPPENING?
-////        // If matches are empty, test root with the last container
-//        if( matches.isEmpty() && Matching.nodeMatches(pattern.getRoot().getNode(), contextPath.get(contextPath.size() - 1)) ){
-//            List<Node> containerPath = new ArrayList<>();
-//            if(component.equals(FX.Container)||component.equals(FX.Root)||component.equals(FX.Value)){
-//                containerPath = path.subList(0, path.size() - 4);
-//            }else{
-//                containerPath = path.subList(0, path.size() - 3);
-//            }
-//            matches.add(new Matching(pattern.getRoot(), new ArrayList<>(containerPath), Collections.unmodifiableList(contextPath), Collections.unmodifiableList(path)));
-//        }
-
-        L.trace("process existing matches: {}", matches.size());
         Set<Matching> removable = new HashSet<>();
         for(Matching matching: matches){
-            L.trace("[start] checking {} against {} ", node, matching.getCursor());
             Set<Matching> spawn = matching.check(node, component);
-            L.trace("[checked] checked, cursor now is {} ", matching.getCursor());
             if(spawn.size() > 0){
-                L.info(" --> {} spawned", spawn.size());
+                L.debug(" --> {} spawned", spawn.size());
             }
             spawned.addAll(spawn);
-
-            // XXX Check this is possible...
             if(matching.isUnresolvable()){
                 removable.add(matching);
             }
             L.trace("[end] checking against");
         }
-
         this.matches.removeAll(removable);
         this.matches.addAll(spawned);
 
@@ -174,9 +158,9 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
             }
         }
         this.matches.removeAll(completed);
-        L.trace("completed {} spawned {}", completed.size(), spawned.size());
-        L.trace("=== [end] match: {} ===", string);
-        endMatch(node, component);
+        if(L.isDebugEnabled()) {
+            endMatch(node, component);
+        }
     }
 
     private void triggerEndContainer(){
@@ -194,8 +178,10 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     private void addQuerySolution(Matching matching){
         Map<String, RDFNode> solution = new HashMap<>();
         for(Map.Entry<FXNode, Node> entry : matching.getMatches().entrySet()){
-            L.info(" >>>>> {} {} <<<<<", entry.getKey(), entry.getValue());
-            L.trace(" ----- {} {} <<<<<", entry.getKey(), entry.getKey().getNode().isVariable());
+            if(L.isDebugEnabled()) {
+                L.debug(" >>>>> {} {} <<<<<", entry.getKey(), entry.getValue());
+                L.debug(" ----- {} {} <<<<<", entry.getKey(), entry.getKey().getNode().isVariable());
+            }
             if(entry.getKey().getNode().isVariable()){
                 String var = entry.getKey().getNode().getName();
                 RDFNode val = toRDFNode(entry.getValue());
@@ -209,7 +195,6 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         if(n.isURI()){
             return ResourceFactory.createResource(n.getURI());
         }else if(n.isBlank()){
-            // XXX I am not sure how to handle this at the moment
             return ResourceFactory.createResource(n.getBlankNodeLabel());
         }else if(n.isVariable()){
             throw new RuntimeException("Cannot be variable");
@@ -225,60 +210,55 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         throw new RuntimeException("This should never happen");
     }
 
-    private static String TMP_LOG = "";
+    private static String TMP_LOG = null;
     private Node lastLogged = null;
     public void beginMatch(Node node, FX component){
-       //if (!FXTreeUtils.asTree(pattern.getRoot()).contains("SlotString")){
-           //L.info("=== PATTERN: {} ===", FXTreeUtils.asTree(pattern.getRoot()));
-           //L.info("=== [start] match: {} ===", string);
-           if(!TMP_LOG.equals(node.toString() + component)){
-               TMP_LOG = node.toString() + component.toString();
-               L.info("# [EVENT] - {} - {}", node, component.getName());
-               L.info("# - Path: {}", path);
-               L.info("# - Context: - {}", contextPath);
-           }
-           logPattern();
-           L.info(">> Before: {} matches", matches.size());
-           logMatches();
-//           L.info(" [BEFORE ends] - {} - {}", node, component.getName());
-      // }
+       if(!(node.toString() + component).equals(TMP_LOG)){
+           TMP_LOG = node.toString() + component.toString();
+           L.debug("# [EVENT] - {} - {}", node, component.getName());
+           L.debug("# - Path: {}", path);
+           L.debug("# - Context: - {}", contextPath);
+       }
+       logPattern();
+       L.debug(">> Before: {} matches", matches.size());
+       logMatches();
     }
+
     public void endMatch(Node node, FX component){
-        //if (!FXTreeUtils.asTree(pattern.getRoot()).contains("SlotString")){
-            L.info("<< After: {} matches", matches.size());
-            logMatches();
-//            L.info(" [AFTER ends] - {} - {}", node, component.getName());
-        //}
+        L.debug("<< After: {} matches", matches.size());
+        logMatches();
     }
+
     private void logMatches(){
         for(Matching matching: matches){
-            L.info("  {}[{}] cursor: {} ", matching.hashCode(), matching.getMap().size(), matching.getCursor());
+            L.debug("  {}[{}] cursor: {} ", matching.hashCode(), matching.getMap().size(), matching.getCursor());
             for(Map.Entry<FXNode,List<Node>> entry: matching.getMap().entrySet()){
-                L.info("    {} >> {}", entry.getKey(), entry.getValue().get(entry.getValue().size()-1));
+                L.debug("    {} >> {}", entry.getKey(), entry.getValue().get(entry.getValue().size()-1));
             }
         }
 
     }
     public void beginEndContainer(){
-        //if (!FXTreeUtils.asTree(pattern.getRoot()).contains("SlotString")){
         if(!TMP_LOG.equals("endContainer")) {
             TMP_LOG = "endContainer";
-            L.info(" [EVENT END CONTAINER] ");
+            L.debug(" [EVENT END CONTAINER] ");
         }
         logPattern();
-        L.info("Before:");
+        L.debug("Before:");
         logMatches();
-        //}
     }
+
     public void endEndContainer(){
         if (!FXTreeUtils.asTree(pattern.getRoot()).contains("SlotString")){
-            L.info("After:");
+            L.debug("After:");
             logMatches();
         }
     }
+
     private void logPattern(){
-        L.info("## {} - {}", this.hashCode(), patternToString(this.pattern.getRoot()));
+        L.debug("## {} - {}", this.hashCode(), patternToString(this.pattern.getRoot()));
     }
+
     private String patternToString(FXNode node){
         StringBuilder sb = new StringBuilder();
         sb.append(node.toString());

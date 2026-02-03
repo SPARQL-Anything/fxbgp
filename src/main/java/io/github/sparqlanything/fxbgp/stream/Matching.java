@@ -183,11 +183,6 @@ class Matching {
     }
 
     public Set<Matching> check(Node node, FX component) {
-//        if(node.toString().contains("H2")) {
-//            L.info("{} {}", node, component);
-//        }
-        L.trace("Path: {} ", path);
-        L.trace("Context Path: {}", contextPath);
         Set<Matching> spawned = new HashSet<>();
         // Cursor is last matched node in the tree pattern
         // Check if the coming node matches any following FXNode
@@ -199,8 +194,6 @@ class Matching {
                     // Verify the values are in the right path
                     List<Node> cursorValue = map.get(c);
                     if(path.subList(0, path.size() - 1).equals(cursorValue)){
-                        //L.trace("Path matching success: \n{}\n{}", path, cursorValue);
-                        //show(getMatches());
                         matched.add(newCursor);
                     }
                 }
@@ -251,14 +244,11 @@ class Matching {
             for(Set<FXNode> nn: dn.values()){
                 input.add(new ArrayList<>(nn));
             }
-//            L.info("Subset input: {}", input);
             List<List> subsets = FXTreeUtils.subsets(input);
-//            L.info("Subset output: {}", subsets);
             for(List s: subsets){
                 if(s.isEmpty()){
                     continue;
                 }
-                //L.info("Inspecting subset {}", s);
                 Set<FXNode> newSet = new HashSet<>();
                 for(Object sn: s){
                     Set<FXNode> sns = new HashSet<>();
@@ -302,9 +292,9 @@ class Matching {
                 }
             }
         }
-
-//        show(getMatches());
-        logSpawned(spawned);
+        if(L.isDebugEnabled()) {
+            logSpawned(spawned);
+        }
         return spawned;
     }
 
@@ -316,7 +306,7 @@ class Matching {
         for(Matching m: spawned){
             sb.append(m.hashCode() + " ");
         }
-        L.info("  ... {} generates {} and {}.", this.hashCode(), sb.toString(), unresolvable != true ? "survives" : "dies");
+        L.debug("  ... {} generates {} and {}.", this.hashCode(), sb.toString(), unresolvable != true ? "survives" : "dies");
     }
 
     private Set<Matching> spawn(Set<FXNode> matched){
@@ -353,21 +343,12 @@ class Matching {
 
     public void endContainer(){
         // Check if the node we are leaving is bound to any match to the container we are leaving.
-
         // If it does, mark it as unresolvable
         if(map.values().contains(path)){
             this.unresolvable = true;
         }
     }
 
-//    private static void show(Map<FXNode, Node> mmm){
-//        StringBuilder sb = new StringBuilder();
-//        for(Map.Entry<FXNode, Node> entry : mmm.entrySet()){
-//            sb.append(entry);
-//            sb.append("\n");
-//        }
-//        //L.info("matches so far: \n{} ", sb.toString());
-//    }
     public boolean isUnresolvable() {
         return unresolvable;
     }
@@ -387,8 +368,6 @@ class Matching {
         }
         return false;
     }
-
-
 
     @Override
     public int hashCode() {

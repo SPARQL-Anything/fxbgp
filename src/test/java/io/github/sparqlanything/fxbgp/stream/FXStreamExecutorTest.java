@@ -267,6 +267,53 @@ public class FXStreamExecutorTest extends BGPTestUtils {
         Assert.assertEquals(0, it.size());
     }
 
+    @Test
+    public void test2_csv_all() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Assert.assertEquals(21, it.size());
+        show(it.iterator());
+        for(QuerySolution w: it){
+            Assert.assertFalse(w.get("a").equals(w.get("b")));
+            Assert.assertFalse(w.get("b").equals(w.get("c")));
+        }
+    }
+
+
+    @Test
+    public void test2_csv_n2() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Assert.assertEquals(0, it.size());
+    }
+
+    @Test
+    public void test2_csv_n3() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Exception q = null;
+        try {
+            set(executor.exec(new OpBGP(bp), properties())).size();
+        }catch(NotATreeException e){
+            q =e;
+        }
+        Assert.assertNotNull(q);
+    }
+
+    @Test
+    public void test2_csv_n4() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Assert.assertEquals(0, it.size());
+    }
+
+
+    @Test
+    public void test2_csv_n1() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Assert.assertEquals(0, it.size());
+    }
+
 
     private void show(Iterator<QuerySolution> qit){
         while(qit.hasNext()){
