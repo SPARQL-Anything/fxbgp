@@ -339,6 +339,21 @@ public class FXStreamExecutorTest extends BGPTestUtils {
         show(it);
     }
 
+    @Test
+    public void test2_json_a1() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Iterator<QuerySolution> it = executor.exec(new OpBGP(bp), properties());
+        Assert.assertEquals(6,set(it).size());
+        show(it);
+    }
+    @Test
+    public void test2_json_a2() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Iterator<QuerySolution> it = executor.exec(new OpBGP(bp), properties());
+        Assert.assertEquals(5,set(it).size());
+        show(it);
+    }
+
     private Properties properties() {
         Properties properties = new Properties();
         properties.setProperty(IRIArgument.LOCATION.toString(), input.toString());

@@ -187,13 +187,11 @@ public class JSONTriplifier2 implements Triplifier2{
                         eventsHandler.endContainer();
                     }
                     case VALUE_NUMBER_FLOAT -> {
-                        logger.info("{} float", k);
                         eventsHandler.onSlotString(k);
                         eventsHandler.onValue(parser.getValueAsDouble());
                         //builder.addValue(dataSourceId, containerId, k, parser.getValueAsDouble());
                     }
                     case VALUE_NUMBER_INT -> {
-                        logger.info("{} int", k);
                         coercedInt = null;
                         coercedStr = null;
                         boolean kIsInteger = true; // assume it is
