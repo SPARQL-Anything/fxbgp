@@ -19,6 +19,8 @@ import java.util.Set;
 class Matching {
     private static final Logger L = LoggerFactory.getLogger(Matching.class);
     private Map<FXNode, List<Node>> map;
+    private Map<Node, Set<FXNode>> nodesMap;
+
     private Set<FXNode> cursor;
     private boolean unresolvable = false;
     private List<Node> contextPath = new ArrayList<>();
@@ -39,6 +41,7 @@ class Matching {
         this.map = new HashMap<>();
         this.contextPath = contextPath;
         this.path = path;
+        populateNodeMap(cursor);
         this.set(cursor, nodePath);
     }
 
@@ -55,6 +58,25 @@ class Matching {
         this.cursor = cursor;
         this.contextPath = contextPath;
         this.path = path;
+        FXNode root = null;
+        for(Map.Entry<FXNode, List<Node>> entry : map.entrySet()) {
+            if(entry.getKey().isRoot()) root = entry.getKey();
+        }
+        if(root == null) throw new RuntimeException("root cannot be null");
+        populateNodeMap(root);
+    }
+
+    private void populateNodeMap(FXNode cursor) {
+        if(cursor.isRoot()) {
+            nodesMap = new HashMap<>();
+        }
+        if(!nodesMap.containsKey(cursor)) {
+            nodesMap.put(cursor.getNode(), new HashSet<>());
+        }
+        nodesMap.get(cursor.getNode()).add(cursor);
+        for(FXNode entry : cursor.getChildren()) {
+            populateNodeMap(entry);
+        }
     }
 
     public Map<FXNode, List<Node>> getMap() {
@@ -187,15 +209,6 @@ class Matching {
 
         // No match following this path
         if(matched.size() == 0) {
-//            Set<FXNode> toRemove = new HashSet<>();
-//            for(FXNode c: cursor){
-//                if(isPredicate(c.getAnnotation().getTerm())) {
-//                    toRemove.add(c);
-//                }
-//            }
-//            for(FXNode c: toRemove){
-//                unset(c);
-//            }
             // Do nothing
             // If cursor is a single container, ignore, otherwise, discard
             if(cursor.size() == 1 && cursor.iterator().next().getAnnotation().getTerm().equals(FX.Container )) {
@@ -224,12 +237,6 @@ class Matching {
                 spawned.addAll(setAndSpawn(matched));
             }
         }else if(matched.size() > 1){
-//            // If it's more than one, all or nothing
-//            if(cursor.size() != matched.size()) {
-//                this.unresolvable = true;
-//                return Collections.emptySet();
-//            }
-
             // We spawn all combinations and unset this matching
             // Group by distinct equal nodes (to tackle the case of two same variables in predicate position)
             Map<Node, Set<FXNode>> dn = new HashMap<>();
@@ -245,7 +252,7 @@ class Matching {
                 input.add(new ArrayList<>(nn));
             }
 //            L.info("Subset input: {}", input);
-            List<List> subsets = subsets(input);
+            List<List> subsets = FXTreeUtils.subsets(input);
 //            L.info("Subset output: {}", subsets);
             for(List s: subsets){
                 if(s.isEmpty()){
@@ -259,9 +266,6 @@ class Matching {
                         newSet.add(c);
                     }
                 }
-//                L.info("new set: {}", newSet);
-                //for(Set<FXNode> sns: newSet){
-//                L.info("Generating matching for {}", newSet);
                 Matching m = copy();
                 for(FXNode sn: newSet){
                     m.set(sn, new ArrayList<>(path));
@@ -282,11 +286,28 @@ class Matching {
             }
         }
 
+        // Check orphan variables.
+        // For example, if one FXNode/?var is bound but a different FXNode/?var is not, mark as unresolvable
+        if(!unresolvable) {
+            for (Map.Entry<FXNode, List<Node>> entry : map.entrySet()) {
+                Node matchingNode = entry.getKey().getNode();
+                for (FXNode fxn : nodesMap.get(matchingNode)) {
+                    if (!map.containsKey(fxn) || !map.get(fxn).equals(entry.getValue())) {
+                        this.unresolvable = true;
+                        break;
+                    }
+                }
+                if (this.unresolvable) {
+                    break;
+                }
+            }
+        }
 
 //        show(getMatches());
         logSpawned(spawned);
         return spawned;
     }
+
     private void logSpawned(Set<Matching> spawned){
         if(spawned.isEmpty()){
             return;
@@ -367,19 +388,7 @@ class Matching {
         return false;
     }
 
-    private static <T> List<List<T>> subsets(List<T> in) {
-        List<List<T>> out = new ArrayList<>();
-        out.add(new ArrayList<>());
-        for (T elem : in) {
-            int size = out.size();
-            for (int i = 0; i < size; i++) {
-                List<T> newSubset = new ArrayList<>(out.get(i));
-                newSubset.add(elem);
-                out.add(newSubset);
-            }
-        }
-        return out;
-    }
+
 
     @Override
     public int hashCode() {

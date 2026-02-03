@@ -144,7 +144,6 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
 //        }
 
         L.trace("process existing matches: {}", matches.size());
-        Set<Matching> completed = new HashSet<>();
         Set<Matching> removable = new HashSet<>();
         for(Matching matching: matches){
             L.trace("[start] checking {} against {} ", node, matching.getCursor());
@@ -154,30 +153,28 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
                 L.info(" --> {} spawned", spawn.size());
             }
             spawned.addAll(spawn);
-            if(matching.getMap().size() == pattern.getSize()){
-                addQuerySolution(matching);
-                completed.add(matching);
-            }
+
             // XXX Check this is possible...
             if(matching.isUnresolvable()){
                 removable.add(matching);
             }
             L.trace("[end] checking against");
         }
-        L.trace("completed {} spawned {}", completed.size(), spawned.size());
-        this.matches.removeAll(completed);
+
         this.matches.removeAll(removable);
         this.matches.addAll(spawned);
-        // TODO Remove duplicates!
-        Set<Matching> duplicates = new HashSet<>();
-        for(Matching matching1: matches){
-            for(Matching matching2: matches){
-                if(!matching1.equals(matching2) &&
-                    matching1.getMap().equals(matching2.getMap())){
-                    duplicates.remove(matching1);
-                }
+
+        // Remove duplicates (hash code possibly changed)!
+        this.matches = new ArrayList<>(new HashSet<>(this.matches));
+        Set<Matching> completed = new HashSet<>();
+        for(Matching matching: matches) {
+            if (matching.getMap().size() == pattern.getSize()) {
+                addQuerySolution(matching);
+                completed.add(matching);
             }
         }
+        this.matches.removeAll(completed);
+        L.trace("completed {} spawned {}", completed.size(), spawned.size());
         L.trace("=== [end] match: {} ===", string);
         endMatch(node, component);
     }

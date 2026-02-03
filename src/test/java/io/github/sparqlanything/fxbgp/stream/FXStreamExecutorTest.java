@@ -244,6 +244,29 @@ public class FXStreamExecutorTest extends BGPTestUtils {
                 ));
     }
 
+    @Test
+    public void test1_csv_s12() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Assert.assertEquals(21, it.size());
+        show(it.iterator());
+        for(QuerySolution w: it){
+            Assert.assertTrue(w.get("b1").equals(w.get("b2")));
+        }
+//        Assert.assertTrue(
+//                rem(it,
+//                        new String[]{"r", "test1.csv\\#$", "j", "\\#_1$", "a", "test1.csv\\#row1$", "b", "\\#_1$", "c", "\\#_2$", "d", "\\#_3$", "e", "\\#_4$"}
+//                ));
+    }
+
+
+    @Test
+    public void test1_csv_n1() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Assert.assertEquals(0, it.size());
+    }
+
 
     private void show(Iterator<QuerySolution> qit){
         while(qit.hasNext()){
@@ -255,25 +278,6 @@ public class FXStreamExecutorTest extends BGPTestUtils {
                 L.info("Solution: {} -> {}", var, qs.get(var));
             }
         }
-    }
-    public static <T> List<List<T>> subsets(List<T> in) {
-        List<List<T>> out = new ArrayList<>();
-        out.add(new ArrayList<>());
-        for (T elem : in) {
-            int size = out.size();
-            for (int i = 0; i < size; i++) {
-                List<T> newSubset = new ArrayList<>(out.get(i));
-                newSubset.add(elem);
-                out.add(newSubset);
-            }
-        }
-        return out;
-    }
-
-    @Test
-    public void testSubsets(){
-        List<List> s = Arrays.asList(List.of("a"), List.of("b", "b"), List.of("c"));
-        System.out.println(subsets(s));
     }
 
 @Test
