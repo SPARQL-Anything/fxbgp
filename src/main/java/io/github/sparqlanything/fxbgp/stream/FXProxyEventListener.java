@@ -19,6 +19,15 @@ public class FXProxyEventListener implements FXNodeEventListener{
     }
 
     @Override
+    public void startDataSource(Node dataSource) {
+        L.trace("[start] startDataSource {}", dataSource);
+        for (FXNodeEventListener listener : listeners) {
+            listener.startDataSource(dataSource);
+        }
+        L.trace("[end] startDataSource {}", dataSource);
+    }
+
+    @Override
     public void startContainer(Node container) {
         L.trace("[start] startContainer {}", container);
         for (FXNodeEventListener listener : listeners) {

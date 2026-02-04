@@ -8,6 +8,11 @@ public abstract class FXAbstractNodeEventListener implements FXNodeEventListener
     private Logger L = LoggerFactory.getLogger(FXAbstractNodeEventListener.class);
 
     @Override
+    public void startDataSource(Node dataSource) {
+        L.trace("startDataSource: {}", dataSource);
+    }
+
+    @Override
     public void startContainer(Node container) {
         L.trace("startContainer: {}", container);
     }

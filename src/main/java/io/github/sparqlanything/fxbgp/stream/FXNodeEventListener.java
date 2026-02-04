@@ -4,6 +4,8 @@ import org.apache.jena.graph.Node;
 
 public interface FXNodeEventListener {
 
+    public void startDataSource(Node dataSource);
+
     public void startContainer(Node container);
 
     public void onSlotNumber(Node predicate);

@@ -15,6 +15,7 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.sparql.core.Match;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,18 +29,45 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     private List<Matching> matches;
     private List<Node> contextPath;
     private List<Node> path;
+    private Node dataSourceNode = null;
 
     public FXQuerySolutionBuilder(FXTreePattern pattern, Set<QuerySolution> solutions) {
         this.pattern = pattern;
         this.string = pattern.toString();
         this.solutions = solutions;
+    }
+
+    /**
+     * We initialise when any data source is triggered
+     */
+    private void init(){
         this.matches = new ArrayList<>();
         this.contextPath = new ArrayList<>();
         this.path = new ArrayList<>();
     }
 
     @Override
+    public void startDataSource(Node dataSource) {
+        L.trace("startDataSource: {}", dataSource);
+        if(this.pattern.isGraphPattern()){
+            if(Matching.nodeMatches(this.pattern.getGraphPatternNode(), dataSource)){
+                dataSourceNode = dataSource;
+                init();
+            }
+        }else{
+            init();
+        }
+    }
+
+    private boolean matchedDataSource(){
+        return !pattern.isGraphPattern() || this.dataSourceNode != null;
+    }
+
+    @Override
     public void startContainer(Node container) {
+        if(!matchedDataSource()){
+            return;
+        }
         super.startContainer(container);
         path.add(container);
         contextPath.add(container);
@@ -48,6 +76,9 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
 
     @Override
     public void onSlotNumber(Node predicate) {
+        if(!matchedDataSource()){
+            return;
+        }
         super.onSlotNumber(predicate);
         path.add(predicate);
         match(predicate, FX.SlotNumber);
@@ -55,6 +86,9 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
 
     @Override
     public void onSlotString(Node predicate) {
+        if(!matchedDataSource()){
+            return;
+        }
         super.onSlotString(predicate);
         path.add(predicate);
         match(predicate, FX.SlotString);
@@ -62,6 +96,9 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
 
     @Override
     public void endContainer() {
+        if(!matchedDataSource()){
+            return;
+        }
         if(L.isDebugEnabled()){
             beginEndContainer();
         }
@@ -80,6 +117,9 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
 
     @Override
     public void onTypeProperty() {
+        if(!matchedDataSource()){
+            return;
+        }
         super.onTypeProperty();
         path.add(RDF.type.asNode());
         match(RDF.type.asNode(), FX.TypeProperty);
@@ -87,6 +127,9 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
 
     @Override
     public void onType(Node type) {
+        if(!matchedDataSource()){
+            return;
+        }
         super.onType(type);
         path.add(type);
         match(type, FX.Type);
@@ -97,6 +140,9 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
 
     @Override
     public void onTypeRoot() {
+        if(!matchedDataSource()){
+            return;
+        }
         super.onTypeRoot();
         Node fxr = NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT);
         path.add(fxr);
@@ -108,6 +154,9 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
 
     @Override
     public void onValue(Node value) {
+        if(!matchedDataSource()){
+            return;
+        }
         super.onValue(value);
         path.add(value);
         match(value, FX.Value);
@@ -117,6 +166,9 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     }
 
     private void match(Node node, FX component){
+        if(!matchedDataSource()){
+            return;
+        }
         if(L.isDebugEnabled()) {
             beginMatch(node, component);
         }

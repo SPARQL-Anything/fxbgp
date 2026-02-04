@@ -21,7 +21,20 @@ public class FXTreePattern {
     private FXNode root;
     private Set<Node> variables;
     private int size;
+    private Node graphPatternNode;
+    private boolean isGraphPattern;
+
+    private FXTreePattern(FXBGPAnnotation bpa, Node graphPatternNode) throws NotATreeException {
+        this.graphPatternNode = graphPatternNode;
+        isGraphPattern = true;
+        init(bpa);
+    }
     private FXTreePattern(FXBGPAnnotation bpa) throws NotATreeException {
+        isGraphPattern = false;
+        init(bpa);
+    }
+
+    private void init(FXBGPAnnotation bpa) throws NotATreeException {
         // Verify it is a tree pattern
         // All but one subject must be objects as well
         Set<Node> nodes = new HashSet<>();
@@ -108,5 +121,13 @@ public class FXTreePattern {
     }
     public Set<Node> nodes(){
         return nodes;
+    }
+
+    public boolean isGraphPattern(){
+        return isGraphPattern;
+    }
+
+    public Node getGraphPatternNode(){
+        return this.graphPatternNode;
     }
 }

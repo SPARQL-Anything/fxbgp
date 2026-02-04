@@ -66,6 +66,9 @@ public class CSVTriplifier2 implements Triplifier2 {
         String dataSourceId = SPARQLAnythingConstants.DATA_SOURCE_ID; // there is always 1 data source id
         boolean ignoreColumnsWithNoHeaders = PropertyUtils.getBooleanProperty(properties, IGNORE_COLUMNS_WITH_NO_HEADERS);
 
+        // Start Data Source
+        handler.onDataSource(dataSourceId);
+
         // Add type Root
         handler.startRoot(dataSourceId);
 

@@ -80,6 +80,8 @@ public class JSONTriplifier2 implements Triplifier2{
     }
 
     private void streamJSON(JsonParser parser, TriplifierEventsHandler eventsHandler, boolean includeNullValues) throws IOException {
+        // Start Data Source
+        eventsHandler.onDataSource(SPARQLAnythingConstants.DATA_SOURCE_ID);
         eventsHandler.startRoot(SPARQLAnythingConstants.DATA_SOURCE_ID);
         //builder.addRoot(SPARQLAnythingConstants.DATA_SOURCE_ID);
         logger.info("Transforming json (dataSourceId {} rootId {})", SPARQLAnythingConstants.DATA_SOURCE_ID, SPARQLAnythingConstants.ROOT_ID);

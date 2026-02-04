@@ -1,6 +1,9 @@
 package io.github.sparqlanything.fxbgp.stream;
 
 public interface TriplifierEventsHandler {
+
+    void onDataSource(String dataSourceId);
+
     void startRoot(String dataSourceId);
 
     void startContainer(String containerId);
