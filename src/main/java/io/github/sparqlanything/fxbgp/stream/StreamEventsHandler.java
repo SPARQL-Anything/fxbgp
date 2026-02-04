@@ -21,8 +21,8 @@ public class StreamEventsHandler extends FacadeXAbstractNodeBuilder implements T
     @Override
     public void onDataSource(String dataSourceId) {
         L.trace("onDataSource {}", dataSourceId);
-        String dsURI = dataSourceId;
-        containerStack.add(dsURI);
+        String dsURI = this.getRootURI(dataSourceId);
+        //containerStack.add(dsURI);
         this.eventListener.startDataSource(NodeFactory.createURI(dsURI));
     }
 

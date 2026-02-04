@@ -240,6 +240,13 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
                 solution.put(var, val);
             }
         }
+        // If graph pattern, add variable and match
+        if(pattern.isGraphPattern()) {
+            Node graphPN = pattern.getGraphPatternNode();
+            if(graphPN.isVariable()){
+                solution.put(graphPN.getName(), toRDFNode(dataSourceNode));
+            }
+        }
         solutions.add(FXQuerySolution.make(solution));
     }
 

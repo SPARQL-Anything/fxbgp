@@ -88,6 +88,10 @@ public class FXTreePattern {
         return new FXTreePattern(bpa);
     }
 
+    public static FXTreePattern make(FXBGPAnnotation bpa, Node graphNode) throws NotATreeException {
+        return new FXTreePattern(bpa, graphNode);
+    }
+
     private static FXNode makeRoot(Node node, FXBGPAnnotation bpa) {
         return makeNode(null, node, bpa);
     }

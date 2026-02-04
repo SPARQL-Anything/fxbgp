@@ -4,8 +4,12 @@ import io.github.sparqlanything.fxbgp.AnalyserGrounder;
 import io.github.sparqlanything.fxbgp.FXBGPAnnotation;
 import io.github.sparqlanything.fxbgp.FXModel;
 import io.github.sparqlanything.model.TriplifierHTTPException;
+import org.apache.jena.atlas.RuntimeIOException;
+import org.apache.jena.graph.Node;
 import org.apache.jena.query.QuerySolution;
+import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpBGP;
+import org.apache.jena.sparql.algebra.op.OpGraph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,13 +29,35 @@ public class FXStreamExecutor {
     private static final Logger L = LoggerFactory.getLogger(FXStreamExecutor.class);
     private volatile Set<QuerySolution> solutions = new HashSet<>();
     private volatile boolean complete = false;
-    public Iterator<QuerySolution> exec(OpBGP bgp, Properties properties) throws NotATreeException {
-        // TODO choose the FX model specific to the format?
+    public Iterator<QuerySolution> exec(Op op, Properties properties) throws NotATreeException {
+        //
+        Node graphNode = null;
+        OpBGP opBGP = null;
+        if (op instanceof OpGraph){
+            try{
+                graphNode = ((OpGraph) op).getNode();
+                opBGP = (OpBGP) ((OpGraph) op).getSubOp();
+            }catch (Exception e){
+            }
+        }else if (op instanceof OpBGP) {
+            opBGP = (OpBGP) op;
+        }
+        if(opBGP == null){
+            L.error("Only Basic Graph Patterns are supported");
+            throw new RuntimeException();
+        }
         AnalyserGrounder ag = new AnalyserGrounder(properties, FXModel.getFXModel());
-        Set<FXBGPAnnotation> annotations = ag.annotate(bgp, true);
+        Set<FXBGPAnnotation> annotations = ag.annotate(opBGP, true);
         final Set<FXQuerySolutionBuilder> patterns = new HashSet<>();
         for (FXBGPAnnotation annotation : annotations) {
-            FXTreePattern tp = FXTreePattern.make(annotation);
+            FXTreePattern tp;
+            if(graphNode == null){
+                // Play with default graph
+                tp = FXTreePattern.make(annotation);
+            }else{
+                // Play with named graph
+                tp = FXTreePattern.make(annotation, graphNode);
+            }
             patterns.add( new FXQuerySolutionBuilder(tp, solutions));
         }
 

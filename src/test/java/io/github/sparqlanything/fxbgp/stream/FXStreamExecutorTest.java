@@ -11,6 +11,7 @@ import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.sparql.algebra.op.OpBGP;
+import org.apache.jena.sparql.algebra.op.OpGraph;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.core.Var;
 import org.junit.Assert;
@@ -112,6 +113,15 @@ public class FXStreamExecutorTest extends BGPTestUtils {
                         new String[]{"a", "test1.csv\\#row3$", "b", "/H4$", "c", "^C4$"}
                         //
                 ));
+    }
+
+    @Test
+    public void test1_csv_all_quad() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        OpGraph opGraph = new OpGraph(NodeFactory.createVariable("g"), new OpBGP(bp));
+        Set<QuerySolution> it = set(executor.exec(opGraph, properties()));
+        show(it.iterator());
+        Assert.assertEquals(21, it.size());
     }
 
     @Test
