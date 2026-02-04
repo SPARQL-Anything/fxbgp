@@ -12,10 +12,15 @@ import io.github.sparqlanything.fxbgp.FX;
 import io.github.sparqlanything.model.Triplifier;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Node_Variable;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.sparql.core.Match;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.engine.binding.BindingBase;
+import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,14 +29,14 @@ import org.slf4j.LoggerFactory;
 public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     private final Logger L = LoggerFactory.getLogger(FXQuerySolutionBuilder.class);
     private final String string;
-    private Set<QuerySolution> solutions;
+    private Set<Binding> solutions;
     private FXTreePattern pattern;
     private List<Matching> matches;
     private List<Node> contextPath;
     private List<Node> path;
     private Node dataSourceNode = null;
 
-    public FXQuerySolutionBuilder(FXTreePattern pattern, Set<QuerySolution> solutions) {
+    public FXQuerySolutionBuilder(FXTreePattern pattern, Set<Binding> solutions) {
         this.pattern = pattern;
         this.string = pattern.toString();
         this.solutions = solutions;
@@ -228,26 +233,35 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     }
 
     private void addQuerySolution(Matching matching){
-        Map<String, RDFNode> solution = new HashMap<>();
+        BindingBuilder solution = BindingBuilder.create();
         for(Map.Entry<FXNode, Node> entry : matching.getMatches().entrySet()){
             if(L.isDebugEnabled()) {
                 L.debug(" >>>>> {} {} <<<<<", entry.getKey(), entry.getValue());
                 L.debug(" ----- {} {} <<<<<", entry.getKey(), entry.getKey().getNode().isVariable());
             }
             if(entry.getKey().getNode().isVariable()){
-                String var = entry.getKey().getNode().getName();
-                RDFNode val = toRDFNode(entry.getValue());
-                solution.put(var, val);
+                Node var_ = entry.getKey().getNode();
+                Var var = Var.alloc(var_.getName());
+                Node val = entry.getValue();
+                // XXX How to do it better?
+                if(!solution.contains(var)) {
+                    solution.add(var, val);
+                }else{
+                    if(!solution.get(var).equals(val)){
+                        throw new RuntimeException("This should not happen");
+                    }
+                }
             }
         }
         // If graph pattern, add variable and match
         if(pattern.isGraphPattern()) {
             Node graphPN = pattern.getGraphPatternNode();
             if(graphPN.isVariable()){
-                solution.put(graphPN.getName(), toRDFNode(dataSourceNode));
+                // XXX How to do it better?
+                solution.add(Var.alloc(graphPN.getName()), dataSourceNode);
             }
         }
-        solutions.add(FXQuerySolution.make(solution));
+        solutions.add(solution.build());
     }
 
     private RDFNode toRDFNode(Node n){

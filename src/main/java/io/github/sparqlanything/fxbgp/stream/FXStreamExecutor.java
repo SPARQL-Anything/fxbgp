@@ -4,12 +4,16 @@ import io.github.sparqlanything.fxbgp.AnalyserGrounder;
 import io.github.sparqlanything.fxbgp.FXBGPAnnotation;
 import io.github.sparqlanything.fxbgp.FXModel;
 import io.github.sparqlanything.model.TriplifierHTTPException;
-import org.apache.jena.atlas.RuntimeIOException;
+import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.QuerySolution;
+import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.algebra.op.OpGraph;
+import org.apache.jena.sparql.engine.QueryIterator;
+import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.serializer.SerializationContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,9 +31,9 @@ import java.util.concurrent.Executors;
  */
 public class FXStreamExecutor {
     private static final Logger L = LoggerFactory.getLogger(FXStreamExecutor.class);
-    private volatile Set<QuerySolution> solutions = new HashSet<>();
+    private volatile Set<Binding> bindings = new HashSet<>();
     private volatile boolean complete = false;
-    public Iterator<QuerySolution> exec(Op op, Properties properties) throws NotATreeException {
+    public QueryIterator exec(Op op, Properties properties) throws NotATreeException {
         //
         Node graphNode = null;
         OpBGP opBGP = null;
@@ -58,7 +62,7 @@ public class FXStreamExecutor {
                 // Play with named graph
                 tp = FXTreePattern.make(annotation, graphNode);
             }
-            patterns.add( new FXQuerySolutionBuilder(tp, solutions));
+            patterns.add( new FXQuerySolutionBuilder(tp, bindings));
         }
 
         // Parsing thread vs solution thread
@@ -82,24 +86,54 @@ public class FXStreamExecutor {
         });
 
         // Solution returns the iteator and waits
-        return new Iterator<QuerySolution>() {
+        return new QueryIterator() {
 
             @Override
             public boolean hasNext() {
                 if(!complete) {
-                    while(solutions.isEmpty() && !complete) {
+                    while(bindings.isEmpty() && !complete) {
                         // Wait for the other thread
                     }
                 }
-                return solutions.iterator().hasNext();
+                return bindings.iterator().hasNext();
             }
 
             @Override
-            public QuerySolution next() {
-                QuerySolution solution;
-                synchronized (solutions) {
-                    solution = solutions.iterator().next();
-                    solutions.remove(solution);
+            public void output(IndentedWriter indentedWriter, SerializationContext serializationContext) {
+
+            }
+
+            @Override
+            public String toString(PrefixMapping prefixMapping) {
+                return "";
+            }
+
+            @Override
+            public void close() {
+                // XXX What to do here?
+            }
+
+            @Override
+            public void output(IndentedWriter indentedWriter) {
+
+            }
+
+            @Override
+            public Binding nextBinding() {
+               return next();
+            }
+
+            @Override
+            public void cancel() {
+                // XXX What to do here?
+            }
+
+            @Override
+            public Binding next() {
+                Binding solution;
+                synchronized (bindings) {
+                    solution = bindings.iterator().next();
+                    bindings.remove(solution);
                 }
                 return solution;
             }

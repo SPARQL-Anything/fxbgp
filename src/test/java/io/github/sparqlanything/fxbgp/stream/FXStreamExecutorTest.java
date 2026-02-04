@@ -3,33 +3,25 @@ package io.github.sparqlanything.fxbgp.stream;
 import io.github.sparqlanything.fxbgp.BGPTestUtils;
 import io.github.sparqlanything.model.IRIArgument;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.query.QuerySolution;
-import org.apache.jena.query.QuerySolutionMap;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.algebra.op.OpGraph;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.QueryIterator;
+import org.apache.jena.sparql.engine.binding.Binding;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -50,7 +42,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_all_basic() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
         show(it.iterator());
         Assert.assertEquals(21, it.size());
         Assert.assertTrue(
@@ -86,7 +78,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_all_headers() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
         show(it.iterator());
         Assert.assertEquals(16, it.size());
         Assert.assertTrue(
@@ -119,7 +111,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     public void test1_csv_all_quad() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
         OpGraph opGraph = new OpGraph(NodeFactory.createVariable("g"), new OpBGP(bp));
-        Set<QuerySolution> it = set(executor.exec(opGraph, properties()));
+        Set<Binding> it = set(executor.exec(opGraph, properties()));
         show(it.iterator());
         Assert.assertEquals(21, it.size());
     }
@@ -127,9 +119,9 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_s1() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
         Assert.assertEquals(1, it.size());
-        Assert.assertTrue(it.iterator().next().getResource("a").getURI().endsWith("test1.csv#row2"));
+        Assert.assertTrue(it.iterator().next().get("a").getURI().endsWith("test1.csv#row2"));
         show(it.iterator());
     }
 
@@ -137,26 +129,26 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_s2() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
         Assert.assertEquals(1, it.size());
-        Assert.assertTrue(it.iterator().next().getResource("a").getURI().endsWith("test1.csv#row2"));
+        Assert.assertTrue(it.iterator().next().get("a").getURI().endsWith("test1.csv#row2"));
         show(it.iterator());
     }
 
     @Test
     public void test1_csv_s3() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
         Assert.assertEquals(1, it.size());
-        Assert.assertTrue(it.iterator().next().getResource("a").getURI().endsWith("/test1.csv#row4"));
-        Assert.assertTrue(it.iterator().next().getResource("r").getURI().endsWith("/test1.csv#"));
+        Assert.assertTrue(it.iterator().next().get("a").getURI().endsWith("/test1.csv#row4"));
+        Assert.assertTrue(it.iterator().next().get("r").getURI().endsWith("/test1.csv#"));
         show(it.iterator());
     }
 
     @Test
     public void test1_csv_s4() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
         Assert.assertEquals(5, it.size());
         show(it.iterator());
         Assert.assertTrue(
@@ -173,7 +165,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_s5() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
         Assert.assertEquals(1, it.size());
         Assert.assertTrue(
                 rem(it,
@@ -185,7 +177,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_s6() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
         Assert.assertEquals(1, it.size());
         Assert.assertTrue(
                 rem(it,
@@ -198,7 +190,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_s7() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
         Assert.assertEquals(1, it.size());
         show(it.iterator());
     }
@@ -206,7 +198,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_s8() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
         Assert.assertEquals(1, it.size());
         show(it.iterator());
         Assert.assertTrue(
@@ -219,7 +211,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_s9() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
         Assert.assertEquals(1, it.size());
         show(it.iterator());
         Assert.assertTrue(
@@ -233,7 +225,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_s10_headers() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
         Assert.assertEquals(1, it.size());
         show(it.iterator());
         Assert.assertTrue(
@@ -246,7 +238,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_s11() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
         Assert.assertEquals(1, it.size());
         show(it.iterator());
         Assert.assertTrue(
@@ -258,10 +250,10 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_s12() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
         Assert.assertEquals(21, it.size());
         show(it.iterator());
-        for(QuerySolution w: it){
+        for(Binding w: it){
             Assert.assertTrue(w.get("b1").equals(w.get("b2")));
         }
     }
@@ -270,17 +262,17 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_n1() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
         Assert.assertEquals(0, it.size());
     }
 
     @Test
     public void test2_csv_all() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
         Assert.assertEquals(21, it.size());
         show(it.iterator());
-        for(QuerySolution w: it){
+        for(Binding w: it){
             Assert.assertFalse(w.get("a").equals(w.get("b")));
             Assert.assertFalse(w.get("b").equals(w.get("c")));
         }
@@ -290,7 +282,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test2_csv_n2() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
         Assert.assertEquals(0, it.size());
     }
 
@@ -309,24 +301,24 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test2_csv_n4() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
         Assert.assertEquals(0, it.size());
     }
 
     @Test
     public void test2_csv_n1() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<QuerySolution> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
         Assert.assertEquals(0, it.size());
     }
 
-    private void show(Iterator<QuerySolution> qit){
+    private void show(Iterator<Binding> qit){
         while(qit.hasNext()){
             L.info(" ---- ");
-            QuerySolution qs = qit.next();
-            Iterator<String> it = qs.varNames();
+            Binding qs = qit.next();
+            Iterator<Var> it = qs.vars();
             while(it.hasNext()){
-                String var = it.next();
+                String var = it.next().getVarName();
                 L.info("Solution: {} -> {}", var, qs.get(var));
             }
         }
@@ -336,7 +328,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     public void test1_csv_strict() throws IOException, NotATreeException {
         String name = testName.getMethodName();
         prepare(name);
-        Iterator<QuerySolution> it = executor.exec(new OpBGP(bp), properties());
+        QueryIterator it = executor.exec(new OpBGP(bp), properties());
         show(it);
     }
 
@@ -344,7 +336,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     public void test1_json_all() throws IOException, NotATreeException {
         String name = testName.getMethodName();
         prepare(name);
-        Iterator<QuerySolution> it = executor.exec(new OpBGP(bp), properties());
+        QueryIterator it = executor.exec(new OpBGP(bp), properties());
         Assert.assertEquals(7,set(it).size());
         show(it);
     }
@@ -352,14 +344,14 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test2_json_a1() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Iterator<QuerySolution> it = executor.exec(new OpBGP(bp), properties());
+        QueryIterator it = executor.exec(new OpBGP(bp), properties());
         Assert.assertEquals(6,set(it).size());
         show(it);
     }
     @Test
     public void test2_json_a2() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Iterator<QuerySolution> it = executor.exec(new OpBGP(bp), properties());
+        QueryIterator it = executor.exec(new OpBGP(bp), properties());
         Assert.assertEquals(5,set(it).size());
         show(it);
     }
@@ -391,28 +383,35 @@ public class FXStreamExecutorTest extends BGPTestUtils {
         this.bp = readBGP("./stream/" + easyBGPName);
     }
 
-    public Set<QuerySolution> set(Iterator<QuerySolution> qit){
-        Set<QuerySolution> set = new HashSet<>();
+    public Set<Binding> set(QueryIterator qit){
+        Set<Binding> set = new HashSet<>();
         while(qit.hasNext()){
             set.add(qit.next());
         }
         return set;
     }
 
-    public boolean rem(Set<QuerySolution> qs, String[] ... var_regex_conditions){
-        Set<QuerySolution> set = new HashSet<>(qs);
+    public boolean rem(Set<Binding> qs, String[] ... var_regex_conditions){
+        Set<Binding> set = new HashSet<>(qs);
         Set<String[]> unmet = new HashSet<>();
-        Set<QuerySolution> foundd = new HashSet<>();
+        Set<Binding> foundd = new HashSet<>();
         for(String[] var_regex : var_regex_conditions){
             boolean found = false;
             // If a query solution resolves all conditions is removed
-            for(QuerySolution q : qs){
+            for(Binding q : qs){
                 int successes = 0;
                 for(int index = 0; index < var_regex.length; index = index + 2){
                     String var = var_regex[index];
                     String regex = var_regex[index + 1];
-                    RDFNode node = q.get(var);
-                    String vvv = node.toString();
+                    Node node = q.get(var);
+                    String vvv ;
+                    if(node.isURI()){
+                        vvv = node.getURI().toString();
+                    }else if(node.isLiteral()){
+                        vvv = node.getLiteralLexicalForm().toString();
+                    }else{
+                        throw new RuntimeException("This should not happen");
+                    }
                     //L.trace("Testing {} vs {}", node, regex);
                     if(Pattern.compile(regex).matcher(vvv).find()){
                         //L.trace("Success {} vs {}", node, regex);
@@ -437,7 +436,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
         if(!set.isEmpty()){
             L.error("Solutions not matching anything: {}", set.size());
             L.error("Example:");
-            for (QuerySolution q : set) {
+            for (Binding q : set) {
                 L.error(q.toString());
                 break;
             }

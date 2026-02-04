@@ -9,6 +9,9 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.core.BasicPattern;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.QueryIterator;
+import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.vocabulary.RDF;
 import org.junit.Assert;
 import org.junit.Before;
@@ -31,7 +34,7 @@ public class FXQuerySolutionBuilderTest extends BGPTestUtils {
 
     private BasicPattern bp;
     private FXTreePattern pattern;
-    private Set<QuerySolution> solutions;
+    private Set<Binding> solutions;
     private FXQuerySolutionBuilder builder;
 
     @Before
@@ -63,7 +66,7 @@ public class FXQuerySolutionBuilderTest extends BGPTestUtils {
         prepare(this.testName.getMethodName());
         process();
         Assert.assertEquals(1, this.solutions.size());
-        QuerySolution qs = this.solutions.iterator().next();
+        Binding qs = this.solutions.iterator().next();
         qs.contains("a");
         qs.contains("A");
         show();
@@ -93,11 +96,11 @@ public class FXQuerySolutionBuilderTest extends BGPTestUtils {
     }
 
     private void show(){
-        for(QuerySolution qs : this.solutions){
-            Iterator<String> it = qs.varNames();
+        for(Binding qs : this.solutions){
+            Iterator<Var> it = qs.vars();
             while(it.hasNext()){
-                String var = it.next();
-                L.info("Solution: {} -> {}", var, qs.get(var));
+                String var = it.next().getVarName();
+                L.info("Binding: {} -> {}", var, qs.get(var));
             }
         }
     }

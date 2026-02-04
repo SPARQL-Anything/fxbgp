@@ -6,6 +6,8 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.StatementTerm;
+import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.engine.binding.Binding;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -40,6 +42,9 @@ public class FXQuerySolution implements QuerySolution {
 
     private Map<String, RDFNode> map;
     private FXQuerySolution(Map<String, RDFNode> map) {
+        this.map = Collections.unmodifiableMap(map);
+    }
+    private FXQuerySolution(Binding binding) {
         this.map = Collections.unmodifiableMap(map);
     }
     public static final QuerySolution make(Map<String, RDFNode> map){
