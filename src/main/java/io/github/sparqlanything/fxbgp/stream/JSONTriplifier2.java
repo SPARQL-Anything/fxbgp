@@ -28,7 +28,7 @@ import static com.fasterxml.jackson.core.JsonToken.FIELD_NAME;
 import static com.fasterxml.jackson.core.JsonToken.START_ARRAY;
 import static com.fasterxml.jackson.core.JsonToken.START_OBJECT;
 
-public class JSONTriplifier2 implements Triplifier2{
+public class JSONTriplifier2 implements FXParser {
 
     @Example(resource = "https://sparql-anything.cc/example1.json", description = "Retrieving the lists of stars of the TV Series named \"Friends\" and \"Cougar Town\".", query = " PREFIX xyz: <http://sparql.xyz/facade-x/data/> PREFIX fx: <http://sparql.xyz/facade-x/ns/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> CONSTRUCT { ?s ?p ?o . } WHERE { SERVICE <x-sparql-anything:location=https://sparql-anything.cc/example1.json> { fx:properties fx:json.path.1 \"$[?(@.name==\\\"Friends\\\")].stars\" ; fx:json.path.2 \"$[?(@.name==\\\"Cougar Town\\\")].stars\" . ?s ?p ?o } } ")
     @Example(resource = "https://sparql-anything.cc/example1.json", description = "Retrieving the language of the TV series named \"Friends\".", query = "PREFIX xyz: <http://sparql.xyz/facade-x/data/> PREFIX fx: <http://sparql.xyz/facade-x/ns/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> SELECT ?language WHERE { SERVICE <x-sparql-anything:location=https://sparql-anything.cc/example1.json> { fx:properties fx:json.path \"$[?(@.name==\\\"Friends\\\")]\" . _:b0 xyz:language ?language } }")
@@ -56,17 +56,6 @@ public class JSONTriplifier2 implements Triplifier2{
     private static final Logger logger = LoggerFactory.getLogger(JSONTriplifier.class);
 
     private Set<String> literalKeys = new HashSet<>();
-
-
-    @Override
-    public Set<String> getMimeTypes() {
-        return Sets.newHashSet("application/json");
-    }
-
-    @Override
-    public Set<String> getExtensions() {
-        return Sets.newHashSet("json");
-    }
 
     @Override
     public void triplify(Properties properties, TriplifierEventsHandler eventsHandler) throws IOException, TriplifierHTTPException {
@@ -146,7 +135,7 @@ public class JSONTriplifier2 implements Triplifier2{
                     //builder.addValue(dataSourceId, containerId, i + 1, XYZ_NULL_NODE);
                 {
                     eventsHandler.onSlotNumber(i);
-                    eventsHandler.onValue(XYZ_NULL_NODE);
+                    eventsHandler.onValue(Triplifier.XYZ_NULL_NODE);
                 }
             }
             case END_ARRAY, END_OBJECT, FIELD_NAME, VALUE_EMBEDDED_OBJECT, NOT_AVAILABLE -> {
@@ -220,7 +209,7 @@ public class JSONTriplifier2 implements Triplifier2{
                     case VALUE_NULL -> {
                         if(includeNullValues){
                             eventsHandler.onSlotString(k);
-                            eventsHandler.onValue(XYZ_NULL_NODE);
+                            eventsHandler.onValue(Triplifier.XYZ_NULL_NODE);
                         }
                     }
                     case END_ARRAY, END_OBJECT, FIELD_NAME, VALUE_EMBEDDED_OBJECT, NOT_AVAILABLE -> {

@@ -70,9 +70,9 @@ public class FXStreamExecutor {
         executor.execute(() -> {
             // Run the parser and attach the listening tree patterns.
             // TODO choose the FX Parser specific to the format
-            Triplifier2 triplifier2 = Triplifier2.get(properties);
+            FXParser parser = Triplifier2.get(properties);
             try {
-                triplifier2.triplify(properties,
+                parser.triplify(properties,
                         new StreamEventsHandler(properties,
                                 FXProxyEventListener.make(patterns)));
                 complete = true;

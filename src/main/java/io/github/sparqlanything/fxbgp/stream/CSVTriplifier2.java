@@ -26,7 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.Properties;
 import java.util.Set;
 
-public class CSVTriplifier2 implements Triplifier2 {
+public class CSVTriplifier2 implements FXParser {
 
     @Example(resource = "https://sparql-anything.cc/examples/simple.tsv", query = "PREFIX xyz: <http://sparql.xyz/facade-x/data/> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT (AVG(xsd:float(?petalLength)) AS ?avgPetalLength) WHERE { SERVICE <x-sparql-anything:location=https://sparql-anything.cc/examples/simple.tsv,csv.headers=true,csv.format=TDF> { ?s xyz:Sepal_length ?length ; xyz:Petal_length ?petalLength FILTER ( xsd:float(?length) > 4.9 ) } }", description = "Compute the average petal length of the species having sepal length greater than 4.9")
     @Option(description = "It tells the CSV triplifier to use the headers of the CSV file for minting the properties of the generated triples.", validValues = "true/false")
@@ -211,14 +211,14 @@ public class CSVTriplifier2 implements Triplifier2 {
         return PropertyUtils.getBooleanProperty(properties, PROPERTY_HEADERS);
     }
 
-    @Override
-    public Set<String> getMimeTypes() {
-        return Sets.newHashSet("text/csv", "text/tab-separated-values");
-    }
-
-    @Override
-    public Set<String> getExtensions() {
-        return Sets.newHashSet("csv", "tsv", "tab");
-    }
+//    @Override
+//    public Set<String> getMimeTypes() {
+//        return Sets.newHashSet("text/csv", "text/tab-separated-values");
+//    }
+//
+//    @Override
+//    public Set<String> getExtensions() {
+//        return Sets.newHashSet("csv", "tsv", "tab");
+//    }
 }
 

@@ -1,12 +1,10 @@
 package io.github.sparqlanything.fxbgp.stream;
 
+import io.github.sparqlanything.model.TriplifierHTTPException;
+
 import java.io.IOException;
+import java.util.Properties;
 
-public abstract class FXParser {
-    protected FXNodeEventListener eventListener;
-    public FXParser(FXNodeEventListener eventListener) {
-        this.eventListener = eventListener;
-    }
-
-    public abstract void parse() throws IOException;
+public interface FXParser {
+    void triplify(Properties properties, TriplifierEventsHandler eventsHandler) throws IOException, TriplifierHTTPException;
 }
