@@ -261,7 +261,9 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
                 solution.add(Var.alloc(graphPN.getName()), dataSourceNode);
             }
         }
-        solutions.add(solution.build());
+        synchronized (solutions) {
+            solutions.add(solution.build());
+        }
     }
 
     private RDFNode toRDFNode(Node n){

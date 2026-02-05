@@ -53,17 +53,12 @@ class Matching {
      * @param contextPath
      * @param path
      */
-    private Matching(Map<FXNode, List<Node>> map, Set<FXNode> cursor, List<Node> contextPath, List<Node> path) {
+    private Matching(Map<FXNode, List<Node>> map, Set<FXNode> cursor, List<Node> contextPath, List<Node> path, Map<Node, Set<FXNode>> nodesMap) {
         this.map = map;
         this.cursor = cursor;
         this.contextPath = contextPath;
         this.path = path;
-        FXNode root = null;
-        for(Map.Entry<FXNode, List<Node>> entry : map.entrySet()) {
-            if(entry.getKey().isRoot()) root = entry.getKey();
-        }
-        if(root == null) throw new RuntimeException("root cannot be null");
-        populateNodeMap(root);
+        this.nodesMap = nodesMap;
     }
 
     private void populateNodeMap(FXNode cursor) {
@@ -179,7 +174,7 @@ class Matching {
     }
 
     public Matching copy(){
-        return new Matching(new HashMap(this.map), new HashSet<>(this.cursor), new ArrayList<>(this.contextPath), this.path);
+        return new Matching(new HashMap(this.map), new HashSet<>(this.cursor), new ArrayList<>(this.contextPath), this.path, new HashMap<>(this.nodesMap));
     }
 
     public Set<Matching> check(Node node, FX component) {
@@ -231,7 +226,8 @@ class Matching {
                 this.unresolvable = true;
             } else {
                 // We set the match and spawn, if needed
-                spawned.addAll(setAndSpawn(matched));
+                //spawned.addAll(setAndSpawn(matched));
+                spawned = setAndSpawn(matched);
             }
         }else if(matched.size() > 1){
             // We spawn all combinations and unset this matching
@@ -269,6 +265,7 @@ class Matching {
             // We spawn all possible combinations
             this.unresolvable = true;
         }
+
 
         // Check if the matching is partial, i.e. there is one or more unpending slots
         // One way to detect this is to check that all cursors are of the same type
@@ -337,12 +334,11 @@ class Matching {
     }
 
     private Set<Matching> setAndSpawn(Set<FXNode> matched){
-        Set<Matching> spawned = new HashSet<>();
+        //Set<Matching> spawned = new HashSet<>();
         for(FXNode c: matched){
             this.set(c, new ArrayList<>(path));
         }
-        spawned.addAll(spawn(matched));
-        return spawned;
+        return spawn(matched);
     }
 
     public void endContainer(){
@@ -375,7 +371,7 @@ class Matching {
 
     @Override
     public int hashCode() {
-        return this.getMap().hashCode() + 100;
+        return this.getMap().hashCode();
     }
 
     @Override

@@ -55,7 +55,9 @@ public class Run {
         if (props!= null) {
             for(String prop : props.split(";")){
                 String[] keyValue = prop.split("=");
-                properties.put(keyValue[0].trim(), keyValue[1].trim());
+                if(keyValue.length == 2){
+                    properties.put(keyValue[0].trim(), keyValue[1].trim());
+                }
             }
         }
         properties.setProperty("location", input.toURI().toString());
