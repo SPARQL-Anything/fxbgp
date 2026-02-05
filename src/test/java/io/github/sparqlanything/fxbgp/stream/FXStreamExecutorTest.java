@@ -44,7 +44,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_all_basic() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties(false)));
         show(it.iterator());
         Assert.assertEquals(21, it.size());
         Assert.assertTrue(
@@ -80,7 +80,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_all_headers() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties(false)));
         show(it.iterator());
         Assert.assertEquals(16, it.size());
         Assert.assertTrue(
@@ -121,7 +121,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_s1() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties(false)));
         Assert.assertEquals(1, it.size());
         Assert.assertTrue(it.iterator().next().get("a").getURI().endsWith("test1.csv#row2"));
         show(it.iterator());
@@ -131,7 +131,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_s2() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties(false)));
         Assert.assertEquals(1, it.size());
         Assert.assertTrue(it.iterator().next().get("a").getURI().endsWith("test1.csv#row2"));
         show(it.iterator());
@@ -140,7 +140,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_s3() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties(false)));
         Assert.assertEquals(1, it.size());
         Assert.assertTrue(it.iterator().next().get("a").getURI().endsWith("/test1.csv#row4"));
         Assert.assertTrue(it.iterator().next().get("r").getURI().endsWith("/test1.csv#"));
@@ -150,7 +150,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_s4() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties(false)));
         Assert.assertEquals(5, it.size());
         show(it.iterator());
         Assert.assertTrue(
@@ -167,7 +167,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_s5() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties(false)));
         Assert.assertEquals(1, it.size());
         Assert.assertTrue(
                 rem(it,
@@ -179,7 +179,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_s6() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties(false)));
         Assert.assertEquals(1, it.size());
         Assert.assertTrue(
                 rem(it,
@@ -200,7 +200,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_s8() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties(false)));
         Assert.assertEquals(1, it.size());
         show(it.iterator());
         Assert.assertTrue(
@@ -213,7 +213,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_s9() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties(false)));
         Assert.assertEquals(1, it.size());
         show(it.iterator());
         Assert.assertTrue(
@@ -227,7 +227,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_s10_headers() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties(false)));
         Assert.assertEquals(1, it.size());
         show(it.iterator());
         Assert.assertTrue(
@@ -240,7 +240,9 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     @Test
     public void test1_csv_s11() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
-        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
+        Properties p = properties(false);
+        p.setProperty("blank-nodes", "false");
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), p));
         Assert.assertEquals(1, it.size());
         show(it.iterator());
         Assert.assertTrue(
@@ -374,13 +376,19 @@ public class FXStreamExecutorTest extends BGPTestUtils {
         Assert.assertEquals(5,set(it).size());
         show(it);
     }
-
     private Properties properties() {
+        return properties(true);
+    }
+
+    private Properties properties(boolean blankNodes) {
         Properties properties = new Properties();
         properties.setProperty(IRIArgument.LOCATION.toString(), input.toString());
         if("headers".equals(flavour)){
             properties.setProperty(CSVTriplifier2.PROPERTY_HEADERS.toString(), "true");
         }
+
+        properties.setProperty("blank-nodes", blankNodes ? "true" : "false");
+
         String mediaType = null;
         if(input.getPath().endsWith(".csv")){
             mediaType = "text/csv";
@@ -428,6 +436,8 @@ public class FXStreamExecutorTest extends BGPTestUtils {
                         vvv = node.getURI().toString();
                     }else if(node.isLiteral()){
                         vvv = node.getLiteralLexicalForm().toString();
+                    }else if(node.isBlank()) {
+                        vvv = node.getBlankNodeLabel().toString();
                     }else{
                         throw new RuntimeException("This should not happen");
                     }
