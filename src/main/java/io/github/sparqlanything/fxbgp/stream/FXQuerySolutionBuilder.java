@@ -206,7 +206,8 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         this.matches.addAll(spawned);
 
         // Remove duplicates (hash code possibly changed)!
-        this.matches = new ArrayList<>(new HashSet<>(this.matches));
+        //this.matches = new ArrayList<>(new HashSet<>(this.matches));
+        //this.matches = new HashSet<>(this.matches);
         Set<Matching> completed = new HashSet<>();
         for(Matching matching: matches) {
             if (matching.getMap().size() == pattern.getSize()) {

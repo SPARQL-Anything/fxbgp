@@ -281,7 +281,7 @@ class Matching {
 
         // Check orphan variables.
         // For example, if one FXNode/?var is bound but a different FXNode/?var is not, mark as unresolvable
-        if(!unresolvable) {
+        if(!unresolvable && map.size() > 1) {
             for (Map.Entry<FXNode, List<Node>> entry : map.entrySet()) {
                 Node matchingNode = entry.getKey().getNode();
                 for (FXNode fxn : nodesMap.get(matchingNode)) {
