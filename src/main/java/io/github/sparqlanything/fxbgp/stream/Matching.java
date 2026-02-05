@@ -20,7 +20,7 @@ class Matching {
     private static final Logger L = LoggerFactory.getLogger(Matching.class);
     private Map<FXNode, List<Node>> map;
     private Map<Node, Set<FXNode>> nodesMap;
-
+    private Map<FXNode,FX> componentsMap;
     private Set<FXNode> cursor;
     private boolean unresolvable = false;
     private List<Node> contextPath = new ArrayList<>();
@@ -41,7 +41,7 @@ class Matching {
         this.map = new HashMap<>();
         this.contextPath = contextPath;
         this.path = path;
-        populateNodeMap(cursor);
+        populate(cursor);
         this.set(cursor, nodePath);
     }
 
@@ -53,24 +53,29 @@ class Matching {
      * @param contextPath
      * @param path
      */
-    private Matching(Map<FXNode, List<Node>> map, Set<FXNode> cursor, List<Node> contextPath, List<Node> path, Map<Node, Set<FXNode>> nodesMap) {
+    private Matching(Map<FXNode, List<Node>> map, Set<FXNode> cursor, List<Node> contextPath, List<Node> path, Map<Node, Set<FXNode>> nodesMap, Map<FXNode,FX> componentsMap) {
         this.map = map;
         this.cursor = cursor;
         this.contextPath = contextPath;
         this.path = path;
         this.nodesMap = nodesMap;
+        this.componentsMap = componentsMap;
     }
 
-    private void populateNodeMap(FXNode cursor) {
+    private void populate(FXNode cursor) {
         if(cursor.isRoot()) {
             nodesMap = new HashMap<>();
+            componentsMap = new HashMap<>();
         }
         if(!nodesMap.containsKey(cursor)) {
             nodesMap.put(cursor.getNode(), new HashSet<>());
         }
+        if(!componentsMap.containsKey(cursor.getNode())) {
+            componentsMap.put(cursor, cursor.getAnnotation().getTerm());
+        }
         nodesMap.get(cursor.getNode()).add(cursor);
         for(FXNode entry : cursor.getChildren()) {
-            populateNodeMap(entry);
+            populate(entry);
         }
     }
 
@@ -147,17 +152,17 @@ class Matching {
     }
 
     public boolean isValueOrTypeOrRoot(FXNode patternNode) {
-        FX t = patternNode.getAnnotation().getTerm();
+        FX t = componentsMap.get(patternNode);
         return t.equals(FX.Type) || t.equals(FX.Value) || t.equals(FX.Root);
     }
 
     public boolean isContainer(FXNode patternNode) {
-        FX t = patternNode.getAnnotation().getTerm();
+        FX t = componentsMap.get(patternNode);
         return t.equals(FX.Container);
     }
 
     public boolean isPredicate(FXNode patternNode) {
-        FX t = patternNode.getAnnotation().getTerm();
+        FX t = componentsMap.get(patternNode);
         return t.equals(FX.SlotNumber) || t.equals(FX.SlotString) || t.equals(FX.TypeProperty);
     }
 
@@ -174,7 +179,7 @@ class Matching {
     }
 
     public Matching copy(){
-        return new Matching(new HashMap(this.map), new HashSet<>(this.cursor), new ArrayList<>(this.contextPath), this.path, new HashMap<>(this.nodesMap));
+        return new Matching(new HashMap(this.map), new HashSet<>(this.cursor), this.contextPath, this.path, this.nodesMap, this.componentsMap);
     }
 
     public Set<Matching> check(Node node, FX component) {
@@ -184,7 +189,7 @@ class Matching {
         Set<FXNode> matched = new HashSet<>();
         for(FXNode c: cursor){
             for(FXNode newCursor: c.getChildren()){
-                if(newCursor.getAnnotation().getTerm().equals(component) &&
+                if(componentsMap.get(newCursor).equals(component) &&
                         nodeMatches(newCursor.getNode(), node)){
                     // Verify the values are in the right path
                     List<Node> cursorValue = map.get(c);
@@ -199,9 +204,9 @@ class Matching {
         if(matched.size() == 0) {
             // Do nothing
             // If cursor is a single container, ignore, otherwise, discard
-            if(cursor.size() == 1 && cursor.iterator().next().getAnnotation().getTerm().equals(FX.Container )) {
+            if(cursor.size() == 1 && componentsMap.get(cursor.iterator().next()).equals(FX.Container )) {
 
-            } else if(isPredicate(cursor.iterator().next().getAnnotation().getTerm())){
+            } else if(isPredicate(componentsMap.get(cursor.iterator().next()))){
                 // If cursors are predicates, since the value didn't match,
                 // Restore container
                 FXNode unmatchedPredicate = cursor.iterator().next(); // get the reference of one predicate
@@ -249,16 +254,11 @@ class Matching {
                 if(s.isEmpty()){
                     continue;
                 }
-                Set<FXNode> newSet = new HashSet<>();
-                for(Object sn: s){
-                    Set<FXNode> sns = new HashSet<>();
-                    for(FXNode c: (List<FXNode>) sn){
-                        newSet.add(c);
-                    }
-                }
                 Matching m = copy();
-                for(FXNode sn: newSet){
-                    m.set(sn, new ArrayList<>(path));
+                for(Object sn: s){
+                    for(FXNode c: (List<FXNode>) sn){
+                        m.set(c, new ArrayList<>(path));
+                    }
                 }
                 spawned.add(m);
             }
@@ -269,10 +269,12 @@ class Matching {
 
         // Check if the matching is partial, i.e. there is one or more unpending slots
         // One way to detect this is to check that all cursors are of the same type
-        for(FXNode c1: cursor){
-            for(FXNode c2: cursor){
-                if(!c1.getAnnotation().getTerm().equals(c2.getAnnotation().getTerm())){
-                    this.unresolvable = true;
+        if(cursor.size() > 1){
+            for(FXNode c1: cursor){
+                for(FXNode c2: cursor){
+                    if(!componentsMap.get(c1).equals(componentsMap.get(c2))){
+                        this.unresolvable = true;
+                    }
                 }
             }
         }
