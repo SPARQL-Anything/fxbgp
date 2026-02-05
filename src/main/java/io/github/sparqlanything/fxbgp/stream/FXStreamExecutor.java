@@ -13,6 +13,7 @@ import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.algebra.op.OpGraph;
 import org.apache.jena.sparql.engine.QueryIterator;
 import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.engine.iterator.QueryIteratorBase;
 import org.apache.jena.sparql.serializer.SerializationContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,7 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
@@ -66,8 +68,7 @@ public class FXStreamExecutor {
         }
 
         // Parsing thread vs solution thread
-        Executor executor = Executors.newCachedThreadPool();
-
+        final ExecutorService executor = Executors.newCachedThreadPool();
         executor.execute(() -> {
             // Run the parser and attach the listening tree patterns.
             // TODO choose the FX Parser specific to the format
@@ -88,10 +89,10 @@ public class FXStreamExecutor {
         });
 
         // Solution returns the iteator and waits
-        return new QueryIterator() {
+        return new QueryIteratorBase() {
 
             @Override
-            public boolean hasNext() {
+            public boolean hasNextBinding() {
 //                System.out.println("before hasNext");
                 if(!complete) {
                     while(bindings.isEmpty() && !complete) {
@@ -118,30 +119,17 @@ public class FXStreamExecutor {
 
             @Override
             public void close() {
-                // XXX What to do here?
-//                System.out.println("close");
+                executor.shutdown();
             }
 
             @Override
             public void output(IndentedWriter indentedWriter) {
-//                System.out.println("output 2");
+
             }
 
             @Override
-            public Binding nextBinding() {
+            public Binding moveToNextBinding() {
 //                System.out.println("nextBinding");
-                return next();
-            }
-
-            @Override
-            public void cancel() {
-//                System.out.println("cancel");
-                // XXX What to do here?
-            }
-
-            @Override
-            public Binding next() {
-//                System.out.println("next (before)");
                 Binding solution;
                 synchronized (bindings) {
                     solution = bindings.iterator().next();
@@ -149,6 +137,16 @@ public class FXStreamExecutor {
                 }
 //                System.out.println("next (after");
                 return solution;
+            }
+
+            @Override
+            protected void closeIterator() {
+                System.err.println("close iterator!");
+            }
+
+            @Override
+            protected void requestCancel() {
+                System.err.println("cancel iterator!");
             }
         };
     }

@@ -8,6 +8,7 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.query.ARQ;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFactory;
+import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.resultset.ResultSetWriter;
@@ -80,11 +81,7 @@ public class Run {
 
         ResultSetWriterRegistry.init();
         ResultSet rs = ResultSetFactory.create(qi, vars);
+        ResultSetFormatter.outputAsCSV(out, rs);
 
-        ResultSetWriter rw = ResultSetWriterRegistry.getFactory(Lang.CSV).create(Lang.CSV);
-        rw.write(out, rs, ARQ.getContext());
-
-        out.close();
-        System.exit(0);
     }
 }
