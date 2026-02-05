@@ -67,6 +67,7 @@ public class FXStreamExecutor {
 
         // Parsing thread vs solution thread
         Executor executor = Executors.newCachedThreadPool();
+
         executor.execute(() -> {
             // Run the parser and attach the listening tree patterns.
             // TODO choose the FX Parser specific to the format
@@ -83,6 +84,7 @@ public class FXStreamExecutor {
                 complete = true; // Let's leave the other thread in peace.
                 throw new RuntimeException(e);
             }
+//            L.error("Execution complete in inner thread");
         });
 
         // Solution returns the iteator and waits
@@ -90,51 +92,62 @@ public class FXStreamExecutor {
 
             @Override
             public boolean hasNext() {
+//                System.out.println("before hasNext");
                 if(!complete) {
                     while(bindings.isEmpty() && !complete) {
                         // Wait for the other thread
+//                        System.out.print(".");
                     }
                 }
+//                System.out.println("after hasNext");
+                //L.error("Returning {}", retu);
                 return bindings.iterator().hasNext();
             }
 
             @Override
             public void output(IndentedWriter indentedWriter, SerializationContext serializationContext) {
-
+//                System.out.println("output");
+                //for(Binding binding : bindings) {}
             }
 
             @Override
             public String toString(PrefixMapping prefixMapping) {
+//                System.out.println("toString");
                 return "";
             }
 
             @Override
             public void close() {
                 // XXX What to do here?
+//                System.out.println("close");
             }
 
             @Override
             public void output(IndentedWriter indentedWriter) {
-
+//                System.out.println("output 2");
             }
 
             @Override
             public Binding nextBinding() {
-               return next();
+//                System.out.println("nextBinding");
+                return next();
             }
 
             @Override
             public void cancel() {
+//                System.out.println("cancel");
                 // XXX What to do here?
             }
 
             @Override
             public Binding next() {
+//                System.out.println("next (before)");
                 Binding solution;
                 synchronized (bindings) {
                     solution = bindings.iterator().next();
                     bindings.remove(solution);
                 }
+//                System.out.println("next (after");
                 return solution;
             }
         };

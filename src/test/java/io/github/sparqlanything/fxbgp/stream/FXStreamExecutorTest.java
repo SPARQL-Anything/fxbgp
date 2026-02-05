@@ -1,11 +1,13 @@
 package io.github.sparqlanything.fxbgp.stream;
 
+
 import io.github.sparqlanything.fxbgp.BGPTestUtils;
 import io.github.sparqlanything.model.IRIArgument;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.resultset.ResultSetWriterRegistry;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.algebra.op.OpGraph;
 import org.apache.jena.sparql.core.BasicPattern;
@@ -258,6 +260,23 @@ public class FXStreamExecutorTest extends BGPTestUtils {
         }
     }
 
+    @Test
+    public void test1_csv_s13() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties()));
+        Assert.assertEquals(1, it.size());
+        show(it.iterator());
+        for(Binding w: it){
+            Assert.assertTrue(w.get("b1").equals(w.get("b2")));
+        }
+    }
+    @Test
+    public void writers(){
+        ResultSetWriterRegistry.init();
+        for(Lang l :ResultSetWriterRegistry.registered()){
+            L.info("registered: {}", l);
+        }
+    }
 
     @Test
     public void test1_csv_n1() throws IOException, NotATreeException {
