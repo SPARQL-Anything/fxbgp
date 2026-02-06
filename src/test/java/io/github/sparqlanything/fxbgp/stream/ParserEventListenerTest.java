@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Properties;
 
 public class ParserEventListenerTest {
@@ -23,9 +24,10 @@ public class ParserEventListenerTest {
     @Test
     public void test1() throws IOException, TriplifierHTTPException {
         String n = name.getMethodName();
+
         FXNodeEventListener listener = new FXAbstractNodeEventListener() {
             public void startContainer(Node container) {
-                L.info("startContainer: {}", container);
+                 L.info("startContainer: {}", container);
             }
 
             @Override
@@ -67,7 +69,12 @@ public class ParserEventListenerTest {
         String location = getClass().getClassLoader().getResource("stream/" + n + ".csv").getPath();
         properties.setProperty(IRIArgument.LOCATION.toString(), location);
         properties.setProperty(CSVTriplifier.PROPERTY_HEADERS.toString(), "true");
-        CSVTriplifier2 triplifier2 = new CSVTriplifier2();
-        triplifier2.triplify(properties, new StreamEventsHandler(properties, listener));
+        CSVStreamParser parser = new CSVStreamParser(properties);
+        FXParserQueryIterator qi = new FXParserQueryIterator(parser, new StreamEventsHandler(properties, listener), Collections.emptySet());
+        int events = 0;
+        while(qi.hasNext()) {
+
+        }
+
     }
 }

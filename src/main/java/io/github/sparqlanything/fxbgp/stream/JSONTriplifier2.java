@@ -28,6 +28,7 @@ import static com.fasterxml.jackson.core.JsonToken.FIELD_NAME;
 import static com.fasterxml.jackson.core.JsonToken.START_ARRAY;
 import static com.fasterxml.jackson.core.JsonToken.START_OBJECT;
 
+@Deprecated
 public class JSONTriplifier2 implements FXParser {
 
     @Example(resource = "https://sparql-anything.cc/example1.json", description = "Retrieving the lists of stars of the TV Series named \"Friends\" and \"Cougar Town\".", query = " PREFIX xyz: <http://sparql.xyz/facade-x/data/> PREFIX fx: <http://sparql.xyz/facade-x/ns/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> CONSTRUCT { ?s ?p ?o . } WHERE { SERVICE <x-sparql-anything:location=https://sparql-anything.cc/example1.json> { fx:properties fx:json.path.1 \"$[?(@.name==\\\"Friends\\\")].stars\" ; fx:json.path.2 \"$[?(@.name==\\\"Cougar Town\\\")].stars\" . ?s ?p ?o } } ")
