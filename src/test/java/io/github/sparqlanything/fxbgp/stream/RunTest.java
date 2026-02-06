@@ -1,5 +1,6 @@
 package io.github.sparqlanything.fxbgp.stream;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -19,6 +20,7 @@ public class RunTest {
         execute();
     }
 
+    @Ignore
     @Test
     public void runProfile() throws IOException, NotATreeException {
         String path = "/Users/ed4565/Development/sparql-anything/fxstream-test/in/customers-10000.csv";
