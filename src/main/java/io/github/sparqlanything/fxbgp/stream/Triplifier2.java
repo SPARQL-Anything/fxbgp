@@ -7,6 +7,7 @@ import io.github.sparqlanything.model.TriplifierHTTPException;
 import java.io.IOException;
 import java.util.Properties;
 
+@Deprecated
 public interface Triplifier2 extends Triplifier {
     // XXX Ignore old method
     default void triplify(Properties properties, FacadeXGraphBuilder builder) throws IOException, TriplifierHTTPException {}
