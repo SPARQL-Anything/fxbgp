@@ -16,8 +16,6 @@ public interface FXStreamParser extends Iterator<FXEventType> {
         return nextType();
     }
 
-    Object get(FXEventType eventType);
-
     Object getValue();
 
     String getContainer();
@@ -37,4 +35,32 @@ public interface FXStreamParser extends Iterator<FXEventType> {
     boolean isCancelled();
 
     void cancel();
+
+    default Object get(FXEventType eventType) {
+        switch (eventType) {
+            case StartDataSource -> {
+                return getDataSource();
+            }
+            case StartRoot ->  {
+                return getRoot();
+            }
+            case StartContainer ->   {
+                return getContainer();
+            }
+            case SlotNumber ->   {
+                return getSlotNumber();
+            }
+            case SlotString ->  {
+                return getSlotString();
+            }
+            case Value ->   {
+                return getValue();
+            }
+            case Type ->   {
+                return getType();
+            }
+        }
+
+        throw new RuntimeException("unsupported event type");
+    }
 }

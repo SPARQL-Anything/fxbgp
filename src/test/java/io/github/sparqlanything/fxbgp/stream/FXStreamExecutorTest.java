@@ -1,11 +1,14 @@
 package io.github.sparqlanything.fxbgp.stream;
 
 
+import com.google.gson.internal.bind.JsonTreeReader;
 import io.github.sparqlanything.fxbgp.BGPTestUtils;
+import io.github.sparqlanything.json.JSONTriplifier;
 import io.github.sparqlanything.model.IRIArgument;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.query.QuerySolution;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.resultset.ResultSetWriterRegistry;
 import org.apache.jena.sparql.algebra.op.OpBGP;
@@ -358,9 +361,10 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     public void test1_json_all() throws IOException, NotATreeException {
         String name = testName.getMethodName();
         prepare(name);
-        QueryIterator it = executor.exec(new OpBGP(bp), properties());
-        Assert.assertEquals(7,set(it).size());
-        show(it);
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), propertiesNullValueTrue()));
+        show(it.iterator());
+        Assert.assertEquals(8,it.size());
+
     }
 
     @Test
@@ -377,11 +381,18 @@ public class FXStreamExecutorTest extends BGPTestUtils {
         Assert.assertEquals(5,set(it).size());
         show(it);
     }
+
+    private Properties properties(boolean blankNodes){
+        return properties(blankNodes, false);
+    }
     private Properties properties() {
-        return properties(true);
+        return properties(true, false);
+    }
+    private Properties propertiesNullValueTrue() {
+        return properties(true, true);
     }
 
-    private Properties properties(boolean blankNodes) {
+    private Properties properties(boolean blankNodes, boolean nullValues) {
         Properties properties = new Properties();
         properties.setProperty(IRIArgument.LOCATION.toString(), input.toString());
         if("headers".equals(flavour)){
@@ -389,6 +400,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
         }
 
         properties.setProperty("blank-nodes", blankNodes ? "true" : "false");
+        properties.setProperty(JSONTriplifier.PROPERTY_JSONINCLUDENULLVALUES.toString(), nullValues ? "true" : "false");
 
         String mediaType = null;
         if(input.getPath().endsWith(".csv")){
