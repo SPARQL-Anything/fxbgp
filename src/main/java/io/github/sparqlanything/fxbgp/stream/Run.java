@@ -50,7 +50,7 @@ public class Run {
             }
         }
 
-        FXStreamExecutor exec = new FXStreamExecutor();
+        FXStreamExecutor2 exec = new FXStreamExecutor2();
         Properties properties = new Properties();
         if (props!= null) {
             for(String prop : props.split(";")){

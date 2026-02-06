@@ -14,6 +14,8 @@ public interface TriplifierEventsHandler {
 
     void onValue(Object obj);
 
+    void onType(String type);
+
     void endContainer();
 
     void endRoot();

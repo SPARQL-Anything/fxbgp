@@ -122,7 +122,7 @@ public class CSVTriplifier2 implements FXParser {
         return format;
     }
 
-    public LinkedHashMap<Integer, String> makeHeadersMapFromOpenIterator(Iterator<CSVRecord> recordIterator, Properties properties, CSVFormat format, Charset charset) throws TriplifierHTTPException, IOException {
+    public static LinkedHashMap<Integer, String> makeHeadersMapFromOpenIterator(Iterator<CSVRecord> recordIterator, Properties properties, CSVFormat format, Charset charset) throws TriplifierHTTPException, IOException {
         int headersRow = PropertyUtils.getIntegerProperty(properties, PROPERTY_HEADER_ROW);
         Iterator<CSVRecord> iterator = recordIterator;
         if (headersRow > 0) {

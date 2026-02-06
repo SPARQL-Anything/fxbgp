@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import io.github.sparqlanything.model.FacadeXAbstractNodeBuilder;
+import io.github.sparqlanything.model.Triplifier;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.vocabulary.RDF;
@@ -81,6 +82,14 @@ public class StreamEventsHandler extends FacadeXAbstractNodeBuilder implements T
     public void onValue(Object obj) {
         L.trace("onValue {}", obj);
         this.eventListener.onValue(this.value2node(obj));
+    }
+
+    @Override
+    public void onType(String type) {
+        L.trace("onType {}", type);
+        // FIXME Method seem missing on FacadeXNodeBuilder!
+        this.eventListener.onTypeProperty();
+        this.eventListener.onType(NodeFactory.createURI(this.getNamespace().concat(Triplifier.toSafeURIString(type))));
     }
 
     @Override

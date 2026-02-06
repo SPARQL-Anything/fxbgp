@@ -29,7 +29,8 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 public class FXStreamExecutorTest extends BGPTestUtils {
-    FXStreamExecutor executor;
+    FXStreamExecutor2 executor;
+    //FXStreamExecutor2 executor2;
     @Rule
     public TestName testName = new TestName();
     private URL input;
@@ -38,7 +39,7 @@ public class FXStreamExecutorTest extends BGPTestUtils {
     private String mediaType;
     @Before
     public void before(){
-        executor = new FXStreamExecutor();
+        executor = new FXStreamExecutor2();
     }
 
     @Test
