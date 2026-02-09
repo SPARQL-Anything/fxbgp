@@ -36,7 +36,7 @@ public class JSONStreamParser implements FXStreamParser {
     private String slotString;
     private String root;
     //
-    private boolean recordContainerReady;
+    //private boolean recordContainerReady;
     private boolean completed;
     private boolean  cancelled;
     //
@@ -44,10 +44,12 @@ public class JSONStreamParser implements FXStreamParser {
     private JsonParser parser;
     private JsonToken token;
     private boolean includeNullValues;
-    private boolean sendSlotNumber;
+    //
     private int containerIndex;
     private boolean inArray;
+    private boolean waitForArrayItem = false;
     private Map<Integer,Integer> arrayIndexes = new HashMap<>();
+    //
     public JSONStreamParser(Properties properties) {
         this.properties = properties;
         this.eventType = null;
@@ -74,25 +76,28 @@ public class JSONStreamParser implements FXStreamParser {
             return initRoot();
         }
 
-        // Handle SlotNumber when container is Array
-        if(inArray && sendSlotNumber){
-            eventType = FXEventType.SlotNumber;
-            slotNumber = arrayIndexes.get(containerIndex) + 1;
-            sendSlotNumber = false;
-            return true;
-        }
-
         //
-        try {
-            token = parser.nextToken();
-        } catch (IOException e) {
-            L.error("", e);
-            throw new RuntimeException("This should never happen");
+        if(!waitForArrayItem) {
+            try {
+                token = parser.nextToken();
+            } catch (IOException e) {
+                L.error("", e);
+                throw new RuntimeException("This should never happen");
+            }
         }
 
         switch(token) {
             case START_ARRAY:
             case START_OBJECT:
+                // Manage when this happens within an array
+                if(inArray && !waitForArrayItem){
+                    this.eventType = FXEventType.SlotNumber;
+                    this.slotNumber = this.arrayIndexes.get(this.containerIndex) + 1;
+                    this.arrayIndexes.put(this.containerIndex, this.slotNumber);
+                    this.waitForArrayItem = true;
+                    return true;
+                }
+                this.waitForArrayItem = false;
                 this.container = (this.container == null) ? this.root : this.container;
                 // From string or from int?
                 if(this.eventType == FXEventType.SlotString){
@@ -102,18 +107,16 @@ public class JSONStreamParser implements FXStreamParser {
                 }
                 this.eventType = FXEventType.StartContainer;
                 this.containerIndex++;
-                if(this.token == START_ARRAY){
-                    // Setup array
-                    this.arrayIndexes.put(this.containerIndex, 0);
+                if(token == START_ARRAY){
                     this.inArray = true;
-                    this.sendSlotNumber = true;
+                    this.arrayIndexes.put(this.containerIndex, 0);
                 }
                 return true;
             case END_ARRAY:
             case END_OBJECT:
-                this.inArray = false;
-                this.sendSlotNumber = false;
                 this.containerIndex--;
+                // Is the containing element an array?
+                this.inArray = arrayIndexes.containsKey(this.containerIndex);
                 if(this.containerIndex == 0){
                     this.eventType = FXEventType.EndRoot;
                     this.complete();
@@ -129,11 +132,16 @@ public class JSONStreamParser implements FXStreamParser {
                     throw new RuntimeException(e);
                 }
                 return true;
-
             case VALUE_STRING:
-                if(inArray) {
-                    this.sendSlotNumber = true;
+                // Manage when this happens within an array
+                if(inArray && !waitForArrayItem){
+                    this.eventType = FXEventType.SlotNumber;
+                    this.slotNumber = this.arrayIndexes.get(this.containerIndex) + 1;
+                    this.arrayIndexes.put(this.containerIndex, this.slotNumber);
+                    this.waitForArrayItem = true;
+                    return true;
                 }
+                this.waitForArrayItem = false;
                 this.eventType = FXEventType.Value;
                 try {
                     this.value = parser.getValueAsString();
@@ -143,9 +151,16 @@ public class JSONStreamParser implements FXStreamParser {
                 return true;
             case VALUE_NULL:
                 if(includeNullValues){
-                    if(inArray) {
-                        this.sendSlotNumber = true;
+                    // Manage when this happens within an array
+                    if(inArray && !waitForArrayItem){
+                        this.eventType = FXEventType.SlotNumber;
+                        this.slotNumber = this.arrayIndexes.get(this.containerIndex) + 1;
+                        this.arrayIndexes.put(this.containerIndex, this.slotNumber);
+                        this.inArray = true;
+                        this.waitForArrayItem = true;
+                        return true;
                     }
+                    this.waitForArrayItem = false;
                     this.eventType = FXEventType.Value;
                     this.value = Triplifier.XYZ_NULL_NODE;
                     return true;
@@ -153,9 +168,15 @@ public class JSONStreamParser implements FXStreamParser {
                     return hasNextEvent();
                 }
             case VALUE_NUMBER_INT:
-                if(inArray) {
-                    this.sendSlotNumber = true;
+                // Manage when this happens within an array
+                if(inArray && !waitForArrayItem){
+                    this.eventType = FXEventType.SlotNumber;
+                    this.slotNumber = this.arrayIndexes.get(this.containerIndex) + 1;
+                    this.arrayIndexes.put(this.containerIndex, this.slotNumber);
+                    this.waitForArrayItem = true;
+                    return true;
                 }
+                this.waitForArrayItem = false;
                 this.eventType = FXEventType.Value;
                 try {
                     this.value = parser.getValueAsInt();
@@ -165,9 +186,15 @@ public class JSONStreamParser implements FXStreamParser {
                 return true;
             case VALUE_TRUE:
             case VALUE_FALSE:
-                if(inArray) {
-                    this.sendSlotNumber = true;
+                // Manage when this happens within an array
+                if(inArray && !waitForArrayItem){
+                    this.eventType = FXEventType.SlotNumber;
+                    this.slotNumber = this.arrayIndexes.get(this.containerIndex) + 1;
+                    this.arrayIndexes.put(this.containerIndex, this.slotNumber);
+                    this.waitForArrayItem = true;
+                    return true;
                 }
+                this.waitForArrayItem = false;
                 this.eventType = FXEventType.Value;
                 try {
                     this.value = parser.getValueAsBoolean();
@@ -176,9 +203,15 @@ public class JSONStreamParser implements FXStreamParser {
                 }
                 return true;
             case VALUE_NUMBER_FLOAT:
-                if(inArray) {
-                    this.sendSlotNumber = true;
+                // Manage when this happens within an array
+                if(inArray && !waitForArrayItem){
+                    this.eventType = FXEventType.SlotNumber;
+                    this.slotNumber = this.arrayIndexes.get(this.containerIndex) + 1;
+                    this.arrayIndexes.put(this.containerIndex, this.slotNumber);
+                    this.waitForArrayItem = true;
+                    return true;
                 }
+                this.waitForArrayItem = false;
                 this.eventType = FXEventType.Value;
                 try {
                     this.value = parser.getValueAsDouble();

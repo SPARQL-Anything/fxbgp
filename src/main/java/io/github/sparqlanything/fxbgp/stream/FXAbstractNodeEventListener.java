@@ -6,10 +6,9 @@ import org.slf4j.LoggerFactory;
 
 public abstract class FXAbstractNodeEventListener implements FXNodeEventListener {
     private Logger L = LoggerFactory.getLogger(FXAbstractNodeEventListener.class);
-
     @Override
     public void startDataSource(Node dataSource) {
-        L.trace("startDataSource: {}", dataSource);
+        L.trace("startDataSource: {} {}", dataSource);
     }
 
     @Override

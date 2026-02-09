@@ -53,7 +53,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
 
     @Override
     public void startDataSource(Node dataSource) {
-        L.trace("startDataSource: {}", dataSource);
+        super.startDataSource(dataSource);
         if(this.pattern.isGraphPattern()){
             if(Matching.nodeMatches(this.pattern.getGraphPatternNode(), dataSource)){
                 dataSourceNode = dataSource;
@@ -206,8 +206,6 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         this.matches.addAll(spawned);
 
         // Remove duplicates (hash code possibly changed)!
-        //this.matches = new ArrayList<>(new HashSet<>(this.matches));
-        //this.matches = new HashSet<>(this.matches);
         Set<Matching> completed = new HashSet<>();
         for(Matching matching: matches) {
             if (matching.getMap().size() == pattern.getSize()) {
@@ -265,25 +263,6 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         synchronized (solutions) {
             solutions.add(solution.build());
         }
-    }
-
-    private RDFNode toRDFNode(Node n){
-        if(n.isURI()){
-            return ResourceFactory.createResource(n.getURI());
-        }else if(n.isBlank()){
-            return ResourceFactory.createResource(n.getBlankNodeLabel());
-        }else if(n.isVariable()){
-            throw new RuntimeException("Cannot be variable");
-        } else if(n.isLiteral()){
-            if (n.getLiteralLanguage() != null) {
-                return ResourceFactory.createLangLiteral(n.getLiteralLexicalForm(), n.getLiteralLanguage());
-            }else if(n.getLiteralDatatype() != null){
-                return ResourceFactory.createTypedLiteral(n.getLiteralLexicalForm(), n.getLiteralDatatype());
-            }else{
-                return ResourceFactory.createPlainLiteral(n.getLiteralLexicalForm());
-            }
-        }
-        throw new RuntimeException("This should never happen");
     }
 
     private static String TMP_LOG = null;

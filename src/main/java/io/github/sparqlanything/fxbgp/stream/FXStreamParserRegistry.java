@@ -10,6 +10,8 @@ public class FXStreamParserRegistry {
             return new JSONStreamParser(properties);
         }else if(mediaType.contains("csv")){
             return new CSVStreamParser(properties);
+        }else if(mediaType.contains("xml")){
+            return new XMLStreamParser(properties);
         }
         throw new RuntimeException("media-type not found");
     }

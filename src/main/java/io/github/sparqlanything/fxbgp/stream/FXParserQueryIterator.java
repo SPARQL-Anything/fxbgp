@@ -1,29 +1,33 @@
 package io.github.sparqlanything.fxbgp.stream;
 
-import io.github.sparqlanything.fxbgp.FX;
 import org.apache.jena.atlas.io.IndentedWriter;
-import org.apache.jena.sparql.engine.QueryIterator;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.iterator.QueryIteratorBase;
 import org.apache.jena.sparql.serializer.SerializationContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Set;
 
 public class FXParserQueryIterator extends QueryIteratorBase {
-    FXStreamParser parser;
-    Set<Binding> bindings;
-    StreamEventsHandler handler;
+    private Logger L = LoggerFactory.getLogger(FXParserQueryIterator.class);
+    private FXStreamParser parser;
+    private Set<Binding> bindings;
+    private StreamEventsHandler handler;
+
     public FXParserQueryIterator(FXStreamParser parser, StreamEventsHandler handler, Set<Binding> bindings) {
         this.parser = parser;
         this.bindings = bindings;
         this.handler = handler;
     }
+
     @Override
     protected boolean hasNextBinding() {
         while(bindings.isEmpty() && !parser.isCompleted()) {
             // Keep moving until you get some binding
             if(parser.hasNext()) {
                 FXEventType event = parser.nextType();
+                L.info(">>> {}", event);
                 switch(event) {
                     case StartDataSource -> { handler.onDataSource(parser.getDataSource());}
                     case StartRoot -> {handler.startRoot(parser.getRoot());}
