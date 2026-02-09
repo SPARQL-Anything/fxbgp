@@ -114,15 +114,15 @@ public class JSONStreamParser implements FXStreamParser {
                 return true;
             case END_ARRAY:
             case END_OBJECT:
-                this.containerIndex--;
-                // Is the containing element an array?
-                this.inArray = arrayIndexes.containsKey(this.containerIndex);
                 if(this.containerIndex == 0){
                     this.eventType = FXEventType.EndRoot;
                     this.complete();
                 }else {
                     this.eventType = FXEventType.EndContainer;
                 }
+                this.containerIndex--;
+                // Is the containing element an array?
+                this.inArray = arrayIndexes.containsKey(this.containerIndex);
                 return true;
             case FIELD_NAME:
                 this.eventType = FXEventType.SlotString;
