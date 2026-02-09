@@ -45,6 +45,14 @@ public class FXStreamExecutorTest extends BGPTestUtils {
         executor = new FXStreamExecutor();
     }
 
+
+    @Test
+    public void test1_xml_all_basic() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), properties(false)));
+        show(it.iterator());
+    }
+
     @Test
     public void test1_csv_all_basic() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
@@ -407,6 +415,8 @@ public class FXStreamExecutorTest extends BGPTestUtils {
             mediaType = "text/csv";
         }else if(input.getPath().endsWith(".json")){
             mediaType = "application/json";
+        }else if(input.getPath().endsWith(".xml")){
+            mediaType = "application/xml";
         }
         properties.setProperty("media-type", mediaType);
         return properties;

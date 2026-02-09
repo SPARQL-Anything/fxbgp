@@ -53,7 +53,8 @@ public class XMLStreamParser implements FXStreamParser{
     private Attribute attribute = null;
     private boolean startCharacters = false;
     private StringBuilder charBuilder = null;
-
+    private int containerIndex = 0;
+    private Map<Integer,Integer> containerCounter = new HashMap<>();
     public XMLStreamParser(Properties properties) {
         this.properties = properties;
     }
@@ -87,7 +88,17 @@ public class XMLStreamParser implements FXStreamParser{
 
         if(event.isStartElement()){
             if(!containerStarted && !checkForAttributes) {
-                this.slotNumber = 0;
+                // If we are within another container, advance index
+                // If root was set, we are within another container
+                if(this.root != null && moveToNext){
+                    // If this is the case, we are within another container
+                    this.slotNumber = this.containerCounter.get(this.containerIndex) + 1;
+                    this.containerCounter.put(this.containerIndex, this.slotNumber);
+                    this.eventType = FXEventType.SlotNumber;
+                    moveToNext = false;
+                    return true;
+                }
+
                 // StartContainer
                 if(root == null){
                     this.eventType = FXEventType.StartRoot;
@@ -95,6 +106,8 @@ public class XMLStreamParser implements FXStreamParser{
                 }else{
                     this.eventType = FXEventType.StartContainer;
                 }
+                this.containerIndex++;
+                this.containerCounter.put(this.containerIndex, 0);
                 // Set Container and Prepare type
                 StartElement se = event.asStartElement();
                 String name;
@@ -104,7 +117,11 @@ public class XMLStreamParser implements FXStreamParser{
                 } else {
                     name = se.getName().getPrefix() + ":" + se.getName().getLocalPart();
                 }
-                this.path.add(name);
+                if(containerIndex > 1) {
+                    this.path.add(this.slotNumber + ":" + name);
+                }else{
+                    this.path.add(name);
+                }
                 // Set container type
                 this.type = name;
                 containerStarted = true;
@@ -112,7 +129,7 @@ public class XMLStreamParser implements FXStreamParser{
                     this.attributes = se.asStartElement().getAttributes();
                 }
                 moveToNext = false; // We must trigger Type
-                this.container = String.join("/", this.path);
+                this.container = String.join("/", this.path) ;
                 return true;
             }else if (containerStarted){
                 this.eventType = FXEventType.Type;
@@ -152,18 +169,22 @@ public class XMLStreamParser implements FXStreamParser{
                 this.dataSource = null;
                 this.path = new ArrayList<>();
                 this.eventType = FXEventType.EndRoot;
+                this.completed = true;
             } else {
                 path.remove(path.size() - 1);
                 this.eventType = FXEventType.EndContainer;
             }
+            this.containerCounter.remove(this.containerIndex);
+            this.containerIndex--;
             return true;
         }else if(event.isCharacters()){
             if(!startCharacters) {
                 // Trigger slot number
-                this.slotNumber += 1;
+                this.slotNumber = this.containerCounter.get(this.containerIndex) + 1;
                 this.eventType = FXEventType.SlotNumber;
                 this.startCharacters = true;
                 this.moveToNext = false;
+                this.containerCounter.put(this.containerIndex, this.slotNumber);
                 return true;
             }else if(startCharacters && charBuilder == null){
                 // Collect value
@@ -181,9 +202,15 @@ public class XMLStreamParser implements FXStreamParser{
                     }
                 }
                 this.moveToNext = false; // We already moved to the next one
-                this.value = charBuilder.toString();
-                this.eventType = FXEventType.Value;
-                return true;
+                String chars = charBuilder.toString().trim();
+                if(chars.length() == 0){
+                    // Ignore event
+                    return hasNextEvent();
+                }else {
+                    this.value = charBuilder.toString();
+                    this.eventType = FXEventType.Value;
+                    return true;
+                }
             }
         }
         return false;
