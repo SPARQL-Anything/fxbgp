@@ -109,8 +109,8 @@ public class FXQuerySolutionBuilderTest extends BGPTestUtils {
         // A,B,C
         // 1,2,3
         Node root = b();
-        Node a = RDF.type.asNode();
-        Node fxr = NodeFactory.createURI("http://sparql.xyz/facade-x/ns/root");
+        //Node a = RDF.type.asNode();
+        //Node fxr = NodeFactory.createURI("http://sparql.xyz/facade-x/ns/root");
         Node r_1 = RDF.li(1).asNode();
         Node row1 = b();
         Node r_2 = RDF.li(2).asNode();
@@ -124,10 +124,15 @@ public class FXQuerySolutionBuilderTest extends BGPTestUtils {
         Node _1 = l("1");
         Node _2 = l("2");
         Node _3 = l("3");
+
+        this.builder.startDataSource(root);
+
         this.builder.startContainer(root);
         this.builder.onTypeProperty();
         this.builder.onTypeRoot();
+
         this.builder.onSlotNumber(r_1);
+
         this.builder.startContainer(row1);
         this.builder.onSlotNumber(c_1);
         this.builder.onValue(A);
@@ -136,7 +141,9 @@ public class FXQuerySolutionBuilderTest extends BGPTestUtils {
         this.builder.onSlotNumber(c_3);
         this.builder.onValue(C);
         this.builder.endContainer();
+
         this.builder.onSlotNumber(r_2);
+
         this.builder.startContainer(row2);
         this.builder.onSlotNumber(c_1);
         this.builder.onValue(_1);
@@ -145,6 +152,7 @@ public class FXQuerySolutionBuilderTest extends BGPTestUtils {
         this.builder.onSlotNumber(c_3);
         this.builder.onValue(_3);
         this.builder.endContainer();
+
         this.builder.endContainer();
     }
 }
