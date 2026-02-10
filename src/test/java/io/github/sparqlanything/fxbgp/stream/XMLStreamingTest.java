@@ -39,6 +39,7 @@ public class XMLStreamingTest extends FXStreamExecutorTest{
         show(getGraphFrom_abc(it));
 
     }
+
     @Test
     public void test2_xml_all_ABCEquals() throws TriplifierHTTPException, IOException, NotATreeException {
         prepare(testName.getMethodName());
@@ -49,5 +50,13 @@ public class XMLStreamingTest extends FXStreamExecutorTest{
     }
 
 
+    @Test
+    public void test3_xml_all_ABCEquals() throws TriplifierHTTPException, IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        testABCEquals(new XMLTriplifier(), properties());
+
+        prepare(testName.getMethodName());
+        testABCEquals(new XMLTriplifier(), properties(false ));
+    }
 
 }
