@@ -4,14 +4,26 @@ import io.github.sparqlanything.fxbgp.BGPTestUtils;
 import io.github.sparqlanything.json.JSONTriplifier;
 import io.github.sparqlanything.model.IRIArgument;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.mem.GraphMemBase;
+import org.apache.jena.mem2.GraphMem2;
 import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.resultset.ResultSetWriterRegistry;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.core.BasicPattern;
+import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.Var;
+import org.apache.jena.sparql.core.mem.DatasetGraphInMemory;
 import org.apache.jena.sparql.engine.QueryIterator;
 import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.graph.GraphFactory;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -180,5 +192,27 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
             }
         }
         return set.isEmpty() && unmet.isEmpty();
+    }
+
+    public DatasetGraph getDatasetGraphFrom_abc(String ng, Set<Binding> abc){
+        Node graph= NodeFactory.createURI(ng);
+        Graph g = getGraphFrom_abc(abc);
+        DatasetGraph dg2 = new DatasetGraphInMemory();
+        dg2.addGraph(graph, g);
+        return dg2;
+    }
+    public Graph getGraphFrom_abc(Set<Binding> abc){
+        Graph g = GraphFactory.createGraphMem();
+        for(Binding binding: abc) {
+            Node subject = binding.get("a");
+            Node predicate = binding.get("b");
+            Node object = binding.get("c");
+            g.add(subject, predicate, object);
+        }
+        return g;
+    }
+
+    protected void show(Graph g){
+        RDFDataMgr.write(System.out, g, RDFFormat.TTL);
     }
 }

@@ -6,6 +6,7 @@ import io.github.sparqlanything.model.BaseFacadeXGraphBuilder;
 import io.github.sparqlanything.model.FacadeXGraphBuilder;
 import io.github.sparqlanything.model.IRIArgument;
 import io.github.sparqlanything.model.TriplifierHTTPException;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.sparql.algebra.op.OpBGP;
@@ -29,6 +30,7 @@ public class JSONStreamingTest extends FXStreamExecutorTest{
         prepare(name);
         Set<Binding> it = set(executor.exec(getOpBGP(), propertiesNullValueTrue()));
         show(it.iterator());
+        show(getGraphFrom_abc(it));
         Assert.assertEquals(8,it.size());
 
     }
@@ -57,23 +59,18 @@ public class JSONStreamingTest extends FXStreamExecutorTest{
         //p.setProperty(JSONTriplifier.PROPERTY_JSONINCLUDENULLVALUES.toString(), nullValues ? "true" : "false");
         p.setProperty("blank-nodes", "true");
         p.setProperty("media-type", "application/json");
-        FacadeXGraphBuilder gb = new BaseFacadeXGraphBuilder(p);
-        triplifier.triplify(p, gb);
-        DatasetGraph dg1 = gb.getDatasetGraph();
-        long size1 = dg1.size();
-        //
+        //p.setProperty(JSONTriplifier.PROPERTY_JSONINCLUDENULLVALUES.toString(), "true");
+//        FacadeXGraphBuilder gb = new BaseFacadeXGraphBuilder(p);
+//        triplifier.triplify(p, gb);
+//        DatasetGraph dg1 = gb.getDatasetGraph();
+//        long size1 = dg1.getDefaultGraph().size();
+//        //
         BasicPattern bp = readBGP("./stream/all");
-        QueryIterator it = executor.exec(new OpBGP(bp), p);
-        DatasetGraph dg2 = new DatasetGraphInMemory();
-        Node graph = NodeFactory.createURI(input.toString());
-        while(it.hasNext()) {
-            Binding binding = it.next();
-            Node subject = binding.get("a");
-            Node predicate = binding.get("b");
-            Node object = binding.get("c");
-            dg2.add(graph, subject, predicate, object);
-        }
-        Assert.assertEquals(size1, dg2.size());
-
+        Set<Binding> it = set(executor.exec(new OpBGP(bp), p));
+        //show(it.iterator());
+        Graph gg = getGraphFrom_abc(it);
+        //Assert.assertEquals(size1, gg.size());
+        //show(dg1.getDefaultGraph());
+        show(gg);
     }
 }

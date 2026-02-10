@@ -17,11 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static com.fasterxml.jackson.core.JsonToken.END_ARRAY;
-import static com.fasterxml.jackson.core.JsonToken.END_OBJECT;
-import static com.fasterxml.jackson.core.JsonToken.FIELD_NAME;
 import static com.fasterxml.jackson.core.JsonToken.START_ARRAY;
-import static com.fasterxml.jackson.core.JsonToken.START_OBJECT;
 
 public class JSONStreamParser implements FXStreamParser {
     private static final Logger L = LoggerFactory.getLogger(CSVStreamParser.class);
@@ -47,7 +43,8 @@ public class JSONStreamParser implements FXStreamParser {
     //
     private int containerIndex;
     private boolean inArray;
-    private boolean waitForArrayItem = false;
+    private boolean waitForItem = false;
+    private boolean wasFieldName = false;
     private Map<Integer,Integer> arrayIndexes = new HashMap<>();
     //
     public JSONStreamParser(Properties properties) {
@@ -77,7 +74,7 @@ public class JSONStreamParser implements FXStreamParser {
         }
 
         //
-        if(!waitForArrayItem) {
+        if(!waitForItem) {
             try {
                 token = parser.nextToken();
             } catch (IOException e) {
@@ -89,15 +86,21 @@ public class JSONStreamParser implements FXStreamParser {
         switch(token) {
             case START_ARRAY:
             case START_OBJECT:
+                if(wasFieldName){
+                    // We want to send this field
+                    wasFieldName = false;
+                    waitForItem = true;
+                    return true;
+                }
                 // Manage when this happens within an array
-                if(inArray && !waitForArrayItem){
+                if(inArray && !waitForItem){
                     this.eventType = FXEventType.SlotNumber;
                     this.slotNumber = this.arrayIndexes.get(this.containerIndex) + 1;
                     this.arrayIndexes.put(this.containerIndex, this.slotNumber);
-                    this.waitForArrayItem = true;
+                    this.waitForItem = true;
                     return true;
                 }
-                this.waitForArrayItem = false;
+                this.waitForItem = false;
                 this.container = (this.container == null) ? this.root : this.container;
                 // From string or from int?
                 if(this.eventType == FXEventType.SlotString){
@@ -125,23 +128,31 @@ public class JSONStreamParser implements FXStreamParser {
                 this.inArray = arrayIndexes.containsKey(this.containerIndex);
                 return true;
             case FIELD_NAME:
+                // Wait for value before triggering
                 this.eventType = FXEventType.SlotString;
                 try {
                     this.slotString = parser.getText();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-                return true;
+                this.wasFieldName = true;
+                return hasNextEvent();
             case VALUE_STRING:
+                if(wasFieldName){
+                    // We want to send this field
+                    wasFieldName = false;
+                    waitForItem = true;
+                    return true;
+                }
                 // Manage when this happens within an array
-                if(inArray && !waitForArrayItem){
+                if(inArray && !waitForItem){
                     this.eventType = FXEventType.SlotNumber;
                     this.slotNumber = this.arrayIndexes.get(this.containerIndex) + 1;
                     this.arrayIndexes.put(this.containerIndex, this.slotNumber);
-                    this.waitForArrayItem = true;
+                    this.waitForItem = true;
                     return true;
                 }
-                this.waitForArrayItem = false;
+                this.waitForItem = false;
                 this.eventType = FXEventType.Value;
                 try {
                     this.value = parser.getValueAsString();
@@ -151,16 +162,21 @@ public class JSONStreamParser implements FXStreamParser {
                 return true;
             case VALUE_NULL:
                 if(includeNullValues){
+                    if(wasFieldName){
+                        // We want to send this field
+                        wasFieldName = false;
+                        waitForItem = true;
+                        return true;
+                    }
                     // Manage when this happens within an array
-                    if(inArray && !waitForArrayItem){
+                    if(inArray && !waitForItem){
                         this.eventType = FXEventType.SlotNumber;
                         this.slotNumber = this.arrayIndexes.get(this.containerIndex) + 1;
                         this.arrayIndexes.put(this.containerIndex, this.slotNumber);
-                        this.inArray = true;
-                        this.waitForArrayItem = true;
+                        this.waitForItem = true;
                         return true;
                     }
-                    this.waitForArrayItem = false;
+                    this.waitForItem = false;
                     this.eventType = FXEventType.Value;
                     this.value = Triplifier.XYZ_NULL_NODE;
                     return true;
@@ -168,15 +184,21 @@ public class JSONStreamParser implements FXStreamParser {
                     return hasNextEvent();
                 }
             case VALUE_NUMBER_INT:
+                if(wasFieldName){
+                    // We want to send this field
+                    wasFieldName = false;
+                    waitForItem = true;
+                    return true;
+                }
                 // Manage when this happens within an array
-                if(inArray && !waitForArrayItem){
+                if(inArray && !waitForItem){
                     this.eventType = FXEventType.SlotNumber;
                     this.slotNumber = this.arrayIndexes.get(this.containerIndex) + 1;
                     this.arrayIndexes.put(this.containerIndex, this.slotNumber);
-                    this.waitForArrayItem = true;
+                    this.waitForItem = true;
                     return true;
                 }
-                this.waitForArrayItem = false;
+                this.waitForItem = false;
                 this.eventType = FXEventType.Value;
                 try {
                     this.value = parser.getValueAsInt();
@@ -186,15 +208,21 @@ public class JSONStreamParser implements FXStreamParser {
                 return true;
             case VALUE_TRUE:
             case VALUE_FALSE:
+                if(wasFieldName){
+                    // We want to send this field
+                    wasFieldName = false;
+                    waitForItem = true;
+                    return true;
+                }
                 // Manage when this happens within an array
-                if(inArray && !waitForArrayItem){
+                if(inArray && !waitForItem){
                     this.eventType = FXEventType.SlotNumber;
                     this.slotNumber = this.arrayIndexes.get(this.containerIndex) + 1;
                     this.arrayIndexes.put(this.containerIndex, this.slotNumber);
-                    this.waitForArrayItem = true;
+                    this.waitForItem = true;
                     return true;
                 }
-                this.waitForArrayItem = false;
+                this.waitForItem = false;
                 this.eventType = FXEventType.Value;
                 try {
                     this.value = parser.getValueAsBoolean();
@@ -203,15 +231,22 @@ public class JSONStreamParser implements FXStreamParser {
                 }
                 return true;
             case VALUE_NUMBER_FLOAT:
+                if(wasFieldName){
+                    // We want to send this field
+                    wasFieldName = false;
+                    waitForItem = true;
+                    return true;
+                }
+
                 // Manage when this happens within an array
-                if(inArray && !waitForArrayItem){
+                if(inArray && !waitForItem){
                     this.eventType = FXEventType.SlotNumber;
                     this.slotNumber = this.arrayIndexes.get(this.containerIndex) + 1;
                     this.arrayIndexes.put(this.containerIndex, this.slotNumber);
-                    this.waitForArrayItem = true;
+                    this.waitForItem = true;
                     return true;
                 }
-                this.waitForArrayItem = false;
+                this.waitForItem = false;
                 this.eventType = FXEventType.Value;
                 try {
                     this.value = parser.getValueAsDouble();

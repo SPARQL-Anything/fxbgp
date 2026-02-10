@@ -2,6 +2,7 @@ package io.github.sparqlanything.fxbgp.stream;
 
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.engine.binding.Binding;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -13,7 +14,8 @@ public class XMLStreamingTest extends FXStreamExecutorTest{
     public void test1_xml_all_basic() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
         Set<Binding> it = set(executor.exec(getOpBGP(), properties(false)));
-        show(it.iterator());
+        //Assert.assertTrue(it.size() == 9);
+        show(getGraphFrom_abc(it));
     }
 
 }

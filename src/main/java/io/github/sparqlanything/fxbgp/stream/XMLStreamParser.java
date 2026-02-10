@@ -174,10 +174,12 @@ public class XMLStreamParser implements FXStreamParser{
                 path.remove(path.size() - 1);
                 this.eventType = FXEventType.EndContainer;
             }
+            moveToNext = true;
             this.containerCounter.remove(this.containerIndex);
             this.containerIndex--;
             return true;
         }else if(event.isCharacters()){
+
             if(!startCharacters) {
                 // Trigger slot number
                 this.slotNumber = this.containerCounter.get(this.containerIndex) + 1;
@@ -186,9 +188,10 @@ public class XMLStreamParser implements FXStreamParser{
                 this.moveToNext = false;
                 this.containerCounter.put(this.containerIndex, this.slotNumber);
                 return true;
-            }else if(startCharacters && charBuilder == null){
+            }else if(startCharacters){
                 // Collect value
                 charBuilder = new StringBuilder();
+                charBuilder.append(event.asCharacters().getData());
                 while(eventReader.hasNext()) {
                     try {
                         this.event = eventReader.nextEvent();
@@ -203,11 +206,12 @@ public class XMLStreamParser implements FXStreamParser{
                 }
                 this.moveToNext = false; // We already moved to the next one
                 String chars = charBuilder.toString().trim();
+                startCharacters = false;
                 if(chars.length() == 0){
                     // Ignore event
                     return hasNextEvent();
                 }else {
-                    this.value = charBuilder.toString();
+                    this.value = chars;
                     this.eventType = FXEventType.Value;
                     return true;
                 }
