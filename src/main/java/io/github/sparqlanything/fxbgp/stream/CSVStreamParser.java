@@ -94,7 +94,7 @@ public class CSVStreamParser implements FXStreamParser{
             return true;
         } else if(record != null && !recordContainerReady ){
             // Open the container
-            this.container = "row" + Integer.toString(this.slotNumber);
+            this.container = "#row" + Integer.toString(this.slotNumber);
             this.eventType = FXEventType.StartContainer;
             this.recordContainerReady = true;
             return true;

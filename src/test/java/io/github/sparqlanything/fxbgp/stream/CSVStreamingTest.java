@@ -1,5 +1,7 @@
 package io.github.sparqlanything.fxbgp.stream;
 
+import io.github.sparqlanything.csv.CSVTriplifier;
+import io.github.sparqlanything.xml.XMLTriplifier;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.sparql.algebra.op.OpGraph;
 import org.apache.jena.sparql.engine.QueryIterator;
@@ -307,4 +309,16 @@ public class CSVStreamingTest extends FXStreamExecutorTest{
         QueryIterator it = executor.exec(getOpBGP(), properties());
         show(it);
     }
+
+
+    @Test
+    public void test1_csv_all_abcEquals() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        testABCEquals(new CSVTriplifier(), properties());
+
+        prepare(testName.getMethodName());
+        testABCEquals(new CSVTriplifier(), properties(false ));
+
+    }
+
 }
