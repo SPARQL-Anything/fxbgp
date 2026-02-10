@@ -2,7 +2,11 @@ package io.github.sparqlanything.fxbgp.stream;
 
 import io.github.sparqlanything.fxbgp.BGPTestUtils;
 import io.github.sparqlanything.json.JSONTriplifier;
+import io.github.sparqlanything.model.BaseFacadeXGraphBuilder;
+import io.github.sparqlanything.model.FacadeXGraphBuilder;
 import io.github.sparqlanything.model.IRIArgument;
+import io.github.sparqlanything.model.Triplifier;
+import io.github.sparqlanything.model.TriplifierHTTPException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -214,5 +218,62 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
 
     protected void show(Graph g){
         RDFDataMgr.write(System.out, g, RDFFormat.TTL);
+    }
+
+    /**
+     * Warning! This method assumes a lot of things...
+     * - bgp must be all.easybgp we expect bindings to be a b c...
+     * - for example, call with method name test1_json_all_...
+     * @param triplifier
+     */
+    public void testABCEquals(Triplifier triplifier) {
+        //p.setProperty(JSONTriplifier.PROPERTY_JSONINCLUDENULLVALUES.toString(), "true");
+        FacadeXGraphBuilder gb = new BaseFacadeXGraphBuilder(properties());
+        try {
+            triplifier.triplify(properties(), gb);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (TriplifierHTTPException e) {
+            throw new RuntimeException(e);
+        }
+        DatasetGraph dg1 = gb.getDatasetGraph();
+        long size1 = dg1.getDefaultGraph().size();
+        Set<Binding> it = null;
+        try {
+            it = set(executor.exec(getOpBGP(), properties()));
+        } catch (NotATreeException e) {
+            throw new RuntimeException(e);
+        }
+        Graph gg = getGraphFrom_abc(it);
+
+        L.info("old {} vs new {}", size1, gg.size());
+
+
+        Iterator<Triple> i1 = dg1.getDefaultGraph().find();
+        while(i1.hasNext()){
+            Triple t = i1.next();
+            if(!gg.contains(t)){
+                L.error("new does not contain old: {}", t);
+            }
+        }
+        Iterator<Triple> i2 = gg.find();
+        while(i2.hasNext()){
+            Triple t = i2.next();
+            if(!dg1.getDefaultGraph().contains(t)){
+                L.error("old does not contain new: {}", t);
+            }
+        }
+
+        Assert.assertEquals(size1, gg.size());
+
+        i1 = dg1.getDefaultGraph().find();
+        while(i1.hasNext()){
+            Assert.assertTrue(gg.contains(i1.next()));
+        }
+
+        i2 = gg.find();
+        while(i2.hasNext()){
+            Assert.assertTrue(dg1.getDefaultGraph().contains(i2.next()));
+        }
     }
 }

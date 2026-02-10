@@ -32,7 +32,6 @@ public class JSONStreamingTest extends FXStreamExecutorTest{
         show(it.iterator());
         show(getGraphFrom_abc(it));
         Assert.assertEquals(8,it.size());
-
     }
 
     @Test
@@ -42,6 +41,7 @@ public class JSONStreamingTest extends FXStreamExecutorTest{
         Assert.assertEquals(6,set(it).size());
         show(it);
     }
+
     @Test
     public void test2_json_a2() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
@@ -51,26 +51,8 @@ public class JSONStreamingTest extends FXStreamExecutorTest{
     }
 
     @Test
-    public void testEquals() throws TriplifierHTTPException, IOException, NotATreeException {
-        JSONTriplifier triplifier = new JSONTriplifier();
-        String input = getClass().getClassLoader().getResource("./stream/test1.json").getPath();
-        Properties p = new Properties();
-        p.setProperty(IRIArgument.LOCATION.toString(), input.toString());
-        //p.setProperty(JSONTriplifier.PROPERTY_JSONINCLUDENULLVALUES.toString(), nullValues ? "true" : "false");
-        p.setProperty("blank-nodes", "true");
-        p.setProperty("media-type", "application/json");
-        //p.setProperty(JSONTriplifier.PROPERTY_JSONINCLUDENULLVALUES.toString(), "true");
-//        FacadeXGraphBuilder gb = new BaseFacadeXGraphBuilder(p);
-//        triplifier.triplify(p, gb);
-//        DatasetGraph dg1 = gb.getDatasetGraph();
-//        long size1 = dg1.getDefaultGraph().size();
-//        //
-        BasicPattern bp = readBGP("./stream/all");
-        Set<Binding> it = set(executor.exec(new OpBGP(bp), p));
-        //show(it.iterator());
-        Graph gg = getGraphFrom_abc(it);
-        //Assert.assertEquals(size1, gg.size());
-        //show(dg1.getDefaultGraph());
-        show(gg);
+    public void test1_json_all_ABCEquals() throws TriplifierHTTPException, IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        testABCEquals(new JSONTriplifier());
     }
 }
