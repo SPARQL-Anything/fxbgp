@@ -226,11 +226,11 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
      * - for example, call with method name test1_json_all_...
      * @param triplifier
      */
-    public void testABCEquals(Triplifier triplifier) {
+    public void testABCEquals(Triplifier triplifier, Properties properties) {
         //p.setProperty(JSONTriplifier.PROPERTY_JSONINCLUDENULLVALUES.toString(), "true");
-        FacadeXGraphBuilder gb = new BaseFacadeXGraphBuilder(properties());
+        FacadeXGraphBuilder gb = new BaseFacadeXGraphBuilder(properties);
         try {
-            triplifier.triplify(properties(), gb);
+            triplifier.triplify(properties, gb);
         } catch (IOException e) {
             throw new RuntimeException(e);
         } catch (TriplifierHTTPException e) {
@@ -240,7 +240,7 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
         long size1 = dg1.getDefaultGraph().size();
         Set<Binding> it = null;
         try {
-            it = set(executor.exec(getOpBGP(), properties()));
+            it = set(executor.exec(getOpBGP(), properties));
         } catch (NotATreeException e) {
             throw new RuntimeException(e);
         }

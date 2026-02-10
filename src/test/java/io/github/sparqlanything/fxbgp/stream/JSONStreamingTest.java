@@ -53,6 +53,9 @@ public class JSONStreamingTest extends FXStreamExecutorTest{
     @Test
     public void test1_json_all_ABCEquals() throws TriplifierHTTPException, IOException, NotATreeException {
         prepare(testName.getMethodName());
-        testABCEquals(new JSONTriplifier());
+        testABCEquals(new JSONTriplifier(), properties());
+
+        prepare(testName.getMethodName());
+        testABCEquals(new JSONTriplifier(), properties(false));
     }
 }
