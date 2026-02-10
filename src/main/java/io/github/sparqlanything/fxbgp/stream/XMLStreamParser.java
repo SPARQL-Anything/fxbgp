@@ -90,7 +90,7 @@ public class XMLStreamParser implements FXStreamParser{
             if(!containerStarted && !checkForAttributes) {
                 // If we are within another container, advance index
                 // If root was set, we are within another container
-                if(this.root != null && moveToNext){
+                if(this.root != null && (moveToNext || this.eventType.equals(FXEventType.Value))){
                     // If this is the case, we are within another container
                     this.slotNumber = this.containerCounter.get(this.containerIndex) + 1;
                     this.containerCounter.put(this.containerIndex, this.slotNumber);

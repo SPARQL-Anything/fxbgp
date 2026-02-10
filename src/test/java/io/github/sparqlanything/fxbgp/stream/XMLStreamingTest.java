@@ -19,12 +19,28 @@ public class XMLStreamingTest extends FXStreamExecutorTest{
         //
         show(getGraphFrom_abc(it));
         Assert.assertTrue(it.size() == 10);
-//        testEquals(new XMLTriplifier());
     }
 
 
     @Test
     public void test1_xml_all_ABCEquals() throws TriplifierHTTPException, IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        testABCEquals(new XMLTriplifier(), properties());
+
+        prepare(testName.getMethodName());
+        testABCEquals(new XMLTriplifier(), properties(false ));
+    }
+
+    @Test
+    public void test2_xml_all() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<Binding> it = set(executor.exec(getOpBGP(), properties(true)));
+        //
+        show(getGraphFrom_abc(it));
+
+    }
+    @Test
+    public void test2_xml_all_ABCEquals() throws TriplifierHTTPException, IOException, NotATreeException {
         prepare(testName.getMethodName());
         testABCEquals(new XMLTriplifier(), properties());
 
