@@ -129,7 +129,7 @@ public class XMLStreamParser implements FXStreamParser{
                     this.attributes = se.asStartElement().getAttributes();
                 }
                 moveToNext = false; // We must trigger Type
-                this.container = String.join("/", this.path) ;
+                this.container = "/" + String.join("/", this.path) ;
                 return true;
             }else if (containerStarted){
                 this.eventType = FXEventType.Type;
@@ -179,7 +179,6 @@ public class XMLStreamParser implements FXStreamParser{
             this.containerIndex--;
             return true;
         }else if(event.isCharacters()){
-
             if(!startCharacters) {
                 // Trigger slot number
                 this.slotNumber = this.containerCounter.get(this.containerIndex) + 1;
