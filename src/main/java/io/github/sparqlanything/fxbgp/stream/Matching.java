@@ -199,7 +199,7 @@ class Matching {
                 }
             }
         }
-
+        
         // No match following this path
         if(matched.size() == 0) {
             // Do nothing
@@ -283,7 +283,11 @@ class Matching {
         // For example, if one FXNode/?var is bound but a different FXNode/?var is not, mark as unresolvable
         if(!unresolvable && map.size() > 1) {
             for (Map.Entry<FXNode, List<Node>> entry : map.entrySet()) {
+                // Only check variables...
                 Node matchingNode = entry.getKey().getNode();
+                if(matchingNode.isConcrete()){
+                    continue;
+                }
                 for (FXNode fxn : nodesMap.get(matchingNode)) {
                     if (!map.containsKey(fxn) || !map.get(fxn).equals(entry.getValue())) {
                         this.unresolvable = true;

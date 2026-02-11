@@ -23,11 +23,11 @@ public class CSVStreamingTest extends FXStreamExecutorTest{
         Assert.assertEquals(21, it.size());
         Assert.assertTrue(
                 rem(it,
-                        new String[]{"a", "test1.csv\\#$", "b", "\\#type$", "c", "/[rR]oot$"},
-                        new String[]{"a", "test1.csv\\#$", "b", "\\#_1$", "c", "test1.csv\\#row1$"},
-                        new String[]{"a", "test1.csv\\#$", "b", "\\#_2$", "c", "test1.csv\\#row2$"},
-                        new String[]{"a", "test1.csv\\#$", "b", "\\#_3$", "c", "test1.csv\\#row3$"},
-                        new String[]{"a", "test1.csv\\#$", "b", "\\#_4$", "c", "test1.csv\\#row4$"},
+                        new String[]{"a", "test1.csv$", "b", "\\#type$", "c", "/[rR]oot$"},
+                        new String[]{"a", "test1.csv$", "b", "\\#_1$", "c", "test1.csv\\#row1$"},
+                        new String[]{"a", "test1.csv$", "b", "\\#_2$", "c", "test1.csv\\#row2$"},
+                        new String[]{"a", "test1.csv$", "b", "\\#_3$", "c", "test1.csv\\#row3$"},
+                        new String[]{"a", "test1.csv$", "b", "\\#_4$", "c", "test1.csv\\#row4$"},
                         //
                         new String[]{"a", "test1.csv\\#row1$", "b", "\\#_1$", "c", "^H1$"},
                         new String[]{"a", "test1.csv\\#row1$", "b", "\\#_2$", "c", "^H2$"},
@@ -59,10 +59,10 @@ public class CSVStreamingTest extends FXStreamExecutorTest{
         Assert.assertEquals(16, it.size());
         Assert.assertTrue(
                 rem(it,
-                        new String[]{"a", "test1.csv\\#$", "b", "\\#type$", "c", "/[rR]oot$"},
-                        new String[]{"a", "test1.csv\\#$", "b", "\\#_1$", "c", "test1.csv\\#row1$"},
-                        new String[]{"a", "test1.csv\\#$", "b", "\\#_2$", "c", "test1.csv\\#row2$"},
-                        new String[]{"a", "test1.csv\\#$", "b", "\\#_3$", "c", "test1.csv\\#row3$"},
+                        new String[]{"a", "test1.csv$", "b", "\\#type$", "c", "/[rR]oot$"},
+                        new String[]{"a", "test1.csv$", "b", "\\#_1$", "c", "test1.csv\\#row1$"},
+                        new String[]{"a", "test1.csv$", "b", "\\#_2$", "c", "test1.csv\\#row2$"},
+                        new String[]{"a", "test1.csv$", "b", "\\#_3$", "c", "test1.csv\\#row3$"},
                         //new String[]{"a", "test1.csv\\#$", "b", "\\#_4$", "c", "test1.csv\\#row4$"},
                         //
                         new String[]{"a", "test1.csv\\#row1$", "b", "/H1$", "c", "^A1$"},
@@ -117,7 +117,7 @@ public class CSVStreamingTest extends FXStreamExecutorTest{
         Set<Binding> it = set(executor.exec(getOpBGP(), properties(false)));
         Assert.assertEquals(1, it.size());
         Assert.assertTrue(it.iterator().next().get("a").getURI().endsWith("/test1.csv#row4"));
-        Assert.assertTrue(it.iterator().next().get("r").getURI().endsWith("/test1.csv#"));
+        Assert.assertTrue(it.iterator().next().get("r").getURI().endsWith("/test1.csv"));
         show(it.iterator());
     }
 
@@ -130,7 +130,7 @@ public class CSVStreamingTest extends FXStreamExecutorTest{
         Assert.assertTrue(
                 rem(it,
                         new String[]{"a", "test1.csv\\#row3$", "b", "^B1$"},
-                        new String[]{"a", "test1.csv\\#$", "b", "test1.csv\\#row1$"},
+                        new String[]{"a", "test1.csv$", "b", "test1.csv\\#row1$"},
                         new String[]{"a", "test1.csv\\#row1$", "b", "^H1$"},
                         new String[]{"a", "test1.csv\\#row2$", "b", "^A1$"}, // ok
                         new String[]{"a", "test1.csv\\#row4$", "b", "^C1$"} // ok
@@ -157,7 +157,7 @@ public class CSVStreamingTest extends FXStreamExecutorTest{
         Assert.assertEquals(1, it.size());
         Assert.assertTrue(
                 rem(it,
-                        new String[]{"a", "test1.csv\\#$", "b", "\\#_1$", "c", "test1.csv\\#row1$", "d", "\\#_1$"}
+                        new String[]{"a", "test1.csv$", "b", "\\#_1$", "c", "test1.csv\\#row1$", "d", "\\#_1$"}
                 ));
         show(it.iterator());
     }
@@ -221,7 +221,7 @@ public class CSVStreamingTest extends FXStreamExecutorTest{
         show(it.iterator());
         Assert.assertTrue(
                 rem(it,
-                        new String[]{"r", "test1.csv\\#$", "j", "\\#_1$", "a", "test1.csv\\#row1$", "b", "\\#_1$", "c", "\\#_2$", "d", "\\#_3$", "e", "\\#_4$"}
+                        new String[]{"r", "test1.csv$", "j", "\\#_1$", "a", "test1.csv\\#row1$", "b", "\\#_1$", "c", "\\#_2$", "d", "\\#_3$", "e", "\\#_4$"}
                 ));
     }
 
