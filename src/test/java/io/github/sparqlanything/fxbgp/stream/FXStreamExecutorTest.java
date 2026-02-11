@@ -34,8 +34,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Properties;
@@ -247,8 +251,8 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
         Graph gg = getGraphFrom_abc(it);
 
         L.info("old {} vs new {}", size1, gg.size());
-
-
+        L.info("OLD \n=======\n{}\n=======\n", makeString(dg1.getDefaultGraph()));
+        L.info("NEW \n=======\n{}\n=======\n", makeString(gg));
         Iterator<Triple> i1 = dg1.getDefaultGraph().find();
         while(i1.hasNext()){
             Triple t = i1.next();
@@ -274,6 +278,21 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
         i2 = gg.find();
         while(i2.hasNext()){
             Assert.assertTrue(dg1.getDefaultGraph().contains(i2.next()));
+        }
+    }
+
+    protected String makeString(Graph g){
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final String utf8 = StandardCharsets.UTF_8.name();
+        try (PrintStream ps = new PrintStream(baos, true, utf8)) {
+            RDFDataMgr.write(ps, g, RDFFormat.TTL);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            return baos.toString(utf8);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
         }
     }
 }

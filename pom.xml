@@ -13,25 +13,17 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
 <project
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
 	xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
-<!--	<parent>-->
-<!--		<groupId>io.github.sparql-anything</groupId>-->
-<!--		<artifactId>sparql-anything-parent</artifactId>-->
-<!--		<version>1.2.0-NIGHTLY-SNAPSHOT</version>-->
-<!--        -->
-<!--	</parent>-->
     <groupId>io.github.sparql-anything</groupId>
 	<properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-
         <revision>1.2.0-SNAPSHOT</revision>
 	</properties>
     <version>${revision}</version>
@@ -153,12 +145,6 @@
             <artifactId>log4j-api</artifactId>
             <version>2.25.3</version>
 <!--            <scope>test</scope>-->
-        </dependency>
-        <dependency>
-            <groupId>io.github.sparql-anything</groupId>
-            <artifactId>sparql-anything-fxbgp</artifactId>
-            <version>${revision}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 

@@ -37,7 +37,22 @@ public class XMLStreamingTest extends FXStreamExecutorTest{
         Set<Binding> it = set(executor.exec(getOpBGP(), properties(true)));
         //
         show(getGraphFrom_abc(it));
+    }
 
+    @Test
+    public void test3_xml_all() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<Binding> it = set(executor.exec(getOpBGP(), properties(true)));
+        //
+        show(getGraphFrom_abc(it));
+    }
+
+    @Test
+    public void test3_xml_s12() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<Binding> it = set(executor.exec(getOpBGP(), properties(true)));
+        //
+        show(it.iterator());
     }
 
     @Test
@@ -59,4 +74,9 @@ public class XMLStreamingTest extends FXStreamExecutorTest{
         testABCEquals(new XMLTriplifier(), properties(false ));
     }
 
+
+    public void testXYZ(){
+        // s12
+        // ?a-Container.673384643[ ?b1-SlotString.1574573264[ ?c-Container.498134055 ] ?b2-SlotNumber.1033880954[ ?c-Container.223000346 ] ]
+    }
 }
