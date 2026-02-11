@@ -67,10 +67,10 @@ class Matching {
             nodesMap = new HashMap<>();
             componentsMap = new HashMap<>();
         }
-        if(!nodesMap.containsKey(cursor)) {
+        if(!nodesMap.containsKey(cursor.getNode())) {
             nodesMap.put(cursor.getNode(), new HashSet<>());
         }
-        if(!componentsMap.containsKey(cursor.getNode())) {
+        if(!componentsMap.containsKey(cursor)) {
             componentsMap.put(cursor, cursor.getAnnotation().getTerm());
         }
         nodesMap.get(cursor.getNode()).add(cursor);
@@ -110,19 +110,19 @@ class Matching {
     }
 
     private void unset(FXNode patternNode) {
-        this.map.remove(patternNode);
+        removeFromMap(patternNode);
         if(isContainer(patternNode)) {
             // Also remove its predicate
-            this.map.remove(patternNode.getParent());
+            removeFromMap(patternNode.getParent());
             this.cursor.remove(patternNode);
             // And put cursor on the previous container
             this.cursor.add(patternNode.getParent().getParent());
         }else if(isValueOrTypeOrRoot(patternNode)) {
             // Remove it and set its parent
-            this.map.remove(patternNode.getParent());
+            removeFromMap(patternNode);
             this.cursor.remove(patternNode);
             // Remove its predicate
-            this.map.remove(patternNode.getParent());
+            removeFromMap(patternNode.getParent());
             // Place the cursor on its container
             this.cursor.add(patternNode.getParent().getParent());
         } else if(isPredicate(patternNode)) {
@@ -135,7 +135,7 @@ class Matching {
         this.map.put(patternNode, valuePath);
         if(!patternNode.isRoot()) {
             if(isContainer(patternNode)) {
-                // Remove its parent
+                // Remove all parents with the same variable... (not node)
                 this.cursor.remove(patternNode.getParent());
                 this.cursor.add(patternNode);
             }else if(isValueOrTypeOrRoot(patternNode)) {
@@ -148,6 +148,18 @@ class Matching {
             }
         } else {
             this.cursor.add(patternNode);
+        }
+    }
+
+    private void removeFromMap(FXNode patternNode) {
+        // If the same variable is in multiple fxnodes, let's remove all matching ones
+        if (patternNode.getNode().isVariable()) {
+            // Remove all fxnodes with the same variable
+            for (FXNode k : nodesMap.get(patternNode.getNode())) {
+                this.map.remove(k);
+            }
+        }else{
+            this.map.remove(patternNode);
         }
     }
 
