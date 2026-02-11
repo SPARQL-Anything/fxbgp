@@ -696,14 +696,31 @@ public class FXModel {
 									// OK
 									ok = true;
 								}
-								if (!ok && (ln.isBlank() || rn.isBlank())) {
-									// OK
-									ok = true;
+								// Only if it is grounded, we check annotations are the same
+								boolean grounded = previous.isGrounded();
+								if (!ok &&
+										(ln.isBlank() || rn.isBlank() || ln.isVariable() || rn.isVariable())
+								) {
+									if(grounded){
+										// OK only if annotations are the same
+										FX lt = previous.getAnnotation(ln).getTerm();
+										FX rt = previous.getAnnotation(rn).getTerm();
+										if(lt.equals(rt)){
+											ok = true;
+										}
+									}else {
+										ok = true;
+									}
 								}
-								if (!ok && (ln.isVariable() || rn.isVariable())) {
-									// OK
-									ok = true;
-								}
+//								if (!ok && (ln.isVariable() || rn.isVariable())) {
+//									// OK
+//									FX lt = previous.getAnnotation(ln).getTerm();
+//									FX rt = previous.getAnnotation(rn).getTerm();
+//									if(lt.equals(rt)){
+//										ok = true;
+//									}
+//								}
+
 								// If not OK, FAIL
 								if (!ok) {
 									setFailure();
