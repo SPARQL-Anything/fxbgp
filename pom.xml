@@ -154,12 +154,6 @@
             <version>2.25.3</version>
 <!--            <scope>test</scope>-->
         </dependency>
-        <dependency>
-            <groupId>io.github.sparql-anything</groupId>
-            <artifactId>sparql-anything-fxbgp</artifactId>
-            <version>${revision}</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
