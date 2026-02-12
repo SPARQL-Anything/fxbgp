@@ -178,7 +178,7 @@ public class ExperimentsTest extends BGPTestAbstract {
 
     private static File[] files;
 
-    @Ignore // We only needed that for the paper
+    //@Ignore // We only needed that for the paper
     @Test
     public void TopDown() throws IOException {
         AnalyserAsSearch topDown = new AnalyserAsSearch(properties, FXM());
@@ -201,7 +201,7 @@ public class ExperimentsTest extends BGPTestAbstract {
         println("");
     }
 
-    @Ignore // We only needed that for the paper
+    //@Ignore // We only needed that for the paper
     @Test
     public void BottomUp() throws IOException {
         Analyser bottomUp = new AnalyserGrounder(properties, FXM());
