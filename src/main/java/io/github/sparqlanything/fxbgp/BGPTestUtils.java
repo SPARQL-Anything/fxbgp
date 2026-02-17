@@ -64,7 +64,27 @@ public class BGPTestUtils {
             List<Node> nodes = new ArrayList<Node>();
             String[] tr = line.split(" ");
             Triple t = null;
-            for (int c = 0; c<3; c++) {
+            boolean load = false;
+            StringBuilder loaded = null;
+            for (int c = 0; c<tr.length; c++) {
+                if(load && tr[c].endsWith("\"")){
+                    if(load){
+                        loaded.append(" ");
+                        loaded.append(tr[c].substring(0,tr[c].length()-1));
+                        nodes.add(l(loaded.toString()));
+                        loaded = null;
+                    }
+                }else
+                if(!load && tr[c].trim().startsWith("\"") && !tr[c].trim().endsWith("\"")){
+                    loaded = new StringBuilder(tr[c].substring(1,tr[c].length()));
+                    load = true;
+                }else if(load){
+                    loaded.append(" ");
+                    loaded.append(tr[c]);
+                    continue;
+                }else if(tr[c].trim().endsWith("\"") && tr[c].trim().startsWith("\"")){
+                    nodes.add(l(tr[c].trim().substring(1,tr[c].length()-1)));
+                }else
                 if(tr[c].trim().startsWith("<")){
                     nodes.add(u(tr[c].trim().substring(1, tr[c].trim().length()-1)));
                 }else
@@ -74,9 +94,6 @@ public class BGPTestUtils {
                 if(tr[c].trim().startsWith("_:")){
                     nodes.add(b(tr[c].trim().substring(2)));
                 }else
-                if(tr[c].trim().startsWith("\"")){
-                    nodes.add(l(tr[c].trim().substring(1,tr[c].trim().length()-1)));
-                }else
                 if(tr[c].trim().equals("a")){
                     nodes.add(u(RDF.type.getURI()));
                 }else{
@@ -84,6 +101,7 @@ public class BGPTestUtils {
                     nodes.add(v(tr[c].trim()));
                 }
             }
+            if(nodes.size() != 3) throw new RuntimeException("Wrong number of nodes");
             t = Triple.create(nodes.get(0),
                     nodes.get(1),
                     nodes.get(2));
