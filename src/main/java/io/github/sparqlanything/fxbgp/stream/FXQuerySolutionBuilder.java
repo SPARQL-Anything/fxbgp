@@ -35,7 +35,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     private List<Node> contextPath;
     private List<Node> path;
     private Node dataSourceNode = null;
-
+    private boolean troubleshoot = false;
     public FXQuerySolutionBuilder(FXTreePattern pattern, Set<Binding> solutions) {
         this.pattern = pattern;
         this.string = pattern.toString();
@@ -104,7 +104,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         if(!matchedDataSource()){
             return;
         }
-        if(L.isDebugEnabled()){
+        if(troubleshoot && L.isDebugEnabled()){
             beginEndContainer();
         }
         super.endContainer();
@@ -115,7 +115,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
             // Go the prev container...
             path.remove(path.size() - 1);
         }
-        if(L.isDebugEnabled()) {
+        if(troubleshoot && L.isDebugEnabled()) {
             endEndContainer();
         }
     }
@@ -174,7 +174,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         if(!matchedDataSource()){
             return;
         }
-        if(L.isDebugEnabled()) {
+        if(troubleshoot && L.isDebugEnabled()) {
             beginMatch(node, component);
         }
         Set<Matching> spawned = new HashSet<>();
@@ -193,14 +193,14 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         Set<Matching> removable = new HashSet<>();
         for(Matching matching: matches){
             Set<Matching> spawn = matching.check(node, component);
-            if(spawn.size() > 0){
+            if(troubleshoot && L.isDebugEnabled() && spawn.size() > 0){
                 L.debug(" --> {} spawned", spawn.size());
             }
             spawned.addAll(spawn);
             if(matching.isUnresolvable()){
                 removable.add(matching);
             }
-            L.trace("[end] checking against");
+            //L.trace("[end] checking against");
         }
         this.matches.removeAll(removable);
         this.matches.addAll(spawned);
@@ -214,7 +214,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
             }
         }
         this.matches.removeAll(completed);
-        if(L.isDebugEnabled()) {
+        if(troubleshoot && L.isDebugEnabled()) {
             endMatch(node, component);
         }
     }
@@ -234,7 +234,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     private void addQuerySolution(Matching matching){
         BindingBuilder solution = BindingBuilder.create();
         for(Map.Entry<FXNode, Node> entry : matching.getMatches().entrySet()){
-            if(L.isDebugEnabled()) {
+            if(troubleshoot && L.isDebugEnabled()) {
                 L.debug(" >>>>> {} {} <<<<<", entry.getKey(), entry.getValue());
                 L.debug(" ----- {} {} <<<<<", entry.getKey(), entry.getKey().getNode().isVariable());
             }
