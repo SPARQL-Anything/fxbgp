@@ -103,7 +103,28 @@ public class ToGraphML {
         Element shape = doc.createElement("y:ShapeNode");
         Element label = doc.createElement("y:NodeLabel");
         label.setTextContent(nodeLabel);
-
+        // <y:Geometry height="30.0" width="30.0" x="519.0" y="135.0"/>
+        Element geometry = doc.createElement("y:Geometry");
+        geometry.setAttribute("height", "30.0");
+        geometry.setAttribute("width", "80.0");
+        shape.appendChild(geometry);
+        // <y:Fill color="#FFCC00" transparent="false"/>
+        Element fill = doc.createElement("y:Fill");
+        fill.setAttribute("color", "#FFCC00");
+        fill.setAttribute("transparent", "false");
+        shape.appendChild(fill);
+        // <y:BorderStyle color="#000000" raised="false" type="line" width="1.0"/>
+        Element border = doc.createElement("y:BorderStyle");
+        border.setAttribute("color", "#000000");
+        border.setAttribute("raised", "false");
+        border.setAttribute("type", "line");
+        border.setAttribute("width", "1.0");
+        shape.appendChild(border);
+        // <y:Shape type="ellipse"/>
+        Element sh = doc.createElement("y:Shape");
+        sh.setAttribute("type", "ellipse");
+        shape.appendChild(sh);
+        // <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="18.1328125" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="41.78125" x="-5.890625" xml:space="preserve" y="5.93359375">Target<y:LabelModel><y:SmartNodeLabelModel distance="4.0"/></y:LabelModel><y:ModelParameter><y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="0.0" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/></y:ModelParameter></y:NodeLabel>
         e_n.appendChild(shape);
         shape.appendChild(label);
         return e_n;

@@ -2,7 +2,6 @@ package io.github.sparqlanything.fxbgp.stream;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.google.common.collect.Sets;
 import io.github.sparqlanything.json.JSONTriplifier;
 import io.github.sparqlanything.model.IRIArgument;
 import io.github.sparqlanything.model.PropertyUtils;
@@ -59,7 +58,7 @@ public class JSONTriplifier2 implements FXParser {
     private Set<String> literalKeys = new HashSet<>();
 
     @Override
-    public void triplify(Properties properties, TriplifierEventsHandler eventsHandler) throws IOException, TriplifierHTTPException {
+    public void triplify(Properties properties, FXParserEventsHandler eventsHandler) throws IOException, TriplifierHTTPException {
         JsonFactory factory = JsonFactory.builder().build();
 
         try (InputStream us = Triplifier.getInputStream(properties)) {
@@ -69,7 +68,7 @@ public class JSONTriplifier2 implements FXParser {
         }
     }
 
-    private void streamJSON(JsonParser parser, TriplifierEventsHandler eventsHandler, boolean includeNullValues) throws IOException {
+    private void streamJSON(JsonParser parser, FXParserEventsHandler eventsHandler, boolean includeNullValues) throws IOException {
         // Start Data Source
         eventsHandler.onDataSource(SPARQLAnythingConstants.DATA_SOURCE_ID);
         eventsHandler.startRoot(SPARQLAnythingConstants.DATA_SOURCE_ID);
@@ -85,7 +84,7 @@ public class JSONTriplifier2 implements FXParser {
         }
     }
 
-    private void transformArray(JsonParser parser, String dataSourceId, String containerId, TriplifierEventsHandler eventsHandler, boolean includeNullValues) throws IOException {
+    private void transformArray(JsonParser parser, String dataSourceId, String containerId, FXParserEventsHandler eventsHandler, boolean includeNullValues) throws IOException {
         int i = 0;
         JsonToken token;
 
@@ -95,7 +94,7 @@ public class JSONTriplifier2 implements FXParser {
         }
     }
 
-    private void transformArrayItem(int i, JsonToken token, JsonParser parser, String dataSourceId, String containerId, TriplifierEventsHandler eventsHandler, boolean includeNullValues) throws IOException {
+    private void transformArrayItem(int i, JsonToken token, JsonParser parser, String dataSourceId, String containerId, FXParserEventsHandler eventsHandler, boolean includeNullValues) throws IOException {
 
         switch (token) {
             case START_ARRAY -> {
@@ -144,7 +143,7 @@ public class JSONTriplifier2 implements FXParser {
         }
     }
 
-    private void transformObject(JsonParser parser, String dataSourceId, String containerId, TriplifierEventsHandler eventsHandler, boolean includeNullValues) throws IOException {
+    private void transformObject(JsonParser parser, String dataSourceId, String containerId, FXParserEventsHandler eventsHandler, boolean includeNullValues) throws IOException {
         JsonToken token;
         Integer coercedInt;
         String coercedStr;

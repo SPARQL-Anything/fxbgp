@@ -1,6 +1,5 @@
 package io.github.sparqlanything.fxbgp.stream;
 
-import com.google.common.collect.Sets;
 import io.github.sparqlanything.csv.CSVTriplifier;
 import io.github.sparqlanything.model.IRIArgument;
 import io.github.sparqlanything.model.PropertyUtils;
@@ -24,7 +23,6 @@ import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Properties;
-import java.util.Set;
 
 @Deprecated
 public class CSVTriplifier2 implements FXParser {
@@ -59,7 +57,7 @@ public class CSVTriplifier2 implements FXParser {
     private static final Logger log = LoggerFactory.getLogger(CSVTriplifier.class);
 
     @Override
-    public void triplify(Properties properties, TriplifierEventsHandler handler) throws IOException, TriplifierHTTPException {
+    public void triplify(Properties properties, FXParserEventsHandler handler) throws IOException, TriplifierHTTPException {
 
         CSVFormat format = buildFormat(properties);
         Charset charset = Triplifier.getCharsetArgument(properties);
@@ -137,7 +135,7 @@ public class CSVTriplifier2 implements FXParser {
         return makeHeadersMapFromOpenIterator(properties, headersRow, iterator);
     }
 
-    private void processRow(int rown, String dataSourceId, String rootId, CSVRecord record, LinkedHashMap<Integer, String> headers_map, TriplifierEventsHandler handler, boolean ignoreColumnsWithNoHeaders) {
+    private void processRow(int rown, String dataSourceId, String rootId, CSVRecord record, LinkedHashMap<Integer, String> headers_map, FXParserEventsHandler handler, boolean ignoreColumnsWithNoHeaders) {
         handler.onSlotNumber(rown);
 
         String rowContainerId = StringUtils.join(rootId, "row", rown);

@@ -7,5 +7,5 @@ import java.util.Properties;
 
 @Deprecated
 public interface FXParser {
-    void triplify(Properties properties, TriplifierEventsHandler eventsHandler) throws IOException, TriplifierHTTPException;
+    void triplify(Properties properties, FXParserEventsHandler eventsHandler) throws IOException, TriplifierHTTPException;
 }

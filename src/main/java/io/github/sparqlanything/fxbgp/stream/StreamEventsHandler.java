@@ -11,7 +11,7 @@ import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class StreamEventsHandler extends FacadeXAbstractNodeBuilder implements TriplifierEventsHandler{
+public class StreamEventsHandler extends FacadeXAbstractNodeBuilder implements FXParserEventsHandler {
     private static final Logger L =  LoggerFactory.getLogger(StreamEventsHandler.class);
     protected FXNodeEventListener eventListener;
     protected List<String> containerStack = new ArrayList<>();

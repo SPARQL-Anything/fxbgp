@@ -1,6 +1,6 @@
 package io.github.sparqlanything.fxbgp.stream;
 
-public interface TriplifierEventsHandler {
+public interface FXParserEventsHandler {
 
     void onDataSource(String dataSourceId);
 
