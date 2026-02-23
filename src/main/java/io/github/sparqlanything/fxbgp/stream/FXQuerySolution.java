@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
+@Deprecated
 public class FXQuerySolution implements QuerySolution {
     @Override
     public RDFNode get(String s) {
@@ -49,5 +50,23 @@ public class FXQuerySolution implements QuerySolution {
     }
     public static final QuerySolution make(Map<String, RDFNode> map){
         return new FXQuerySolution(map);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if(o instanceof QuerySolution) {
+            QuerySolution qs = (QuerySolution) o;
+            if(qs.varNames().equals(this.varNames())) {
+                boolean equals = true;
+                for(Map.Entry<String, RDFNode> entry : this.map.entrySet()) {
+                    if(!qs.get(entry.getKey()).equals(entry.getValue())){
+                        equals = false;
+                        break;
+                    }
+                }
+                return equals;
+            }
+        }
+        return false;
     }
 }
