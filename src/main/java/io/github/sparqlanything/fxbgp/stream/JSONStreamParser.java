@@ -13,7 +13,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -42,6 +44,7 @@ public class JSONStreamParser implements FXStreamParser {
     private boolean includeNullValues;
     //
     private int containerIndex;
+    private List<String> containerPath = null;
     private boolean inArray;
     private boolean waitForItem = false;
     private boolean wasFieldName = false;
@@ -101,15 +104,21 @@ public class JSONStreamParser implements FXStreamParser {
                     return true;
                 }
                 this.waitForItem = false;
-                this.container = (this.container == null) ? this.root : this.container;
+                if(this.containerPath == null){
+                    this.containerPath = new ArrayList<>();
+                    this.containerPath.add(this.root);
+                }
                 // From string or from int?
                 if(this.eventType == FXEventType.SlotString){
-                    this.container = StringUtils.join(this.container, "/", slotString);
+                    containerPath.add(slotString);
                 }else if(this.eventType == FXEventType.SlotNumber){
-                    this.container = StringUtils.join(this.container, "/_", String.valueOf(slotNumber));
+                    containerPath.add("_" + String.valueOf(slotNumber));
                 }
-                this.eventType = FXEventType.StartContainer;
+
+                this.container =  String.join("/", this.containerPath);
                 this.containerIndex++;
+                this.eventType = FXEventType.StartContainer;
+
                 if(token == START_ARRAY){
                     this.inArray = true;
                     this.arrayIndexes.put(this.containerIndex, 0);
@@ -122,6 +131,7 @@ public class JSONStreamParser implements FXStreamParser {
                     this.complete();
                 }else {
                     this.eventType = FXEventType.EndContainer;
+                    this.containerPath.remove(this.containerPath.size()-1);
                 }
                 this.containerIndex--;
                 // Is the containing element an array?
