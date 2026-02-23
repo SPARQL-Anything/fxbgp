@@ -104,7 +104,7 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
             properties.setProperty(CSVTriplifier2.PROPERTY_HEADERS.toString(), "true");
         }
 
-        properties.setProperty("blank-nodes", blankNodes ? "true" : "false");
+        properties.setProperty(IRIArgument.BLANK_NODES.toString(), blankNodes ? "true" : "false");
         properties.setProperty(JSONTriplifier.PROPERTY_JSONINCLUDENULLVALUES.toString(), nullValues ? "true" : "false");
 
         String mediaType = null;

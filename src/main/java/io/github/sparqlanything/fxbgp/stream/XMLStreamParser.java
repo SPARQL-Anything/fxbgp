@@ -10,6 +10,7 @@ import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Attribute;
+import javax.xml.stream.events.Comment;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.IOException;
@@ -47,11 +48,13 @@ public class XMLStreamParser implements FXStreamParser{
     private List<String> path;
     private XMLEvent event = null;
     private boolean moveToNext = true;
-    private boolean containerStarted = false;
+    private boolean sendContainerType = false;
     private boolean checkForAttributes = false;
     private Iterator<Attribute> attributes = null;
     private Attribute attribute = null;
-    private boolean startCharacters = false;
+    private boolean sendSlotNumberForCharacters = false;
+    private boolean slotNumberSentForContainer = false;
+    private boolean sendValue = false;
     private StringBuilder charBuilder = null;
     private int containerIndex = 0;
     private Map<Integer,Integer> containerCounter = new HashMap<>();
@@ -75,6 +78,23 @@ public class XMLStreamParser implements FXStreamParser{
             return false;
         }
 
+        if(sendSlotNumberForCharacters) {
+            // Trigger slot number
+            this.slotNumber = this.containerCounter.get(this.containerIndex) + 1;
+            this.eventType = FXEventType.SlotNumber;
+            this.sendSlotNumberForCharacters = false;
+            this.moveToNext = false;
+            this.containerCounter.put(this.containerIndex, this.slotNumber);
+            this.sendValue = true;
+            return true;
+        }else
+        if(this.sendValue){
+            this.sendSlotNumberForCharacters = false;
+            this.sendValue = false;
+            this.eventType = FXEventType.Value;
+            return true;
+        }
+
         if(moveToNext) {
             try {
                 event = eventReader.nextEvent();
@@ -85,17 +105,19 @@ public class XMLStreamParser implements FXStreamParser{
                 throw new RuntimeException(e);
             }
         }
-
-        if(event.isStartElement()){
-            if(!containerStarted && !checkForAttributes) {
+        if(event instanceof Comment){
+            return hasNextEvent();
+        }else if(event.isStartElement()){
+            if(!sendContainerType && !checkForAttributes) {
                 // If we are within another container, advance index
                 // If root was set, we are within another container
-                if(this.root != null && (moveToNext || this.eventType.equals(FXEventType.Value))){
+                if(this.root!=null && !slotNumberSentForContainer){
                     // If this is the case, we are within another container
                     this.slotNumber = this.containerCounter.get(this.containerIndex) + 1;
                     this.containerCounter.put(this.containerIndex, this.slotNumber);
                     this.eventType = FXEventType.SlotNumber;
-                    moveToNext = false;
+                    this.moveToNext = false;
+                    this.slotNumberSentForContainer = true;
                     return true;
                 }
 
@@ -124,18 +146,19 @@ public class XMLStreamParser implements FXStreamParser{
                 }
                 // Set container type
                 this.type = name;
-                containerStarted = true;
+                this.sendContainerType = true;
+                this.slotNumberSentForContainer = false;
                 if(se.asStartElement().getAttributes().hasNext()) {
                     this.attributes = se.asStartElement().getAttributes();
                 }
-                moveToNext = false; // We must trigger Type
+                this.moveToNext = false; // We must trigger Type
                 this.container = "/" + String.join("/", this.path) ;
                 return true;
-            }else if (containerStarted){
+            }else if (sendContainerType){
                 this.eventType = FXEventType.Type;
-                containerStarted = false;
+                this.sendContainerType = false;
                 if(this.attributes != null){
-                    checkForAttributes = true;
+                    this.checkForAttributes = true;
                     moveToNext = false;
                 }else{
                     moveToNext = true;
@@ -154,8 +177,8 @@ public class XMLStreamParser implements FXStreamParser{
                     this.value = attribute.getValue();
                     this.attribute = null;
                     if(!attributes.hasNext()){
-                        checkForAttributes = false;
-                        moveToNext = true;
+                        this.checkForAttributes = false;
+                        this.moveToNext = true;
                         this.attributes = null;
                     }
                 }
@@ -179,40 +202,35 @@ public class XMLStreamParser implements FXStreamParser{
             this.containerIndex--;
             return true;
         }else if(event.isCharacters()){
-            if(!startCharacters) {
-                // Trigger slot number
-                this.slotNumber = this.containerCounter.get(this.containerIndex) + 1;
-                this.eventType = FXEventType.SlotNumber;
-                this.startCharacters = true;
-                this.moveToNext = false;
-                this.containerCounter.put(this.containerIndex, this.slotNumber);
-                return true;
-            }else if(startCharacters){
+
+            if(!sendSlotNumberForCharacters && !sendValue) {
                 // Collect value
                 charBuilder = new StringBuilder();
                 charBuilder.append(event.asCharacters().getData());
-                while(eventReader.hasNext()) {
+                while (eventReader.hasNext()) {
                     try {
                         this.event = eventReader.nextEvent();
                     } catch (XMLStreamException e) {
                         throw new RuntimeException(e);
                     }
-                    if(event.isCharacters()){
+                    if (event.isCharacters()) {
                         charBuilder.append(event.asCharacters().getData().trim());
-                    }else{
+                    } else {
                         break;
                     }
                 }
-                this.moveToNext = false; // We already moved to the next one
+
                 String chars = charBuilder.toString().trim();
-                startCharacters = false;
-                if(chars.length() == 0){
-                    // Ignore event
+                this.moveToNext = false; // We already moved to the next one
+                if (chars.length() == 0) {
+                    this.sendSlotNumberForCharacters = false;
+                    // Ignore event (we already moved to next event)
                     return hasNextEvent();
-                }else {
+                } else if (!sendSlotNumberForCharacters) {
+                    // We haven't send the the slot number yet
+                    this.sendSlotNumberForCharacters = true; // Prepare for next time you find a character
                     this.value = chars;
-                    this.eventType = FXEventType.Value;
-                    return true;
+                    return hasNextEvent();
                 }
             }
         }

@@ -1,5 +1,6 @@
 package io.github.sparqlanything.fxbgp.stream;
 
+import io.github.sparqlanything.model.IRIArgument;
 import io.github.sparqlanything.xml.XMLTriplifier;
 import io.github.sparqlanything.model.TriplifierHTTPException;
 import org.apache.jena.sparql.algebra.op.OpBGP;
@@ -8,6 +9,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Properties;
 import java.util.Set;
 
 public class XMLStreamingTest extends FXStreamExecutorTest{
@@ -75,8 +77,35 @@ public class XMLStreamingTest extends FXStreamExecutorTest{
     }
 
 
+    @Test
+    public void books_xml_all_ABCEquals() throws TriplifierHTTPException, IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        testABCEquals(new XMLTriplifier(), properties());
+
+        prepare(testName.getMethodName());
+        testABCEquals(new XMLTriplifier(), properties(false ));
+    }
+
+    @Test
     public void testXYZ(){
-        // s12
-        // ?a-Container.673384643[ ?b1-SlotString.1574573264[ ?c-Container.498134055 ] ?b2-SlotNumber.1033880954[ ?c-Container.223000346 ] ]
+        Properties p  = new Properties();
+        p.setProperty(IRIArgument.LOCATION.toString(), getClass().getClassLoader().getResource("./stream/books.xml").getFile());
+        XMLStreamParser sp = new XMLStreamParser(p);
+        while(sp.hasNext()){
+            FXEventType event = sp.nextType();
+            L.info("hasNextEvent: {}",event);
+            switch (event){
+                case Type -> L.info("Type {}", sp.getType());
+                case Value -> L.info("Value {}", sp.getValue());
+                case StartRoot -> L.info("StartRoot {}", sp.getRoot());
+                case EndRoot -> L.info("EndRoot {}", sp.getRoot());
+                case StartContainer ->  L.info("StartContainer {}", sp.getContainer());
+                case EndContainer ->  L.info("EndContainer {}", sp.getContainer());
+                case SlotString -> L.info("SlotString {}", sp.getSlotString());
+                case SlotNumber ->  L.info("SlotNumber {}", sp.getSlotNumber());
+                case StartDataSource ->   L.info("StartDataSource {}", sp.getDataSource());
+                default -> L.info("??? {}", event);
+            }
+        }
     }
 }

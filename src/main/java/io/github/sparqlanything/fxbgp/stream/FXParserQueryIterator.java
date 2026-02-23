@@ -27,7 +27,7 @@ public class FXParserQueryIterator extends QueryIteratorBase {
             // Keep moving until you get some binding
             if(parser.hasNext()) {
                 FXEventType event = parser.nextType();
-                L.trace(">>> {}", event);
+//                L.info(">>> {}", event);
                 switch(event) {
                     case StartDataSource -> { handler.onDataSource(parser.getDataSource());}
                     case StartRoot -> {handler.startRoot(parser.getRoot());}
