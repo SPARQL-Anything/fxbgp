@@ -122,8 +122,14 @@ public class CSVStreamParser implements FXStreamParser{
                     return true;
                 }
                 if(!headersMap.isEmpty()){
-                    this.eventType = FXEventType.SlotString;
-                    this.slotString = (String) headersMap.get(nextCell);
+                    String headerStr = (String) headersMap.get(nextCell);
+                    if(headerStr == null || headerStr.length() == 0){
+                        this.eventType = FXEventType.SlotNumber;
+                        this.slotNumber = (int) nextCell;
+                    }else {
+                        this.eventType = FXEventType.SlotString;
+                        this.slotString = (String) headersMap.get(nextCell);
+                    }
                 }else {
                     this.eventType = FXEventType.SlotNumber;
                     this.slotNumber = (int) nextCell;
@@ -225,7 +231,7 @@ public class CSVStreamParser implements FXStreamParser{
             this.closableReader = new InputStreamReader(BOMInputStream.builder().setInputStream(is).get(), charset);
             Iterable<CSVRecord> records = format.parse(closableReader);
             this.recordIterator = records.iterator();
-            headersMap = CSVTriplifier2.makeHeadersMapFromOpenIterator(recordIterator, properties, format, charset);
+            headersMap = makeHeadersMapFromOpenIterator(recordIterator, properties, format, charset);
         } catch (TriplifierHTTPException e) {
             L.error("{}", e);
             throw new RuntimeException(e);
@@ -276,5 +282,51 @@ public class CSVStreamParser implements FXStreamParser{
             cellIterator = null;
             return cellIndex;
         }
+    }
+
+    public static LinkedHashMap<Integer, String> makeHeadersMapFromOpenIterator(Iterator<CSVRecord> recordIterator, Properties properties, CSVFormat format, Charset charset) throws TriplifierHTTPException, IOException {
+        int headersRow = PropertyUtils.getIntegerProperty(properties, PROPERTY_HEADER_ROW);
+        Iterator<CSVRecord> iterator = recordIterator;
+        if (headersRow > 0) {
+            Reader in = new InputStreamReader(BOMInputStream.builder().setInputStream(Triplifier.getInputStream(properties)).get(), charset);
+            Iterable<CSVRecord> records = format.parse(in);
+            iterator = records.iterator();
+            LinkedHashMap<Integer, String> headers_map = makeHeadersMapFromOpenIterator(properties, headersRow, iterator);
+            in.close();
+            return headers_map;
+        }
+        return makeHeadersMapFromOpenIterator(properties, headersRow, iterator);
+    }
+    private static LinkedHashMap<Integer, String> makeHeadersMapFromOpenIterator(Properties properties, int headersRow, Iterator<CSVRecord> iterator) {
+        int rowNumber = 1;
+        LinkedHashMap<Integer, String> headers_map = new LinkedHashMap<>();
+        if (PropertyUtils.getBooleanProperty(properties, CSVTriplifier.PROPERTY_HEADERS) && iterator.hasNext()) {
+            while (rowNumber != headersRow && iterator.hasNext()) {
+                rowNumber++;
+                iterator.next();
+            }
+            CSVRecord record = iterator.next();
+            L.trace(" > is headers");
+            Iterator<String> columns = record.iterator();
+            int colid = 0;
+            while (columns.hasNext()) {
+                colid++;
+                String colstring = columns.next();
+                String colname = colstring.strip();
+
+                if (colname.length() == 0) {
+                    continue;
+                }
+
+                int c = 0;
+                while (headers_map.containsValue(colname)) {
+                    c++;
+                    colname += "_".concat(String.valueOf(c));
+                }
+                L.trace("adding colname >{}<", colname);
+                headers_map.put(colid, colname);
+            }
+        }
+        return headers_map;
     }
 }
