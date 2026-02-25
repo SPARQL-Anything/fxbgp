@@ -423,10 +423,10 @@ class Matching {
         if(patternNode.isVariable()){
             return true;
         }
-        if(patternNode.isURI() && patternNode.sameTermAs(dataNode)){
+        if(patternNode.isURI() && patternNode.equals(dataNode)){
             return true;
         }
-        if(patternNode.isLiteral() && patternNode.sameValueAs(dataNode)){
+        if(patternNode.isLiteral() && patternNode.equals(dataNode)){
             return true;
         }
         return false;

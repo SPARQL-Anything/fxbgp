@@ -18,7 +18,6 @@ public class StreamEventsHandler extends FacadeXAbstractNodeBuilder implements F
     private boolean blankNodes = true;
     public StreamEventsHandler(Properties properties, FXNodeEventListener eventListener) {
         super(properties);
-        // TODO Blank nodes = True?
         if(properties.containsKey("blank-nodes")){
             this.blankNodes = Boolean.parseBoolean(properties.getProperty("blank-nodes"));
         }else{
