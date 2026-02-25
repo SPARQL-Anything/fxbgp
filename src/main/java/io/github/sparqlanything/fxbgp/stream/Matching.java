@@ -1,6 +1,7 @@
 package io.github.sparqlanything.fxbgp.stream;
 
 import io.github.sparqlanything.fxbgp.FX;
+import io.github.sparqlanything.model.Triplifier;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Match;
@@ -423,10 +424,15 @@ class Matching {
         if(patternNode.isVariable()){
             return true;
         }
-        if(patternNode.isURI() && patternNode.equals(dataNode)){
-            return true;
+        if(patternNode.isURI() && dataNode.isURI()) {
+//            if(patternNode.getURI().equals("http://sparql.xyz/facade-x/ns/anySlot") &&
+//                    dataNode.getURI().startsWith("http://www.w3.org/1999/02/22-rdf-syntax-ns#_")) {
+//                return true;
+//            } else {
+                return patternNode.equals(dataNode);
+//            }
         }
-        if(patternNode.isLiteral() && patternNode.equals(dataNode)){
+        if(patternNode.equals(dataNode)){
             return true;
         }
         return false;

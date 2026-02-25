@@ -1,0 +1,7 @@
+?book a <http://sparql.xyz/facade-x/data/book>
+?book <http://www.w3.org/1999/02/22-rdf-syntax-ns#_1> ?authorTag
+?authorTag a <http://sparql.xyz/facade-x/data/author>
+?authorTag <http://www.w3.org/1999/02/22-rdf-syntax-ns#_1> ?authorString
+?book <http://www.w3.org/1999/02/22-rdf-syntax-ns#_2> ?titleTag
+?titleTag a <http://sparql.xyz/facade-x/data/title>
+?titleTag <http://www.w3.org/1999/02/22-rdf-syntax-ns#_1> ?titleString

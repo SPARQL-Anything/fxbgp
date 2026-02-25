@@ -122,6 +122,15 @@ public class XMLStreamingTest extends FXStreamExecutorTest{
     }
 
     @Test
+    public void books3_xml_books3() throws TriplifierHTTPException, IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<Binding> bindings = getBindings(properties());
+        show(bindings.iterator());
+        L.info("{}", bindings.size());
+        Assert.assertEquals(7, bindings.size());
+    }
+
+    @Test
     public void testXYZ(){
         Properties p  = new Properties();
         p.setProperty(IRIArgument.LOCATION.toString(), getClass().getClassLoader().getResource("./stream/books.xml").getFile());
