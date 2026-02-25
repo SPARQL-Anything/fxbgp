@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 
 
 public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
-    private final Logger L = LoggerFactory.getLogger(FXQuerySolutionBuilder.class);
+    private final static Logger L = LoggerFactory.getLogger(FXQuerySolutionBuilder.class);
     private final String string;
     private Set<Binding> solutions;
     private FXTreePattern pattern;
@@ -35,7 +35,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     private List<Node> contextPath;
     private List<Node> path;
     private Node dataSourceNode = null;
-    private boolean troubleshoot = false;
+    private boolean troubleshoot = L.isDebugEnabled();
     public FXQuerySolutionBuilder(FXTreePattern pattern, Set<Binding> solutions) {
         this.pattern = pattern;
         this.string = pattern.toString();
@@ -104,7 +104,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         if(!matchedDataSource()){
             return;
         }
-        if(troubleshoot && L.isDebugEnabled()){
+        if(troubleshoot){
             beginEndContainer();
         }
         super.endContainer();
@@ -115,7 +115,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
             // Go the prev container...
             path.remove(path.size() - 1);
         }
-        if(troubleshoot && L.isDebugEnabled()) {
+        if(troubleshoot) {
             endEndContainer();
         }
     }
@@ -174,7 +174,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         if(!matchedDataSource()){
             return;
         }
-        if(troubleshoot && L.isDebugEnabled()) {
+        if(troubleshoot) {
             beginMatch(node, component);
         }
         Set<Matching> spawned = new HashSet<>();
@@ -193,7 +193,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         Set<Matching> removable = new HashSet<>();
         for(Matching matching: matches){
             Set<Matching> spawn = matching.check(node, component);
-            if(troubleshoot && L.isDebugEnabled() && spawn.size() > 0){
+            if(troubleshoot && spawn.size() > 0){
                 L.debug(" --> {} spawned", spawn.size());
             }
             spawned.addAll(spawn);
@@ -214,7 +214,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
             }
         }
         this.matches.removeAll(completed);
-        if(troubleshoot && L.isDebugEnabled()) {
+        if(troubleshoot) {
             endMatch(node, component);
         }
     }
@@ -234,7 +234,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     private void addQuerySolution(Matching matching){
         BindingBuilder solution = BindingBuilder.create();
         for(Map.Entry<FXNode, Node> entry : matching.getMatches().entrySet()){
-            if(troubleshoot && L.isDebugEnabled()) {
+            if(troubleshoot) {
                 L.debug(" >>>>> {} {} <<<<<", entry.getKey(), entry.getValue());
                 L.debug(" ----- {} {} <<<<<", entry.getKey(), entry.getKey().getNode().isVariable());
             }
@@ -266,10 +266,10 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     }
 
     private static String TMP_LOG = null;
-    private Node lastLogged = null;
+
     public void beginMatch(Node node, FX component){
        if(!(node.toString() + component).equals(TMP_LOG)){
-           TMP_LOG = node.toString() + component.toString();
+           TMP_LOG = node + component.toString();
            L.debug("# [EVENT] - {} - {}", node, component.getName());
            L.debug("# - Path: {}", path);
            L.debug("# - Context: - {}", contextPath);

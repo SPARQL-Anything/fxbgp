@@ -4,7 +4,15 @@ import io.github.sparqlanything.model.IRIArgument;
 import io.github.sparqlanything.xml.XMLTriplifier;
 import io.github.sparqlanything.model.TriplifierHTTPException;
 import org.apache.jena.sparql.algebra.op.OpBGP;
+import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.jena.sparql.engine.ExecutionContext;
+import org.apache.jena.sparql.engine.QueryIterator;
 import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.engine.binding.BindingBuilder;
+import org.apache.jena.sparql.engine.iterator.QueryIter1;
+import org.apache.jena.sparql.engine.iterator.QueryIterAbortable;
+import org.apache.jena.sparql.engine.iterator.QueryIteratorBase;
+import org.apache.jena.sparql.engine.main.QC;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -84,6 +92,33 @@ public class XMLStreamingTest extends FXStreamExecutorTest{
 
         prepare(testName.getMethodName());
         testABCEquals(new XMLTriplifier(), properties(false ));
+    }
+
+    @Test
+    public void books2_xml_all_ABCEquals() throws TriplifierHTTPException, IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        testABCEquals(new XMLTriplifier(), properties());
+
+        prepare(testName.getMethodName());
+        testABCEquals(new XMLTriplifier(), properties(false ));
+    }
+
+    @Test
+    public void books2_xml_book() throws TriplifierHTTPException, IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<Binding> bindings = getBindings(properties());
+        show(bindings.iterator());
+        L.info("{}", bindings.size());
+        Assert.assertEquals(1, bindings.size());
+    }
+
+    @Test
+    public void books2_xml_book2() throws TriplifierHTTPException, IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<Binding> bindings = getBindings(properties());
+        show(bindings.iterator());
+        L.info("{}", bindings.size());
+        Assert.assertEquals(1, bindings.size());
     }
 
     @Test

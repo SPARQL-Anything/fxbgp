@@ -223,14 +223,7 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
         RDFDataMgr.write(System.out, g, RDFFormat.TTL);
     }
 
-    /**
-     * Warning! This method assumes a lot of things...
-     * - bgp must be all.easybgp we expect bindings to be a b c...
-     * - for example, call with method name test1_json_all_...
-     * @param triplifier
-     */
-    public void testABCEquals(Triplifier triplifier, Properties properties) {
-        //p.setProperty(JSONTriplifier.PROPERTY_JSONINCLUDENULLVALUES.toString(), "true");
+    protected DatasetGraph getDatasetGraph(Triplifier triplifier, Properties properties){
         FacadeXGraphBuilder gb = new BaseFacadeXGraphBuilder(properties);
         try {
             triplifier.triplify(properties, gb);
@@ -239,14 +232,30 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
         } catch (TriplifierHTTPException e) {
             throw new RuntimeException(e);
         }
-        DatasetGraph dg1 = gb.getDatasetGraph();
-        long size1 = dg1.getDefaultGraph().size();
+        return gb.getDatasetGraph();
+    }
+
+    protected Set<Binding> getBindings(Properties properties){
         Set<Binding> it = null;
         try {
             it = set(executor.exec(getOpBGP(), properties));
         } catch (NotATreeException e) {
             throw new RuntimeException(e);
         }
+        return it;
+    }
+
+    
+    /**
+     * Warning! This method assumes a lot of things...
+     * - bgp must be all.easybgp we expect bindings to be a b c...
+     * - for example, call with method name test1_json_all_...
+     * @param triplifier
+     */
+    public void testABCEquals(Triplifier triplifier, Properties properties) {
+        DatasetGraph dg1 = getDatasetGraph(triplifier, properties);
+        long size1 = dg1.getDefaultGraph().size();
+        Set<Binding> it = getBindings(properties);
         Graph gg = getGraphFrom_abc(it);
 
         L.info("old {} vs new {}", size1, gg.size());

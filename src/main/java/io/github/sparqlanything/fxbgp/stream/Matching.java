@@ -360,11 +360,56 @@ class Matching {
     }
 
     public void endContainer(){
-        // Check if the node we are leaving is bound to any match to the container we are leaving.
-        // If it does, mark it as unresolvable
-        if(map.values().contains(path)){
-            this.unresolvable = true;
+        // Relation with this cursor:
+        // 1. the container we are leaving is in the cursors
+        boolean containerInCursor = false;
+        for(FXNode c: cursor){
+            if(map.containsKey(c)){
+                if(map.get(c).equals(path)){
+                    // The container we are leaving is the cursor
+                    containerInCursor = true;
+                    break;
+                }
+            }
         }
+
+        if(containerInCursor){
+            // We remove all cursors (they will be all containers in the same tree depth)
+            Set<FXNode> unset = new HashSet<>(cursor);
+            Set<FXNode> set = new HashSet<>();
+            for(FXNode c: unset){
+                cursor.remove(c);
+                if(c.isRoot()){
+                    this.unresolvable = true;
+                    break;
+                }
+                // Move to previous container
+                set.add(c.getParent().getParent());
+            }
+            if(!this.unresolvable){
+                for(FXNode c: set){
+                    cursor.add(c);
+                }
+            }
+
+            // 1.1 If the removed cursors have children without mapped values, this is unsolvable
+            for(FXNode c: unset){
+                for(FXNode c2: c.getChildren()){
+                    if(!map.containsKey(c2)){
+                        this.unresolvable = true;
+                        break;
+                    }
+                }
+            }
+        }
+        // 2. the container we are leaving is not in the cursors
+        // We do nothing
+        // Check if the node we are leaving is bound to any match to the container we are leaving.
+//        if(map.values().contains(path)){
+//            // If it does, verify that alls its child terms are mapped, otherwise, mark it as unresolvable
+//            FXNode check =
+//            this.unresolvable = true;
+//        }
     }
 
     public boolean isUnresolvable() {
