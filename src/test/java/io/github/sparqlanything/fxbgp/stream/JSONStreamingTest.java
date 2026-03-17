@@ -35,6 +35,16 @@ public class JSONStreamingTest extends FXStreamExecutorTest{
     }
 
     @Test
+    public void test3_json_all() throws IOException, NotATreeException {
+        String name = testName.getMethodName();
+        prepare(name);
+        Set<Binding> it = set(executor.exec(getOpBGP(), propertiesNullValueTrue()));
+        show(it.iterator());
+        show(getGraphFrom_abc(it));
+        Assert.assertEquals(8,it.size());
+    }
+
+    @Test
     public void test2_json_a1() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
         QueryIterator it = executor.exec(getOpBGP(), properties());
