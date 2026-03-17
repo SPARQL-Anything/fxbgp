@@ -65,4 +65,9 @@ public class FXParserQueryIterator extends QueryIteratorBase {
     public void output(IndentedWriter indentedWriter, SerializationContext serializationContext) {
 
     }
+
+    @Override
+    protected boolean isFinished() {
+        return parser.isCompleted() || parser.isCancelled();
+    }
 }
