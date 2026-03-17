@@ -376,6 +376,8 @@ public class JSONStreamParser implements FXStreamParser {
         } else if (token == JsonToken.START_ARRAY) {
             this.root = this.dataSource;
             this.eventType = FXEventType.StartRoot;
+            this.inArray = true;
+            this.arrayIndexes.put(this.containerIndex, 0);
             return true;
         }else{
             L.error("Error while parsing root: {}", token);

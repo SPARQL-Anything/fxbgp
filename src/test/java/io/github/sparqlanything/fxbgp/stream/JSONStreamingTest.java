@@ -41,7 +41,7 @@ public class JSONStreamingTest extends FXStreamExecutorTest{
         Set<Binding> it = set(executor.exec(getOpBGP(), propertiesNullValueTrue()));
         show(it.iterator());
         show(getGraphFrom_abc(it));
-        Assert.assertEquals(8,it.size());
+        Assert.assertEquals(4,it.size());
     }
 
     @Test
