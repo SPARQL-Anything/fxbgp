@@ -260,9 +260,9 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
                 solution.add(Var.alloc(graphPN.getName()), dataSourceNode);
             }
         }
-        synchronized (solutions) {
-            solutions.add(solution.build());
-        }
+
+        solutions.add(solution.build());
+
     }
 
     private static String TMP_LOG = null;
