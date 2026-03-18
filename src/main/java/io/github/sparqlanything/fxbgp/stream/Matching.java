@@ -20,10 +20,14 @@ import java.util.Set;
 class Matching {
     private static final Logger L = LoggerFactory.getLogger(Matching.class);
     private Map<FXNode, List<Node>> map;
+    private final Map<FXNode, List<Node>> unmodifiableMap;
     private Map<Node, Set<FXNode>> nodesMap;
+    private Map<FXNode, Node> cachedMatches = null;
     private Map<FXNode,FX> componentsMap;
     private Set<FXNode> cursor;
     private boolean unresolvable = false;
+    private int cachedHash = 0;
+    private boolean hashDirty = true;
     private List<Node> contextPath = new ArrayList<>();
     private List<Node> path = new ArrayList<>();
 
@@ -40,6 +44,7 @@ class Matching {
         if(!cursor.isRoot()) throw new RuntimeException("cursor is not root");
         this.cursor = new HashSet<>();
         this.map = new HashMap<>();
+        this.unmodifiableMap = Collections.unmodifiableMap(map);
         this.contextPath = contextPath;
         this.path = path;
         populate(cursor);
@@ -56,6 +61,7 @@ class Matching {
      */
     private Matching(Map<FXNode, List<Node>> map, Set<FXNode> cursor, List<Node> contextPath, List<Node> path, Map<Node, Set<FXNode>> nodesMap, Map<FXNode,FX> componentsMap) {
         this.map = map;
+        this.unmodifiableMap = Collections.unmodifiableMap(map);
         this.cursor = cursor;
         this.contextPath = contextPath;
         this.path = path;
@@ -81,17 +87,25 @@ class Matching {
     }
 
     public Map<FXNode, List<Node>> getMap() {
-        return Collections.unmodifiableMap(map);
+        return unmodifiableMap;
     }
 
     public Map<FXNode, Node> getMatches() {
-        Map<FXNode, Node> matches = new HashMap<>();
-        for(Map.Entry<FXNode, List<Node>> entry : map.entrySet()){
-            FXNode node = entry.getKey();
-            List<Node> vals = entry.getValue();
-            matches.put(node, vals.get(vals.size() -1));
+        if(cachedMatches == null) {
+            cachedMatches = new HashMap<>();
+            for(Map.Entry<FXNode, List<Node>> entry : map.entrySet()){
+                FXNode node = entry.getKey();
+                List<Node> vals = entry.getValue();
+                cachedMatches.put(node, vals.get(vals.size() -1));
+            }
+            cachedMatches = Collections.unmodifiableMap(cachedMatches);
         }
-        return Collections.unmodifiableMap(matches);
+        return cachedMatches;
+    }
+
+    private void dirty(){
+        this.hashDirty = true;
+        this.cachedMatches = null;
     }
 
     public Set<FXNode> getCursor() {
@@ -133,6 +147,7 @@ class Matching {
     }
 
     public void set(FXNode patternNode, List<Node> valuePath) {
+        dirty();
         this.map.put(patternNode, valuePath);
         if(!patternNode.isRoot()) {
             if(isContainer(patternNode)) {
@@ -153,6 +168,7 @@ class Matching {
     }
 
     private void removeFromMap(FXNode patternNode) {
+        dirty();
         // If the same variable is in multiple fxnodes, let's remove all matching ones
         if (patternNode.getNode().isVariable()) {
             // Remove all fxnodes with the same variable
@@ -440,7 +456,11 @@ class Matching {
 
     @Override
     public int hashCode() {
-        return this.getMap().hashCode();
+        if(hashDirty){
+            this.cachedHash = this.getMap().hashCode();
+            this.hashDirty = false;
+        }
+        return this.cachedHash;
     }
 
     @Override
