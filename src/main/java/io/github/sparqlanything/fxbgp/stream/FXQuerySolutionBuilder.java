@@ -32,7 +32,6 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     private Set<Binding> solutions;
     private FXTreePattern pattern;
     private List<Matching> matches;
-    private List<Node> contextPath;
     private List<Node> path;
     private Node dataSourceNode = null;
     private boolean troubleshoot = L.isDebugEnabled();
@@ -47,7 +46,6 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
      */
     private void init(){
         this.matches = new ArrayList<>();
-        this.contextPath = new ArrayList<>();
         this.path = new ArrayList<>();
     }
 
@@ -75,7 +73,6 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         }
         super.startContainer(container);
         path.add(container);
-        contextPath.add(container);
         match(container, FX.Container);
     }
 
@@ -109,7 +106,6 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         }
         super.endContainer();
         triggerEndContainer();
-        contextPath.remove(contextPath.size() - 1);
         path.remove(path.size() - 1);
         if(!path.isEmpty()) {
             // Go the prev container...
@@ -272,7 +268,6 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
            TMP_LOG = node + component.toString();
            L.debug("# [EVENT] - {} - {}", node, component.getName());
            L.debug("# - Path: {}", path);
-           L.debug("# - Context: - {}", contextPath);
        }
        logPattern();
        L.debug(">> Before: {} matches", matches.size());
