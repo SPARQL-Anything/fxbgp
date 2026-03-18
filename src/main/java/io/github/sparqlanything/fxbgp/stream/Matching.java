@@ -28,7 +28,6 @@ class Matching {
     private boolean unresolvable = false;
     private int cachedHash = 0;
     private boolean hashDirty = true;
-    private List<Node> contextPath = new ArrayList<>();
     private List<Node> path = new ArrayList<>();
 
     /**
@@ -36,16 +35,14 @@ class Matching {
      *
      * @param cursor
      * @param nodePath
-     * @param contextPath
      * @param path
      */
-    Matching(FXNode cursor, List<Node> nodePath, List<Node> contextPath, List<Node> path) {
+    Matching(FXNode cursor, List<Node> nodePath, List<Node> path) {
         if(cursor == null) throw new RuntimeException("cursor is null");
         if(!cursor.isRoot()) throw new RuntimeException("cursor is not root");
         this.cursor = new HashSet<>();
         this.map = new HashMap<>();
         this.unmodifiableMap = Collections.unmodifiableMap(map);
-        this.contextPath = contextPath;
         this.path = path;
         populate(cursor);
         this.set(cursor, nodePath);
@@ -56,14 +53,12 @@ class Matching {
      *
      * @param map
      * @param cursor
-     * @param contextPath
      * @param path
      */
-    private Matching(Map<FXNode, List<Node>> map, Set<FXNode> cursor, List<Node> contextPath, List<Node> path, Map<Node, Set<FXNode>> nodesMap, Map<FXNode,FX> componentsMap) {
+    private Matching(Map<FXNode, List<Node>> map, Set<FXNode> cursor, List<Node> path, Map<Node, Set<FXNode>> nodesMap, Map<FXNode,FX> componentsMap) {
         this.map = map;
         this.unmodifiableMap = Collections.unmodifiableMap(map);
         this.cursor = cursor;
-        this.contextPath = contextPath;
         this.path = path;
         this.nodesMap = nodesMap;
         this.componentsMap = componentsMap;
@@ -208,7 +203,7 @@ class Matching {
     }
 
     public Matching copy(){
-        return new Matching(new HashMap(this.map), new HashSet<>(this.cursor), this.contextPath, this.path, this.nodesMap, this.componentsMap);
+        return new Matching(new HashMap(this.map), new HashSet<>(this.cursor), this.path, this.nodesMap, this.componentsMap);
     }
 
     public Set<Matching> check(Node node, FX component) {

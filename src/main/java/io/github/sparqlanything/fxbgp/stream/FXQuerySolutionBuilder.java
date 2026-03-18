@@ -181,7 +181,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         // Does the node match the current node in the tree pattern?
         if(component.equals(FX.Container) &&
                 Matching.nodeMatches(pattern.getRoot().getNode(), node)){
-            Matching newMatching = new Matching(pattern.getRoot(), new ArrayList<>(path), Collections.unmodifiableList(contextPath), Collections.unmodifiableList(path));
+            Matching newMatching = new Matching(pattern.getRoot(), new ArrayList<>(path), Collections.unmodifiableList(path));
             if(matches.isEmpty()){
                 matches.add(newMatching);
                 endMatch(node, component);
