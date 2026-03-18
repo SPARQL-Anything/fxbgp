@@ -1,8 +1,10 @@
 package io.github.sparqlanything.fxbgp.stream;
 
 import io.github.sparqlanything.fxbgp.BGPTestUtils;
+import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.query.ARQ;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFactory;
 import org.apache.jena.query.ResultSetFormatter;
@@ -10,6 +12,7 @@ import org.apache.jena.riot.resultset.ResultSetWriterRegistry;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.engine.QueryIterator;
+import org.apache.jena.sys.JenaSystem;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,7 +22,10 @@ import java.util.List;
 import java.util.Properties;
 
 public class Run {
-
+    static {
+        JenaSystem.init();
+        TypeMapper.reset();
+    }
     public static void main(String[] args) throws IOException, NotATreeException {
         String bgp = args[0];
         File input = new File(args[1]);

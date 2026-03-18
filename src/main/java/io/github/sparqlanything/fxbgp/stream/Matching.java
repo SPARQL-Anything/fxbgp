@@ -215,13 +215,15 @@ class Matching {
         Set<Matching> spawned = new HashSet<>();
         // Cursor is last matched node in the tree pattern
         // Check if the coming node matches any following FXNode
+        int expectedDepth = path.size() - 1;
         Set<FXNode> matched = new HashSet<>();
         for(FXNode c: cursor){
+            List<Node> cursorValue = map.get(c);
+            if (cursorValue == null || cursorValue.size() != expectedDepth) continue;
             for(FXNode newCursor: c.getChildren()){
                 if(componentsMap.get(newCursor).equals(component) &&
                         nodeMatches(newCursor.getNode(), node)){
                     // Verify the values are in the right path
-                    List<Node> cursorValue = map.get(c);
                     if(path.subList(0, path.size() - 1).equals(cursorValue)){
                         matched.add(newCursor);
                     }
