@@ -26,13 +26,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
+public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener implements PathAccessor {
     private final static Logger L = LoggerFactory.getLogger(FXQuerySolutionBuilder.class);
     private final String string;
     private Set<Binding> solutions;
     private FXTreePattern pattern;
     private Set<Matching> matches;
     private List<Node> path;
+    private static final long HASH_PRIME = 1_000_000_007L;
+    private final List<Long> pathHashStack = new ArrayList<>();
     private Node dataSourceNode = null;
     private boolean troubleshoot = L.isDebugEnabled();
     public FXQuerySolutionBuilder(FXTreePattern pattern, Set<Binding> solutions) {
@@ -47,6 +49,32 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     private void init(){
         this.matches = new HashSet<>();
         this.path = new ArrayList<>();
+        this.pathHashStack.clear();
+        this.pathHashStack.add(0L);
+    }
+
+    private void pushPath(Node node) {
+        path.add(node);
+        long prev = pathHashStack.get(pathHashStack.size() - 1);
+        pathHashStack.add(prev * HASH_PRIME + node.hashCode());
+    }
+
+    private void popPath() {
+        path.remove(path.size() - 1);
+        pathHashStack.remove(pathHashStack.size() - 1);
+    }
+
+    @Override
+    public List<Node> currentPath() {
+        return Collections.unmodifiableList(path);
+    }
+
+    @Override
+    public long currentPrefixHash() {
+        if (pathHashStack.size() < 2) {
+            throw new IllegalStateException("currentPrefixHash() called with empty path");
+        }
+        return pathHashStack.get(pathHashStack.size() - 2);
     }
 
     @Override
@@ -72,7 +100,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
             return;
         }
         super.startContainer(container);
-        path.add(container);
+        pushPath(container);
         match(container, FX.Container);
     }
 
@@ -82,7 +110,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
             return;
         }
         super.onSlotNumber(predicate);
-        path.add(predicate);
+        pushPath(predicate);
         match(predicate, FX.SlotNumber);
     }
 
@@ -92,7 +120,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
             return;
         }
         super.onSlotString(predicate);
-        path.add(predicate);
+        pushPath(predicate);
         match(predicate, FX.SlotString);
     }
 
@@ -106,10 +134,10 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         }
         super.endContainer();
         triggerEndContainer();
-        path.remove(path.size() - 1);
+        popPath();
         if(!path.isEmpty()) {
             // Go the prev container...
-            path.remove(path.size() - 1);
+            popPath();
         }
         if(troubleshoot) {
             endEndContainer();
@@ -122,7 +150,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
             return;
         }
         super.onTypeProperty();
-        path.add(RDF.type.asNode());
+        pushPath(RDF.type.asNode());
         match(RDF.type.asNode(), FX.TypeProperty);
     }
 
@@ -132,11 +160,11 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
             return;
         }
         super.onType(type);
-        path.add(type);
+        pushPath(type);
         match(type, FX.Type);
         // Step backward
-        path.remove(path.size() - 1);
-        path.remove(path.size() - 1);
+        popPath();
+        popPath();
     }
 
     @Override
@@ -146,11 +174,11 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         }
         super.onTypeRoot();
         Node fxr = NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT);
-        path.add(fxr);
+        pushPath(fxr);
         match(fxr, FX.Root);
         // Step backward
-        path.remove(path.size() - 1);
-        path.remove(path.size() - 1);
+        popPath();
+        popPath();
     }
 
     @Override
@@ -159,11 +187,11 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
             return;
         }
         super.onValue(value);
-        path.add(value);
+        pushPath(value);
         match(value, FX.Value);
         // Step backward
-        path.remove(path.size() - 1);
-        path.remove(path.size() - 1);
+        popPath();
+        popPath();
     }
 
     private void match(Node node, FX component){
@@ -177,7 +205,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         // Does the node match the current node in the tree pattern?
         if(component.equals(FX.Container) &&
                 Matching.nodeMatches(pattern.getRoot().getNode(), node)){
-            Matching newMatching = new Matching(pattern.getRoot(), new ArrayList<>(path), Collections.unmodifiableList(path));
+            Matching newMatching = new Matching(pattern.getRoot(), new ArrayList<>(path), this);
             if(matches.isEmpty()){
                 matches.add(newMatching);
                 endMatch(node, component);
@@ -190,7 +218,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         Set<Matching> current = matches;
         matches = new HashSet<>();            // fresh set for re-population
         for (Matching matching : current) {  // iterate the snapshot
-            Set<Matching> spawn = matching.check(node, component);
+            Set<Matching> spawn = matching.check(node, component, currentPrefixHash());
             spawned.addAll(spawn);
             if (!matching.isUnresolvable()) {
                 matches.add(matching);        // safe: check() done, hash is now stable

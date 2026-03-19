@@ -28,7 +28,9 @@ class Matching {
     private boolean unresolvable = false;
     private int cachedHash = 0;
     private boolean hashDirty = true;
-    private List<Node> path = new ArrayList<>();
+    private PathAccessor accessor;
+    private Map<FXNode, Long> hashMap;
+    private static final long HASH_PRIME = 1_000_000_007L;
 
     /**
      * Matching can happen later
@@ -37,13 +39,14 @@ class Matching {
      * @param nodePath
      * @param path
      */
-    Matching(FXNode cursor, List<Node> nodePath, List<Node> path) {
+    Matching(FXNode cursor, List<Node> nodePath, PathAccessor accessor) {
         if(cursor == null) throw new RuntimeException("cursor is null");
         if(!cursor.isRoot()) throw new RuntimeException("cursor is not root");
         this.cursor = new HashSet<>();
         this.map = new HashMap<>();
         this.unmodifiableMap = Collections.unmodifiableMap(map);
-        this.path = path;
+        this.hashMap = new HashMap<>();
+        this.accessor = accessor;
         populate(cursor);
         this.set(cursor, nodePath);
     }
@@ -55,13 +58,14 @@ class Matching {
      * @param cursor
      * @param path
      */
-    private Matching(Map<FXNode, List<Node>> map, Set<FXNode> cursor, List<Node> path, Map<Node, Set<FXNode>> nodesMap, Map<FXNode,FX> componentsMap) {
+    private Matching(Map<FXNode, List<Node>> map, Set<FXNode> cursor, PathAccessor accessor, Map<Node, Set<FXNode>> nodesMap, Map<FXNode,FX> componentsMap, Map<FXNode, Long> hashMap) {
         this.map = map;
         this.unmodifiableMap = Collections.unmodifiableMap(map);
         this.cursor = cursor;
-        this.path = path;
+        this.accessor = accessor;
         this.nodesMap = nodesMap;
         this.componentsMap = componentsMap;
+        this.hashMap = hashMap;
     }
 
     private void populate(FXNode cursor) {
@@ -144,6 +148,9 @@ class Matching {
     public void set(FXNode patternNode, List<Node> valuePath) {
         dirty();
         this.map.put(patternNode, valuePath);
+        long h = 0L;
+        for (Node n : valuePath) { h = h * HASH_PRIME + n.hashCode(); }
+        this.hashMap.put(patternNode, h);
         if(!patternNode.isRoot()) {
             if(isContainer(patternNode)) {
                 // Remove all parents with the same variable... (not node)
@@ -169,9 +176,11 @@ class Matching {
             // Remove all fxnodes with the same variable
             for (FXNode k : nodesMap.get(patternNode.getNode())) {
                 this.map.remove(k);
+                this.hashMap.remove(k);
             }
         }else{
             this.map.remove(patternNode);
+            this.hashMap.remove(patternNode);
         }
     }
 
@@ -203,23 +212,26 @@ class Matching {
     }
 
     public Matching copy(){
-        return new Matching(new HashMap(this.map), new HashSet<>(this.cursor), this.path, this.nodesMap, this.componentsMap);
+        return new Matching(new HashMap<>(this.map), new HashSet<>(this.cursor), this.accessor, this.nodesMap, this.componentsMap, new HashMap<>(this.hashMap));
     }
 
-    public Set<Matching> check(Node node, FX component) {
+    public Set<Matching> check(Node node, FX component, long prefixHash) {
         Set<Matching> spawned = new HashSet<>();
         // Cursor is last matched node in the tree pattern
         // Check if the coming node matches any following FXNode
-        int expectedDepth = path.size() - 1;
+        List<Node> currentPath = accessor.currentPath();
+        int expectedDepth = currentPath.size() - 1;
         Set<FXNode> matched = new HashSet<>();
         for(FXNode c: cursor){
             List<Node> cursorValue = map.get(c);
             if (cursorValue == null || cursorValue.size() != expectedDepth) continue;
+            Long storedHash = hashMap.get(c);
+            if (storedHash != null && storedHash != prefixHash) continue; // O(1) hash pre-filter
             for(FXNode newCursor: c.getChildren()){
                 if(componentsMap.get(newCursor).equals(component) &&
                         nodeMatches(newCursor.getNode(), node)){
                     // Verify the values are in the right path
-                    if(path.subList(0, path.size() - 1).equals(cursorValue)){
+                    if(currentPath.subList(0, currentPath.size() - 1).equals(cursorValue)){
                         matched.add(newCursor);
                     }
                 }
@@ -283,7 +295,7 @@ class Matching {
                 Matching m = copy();
                 for(Object sn: s){
                     for(FXNode c: (List<FXNode>) sn){
-                        m.set(c, new ArrayList<>(path));
+                        m.set(c, new ArrayList<>(accessor.currentPath()));
                     }
                 }
                 spawned.add(m);
@@ -368,7 +380,7 @@ class Matching {
     private Set<Matching> setAndSpawn(Set<FXNode> matched){
         //Set<Matching> spawned = new HashSet<>();
         for(FXNode c: matched){
-            this.set(c, new ArrayList<>(path));
+            this.set(c, new ArrayList<>(accessor.currentPath()));
         }
         return spawn(matched);
     }
@@ -379,7 +391,7 @@ class Matching {
         boolean containerInCursor = false;
         for(FXNode c: cursor){
             if(map.containsKey(c)){
-                if(map.get(c).equals(path)){
+                if(map.get(c).equals(accessor.currentPath())){
                     // The container we are leaving is the cursor
                     containerInCursor = true;
                     break;
