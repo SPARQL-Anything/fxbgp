@@ -189,22 +189,6 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
 
         Set<Matching> current = matches;
         matches = new HashSet<>();            // fresh set for re-population
-//
-//        Set<Matching> removable = new HashSet<>();
-//        for(Matching matching: matches){
-//            Set<Matching> spawn = matching.check(node, component);
-//            if(troubleshoot && spawn.size() > 0){
-//                L.debug(" --> {} spawned", spawn.size());
-//            }
-//            spawned.addAll(spawn);
-//            if(matching.isUnresolvable()){
-//                removable.add(matching);
-//            }
-//            //L.trace("[end] checking against");
-//        }
-//        this.matches.removeAll(removable);
-//        this.matches.addAll(spawned);
-
         for (Matching matching : current) {  // iterate the snapshot
             Set<Matching> spawn = matching.check(node, component);
             spawned.addAll(spawn);
@@ -221,15 +205,6 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
             }
         }
         this.matches.removeAll(completed);
-//        // Remove duplicates (hash code possibly changed)!
-//        Set<Matching> completed = new HashSet<>();
-//        for(Matching matching: matches) {
-//            if (matching.getMap().size() == pattern.getSize()) {
-//                addQuerySolution(matching);
-//                completed.add(matching);
-//            }
-//        }
-//        this.matches.removeAll(completed);
         if(troubleshoot) {
             endMatch(node, component);
         }
