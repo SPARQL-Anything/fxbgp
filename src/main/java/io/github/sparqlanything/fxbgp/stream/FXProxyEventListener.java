@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class FXProxyEventListener implements FXNodeEventListener {
     private static final Logger L = LoggerFactory.getLogger(FXProxyEventListener.class);
 
-    static final int DEFAULT_PARALLEL_THRESHOLD = 4;
+    static final int DEFAULT_PARALLEL_THRESHOLD = 999;
 
     private final Set<? extends FXNodeEventListener> listeners;
     private final ExecutorService pool;   // null when listeners.size() <= threshold
