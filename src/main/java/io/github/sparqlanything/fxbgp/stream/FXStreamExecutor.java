@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Properties;
 import java.util.Set;
 
@@ -37,7 +38,7 @@ public class FXStreamExecutor {
         }
         AnalyserGrounder ag = new AnalyserGrounder(properties, FXModel.getFXModel());
         Set<FXBGPAnnotation> annotations = ag.annotate(opBGP, true);
-        final Set<Binding> bindings = new HashSet<>();
+        final Set<Binding> bindings = ConcurrentHashMap.newKeySet();
         final Set<FXQuerySolutionBuilder> patterns = new HashSet<>();
         for (FXBGPAnnotation annotation : annotations) {
             FXTreePattern tp;
@@ -51,9 +52,12 @@ public class FXStreamExecutor {
             patterns.add(new FXQuerySolutionBuilder(tp, bindings));
         }
 
+        int threshold = Integer.parseInt(properties.getProperty(
+                "parallel-threshold",
+                String.valueOf(FXProxyEventListener.DEFAULT_PARALLEL_THRESHOLD)));
         FXStreamParser parser = FXStreamParserRegistry.get(properties);
         StreamEventsHandler handler = new StreamEventsHandler(properties,
-                FXProxyEventListener.make(patterns));
+                FXProxyEventListener.make(patterns, threshold));
         return new FXParserQueryIterator(parser, handler, bindings);
     }
 }

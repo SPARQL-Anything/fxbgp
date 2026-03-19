@@ -54,11 +54,13 @@ public class FXParserQueryIterator extends QueryIteratorBase {
     @Override
     protected void closeIterator() {
         parser.cancel();
+        handler.shutdown();
     }
 
     @Override
     protected void requestCancel() {
         parser.cancel();
+        handler.shutdown();
     }
 
     @Override

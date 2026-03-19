@@ -102,4 +102,8 @@ public class StreamEventsHandler extends FacadeXAbstractNodeBuilder implements F
         L.trace("endRoot");
         this.eventListener.endContainer();
     }
+
+    public void shutdown() {
+        if (eventListener instanceof FXProxyEventListener p) p.shutdown();
+    }
 }
