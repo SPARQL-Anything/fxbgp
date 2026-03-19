@@ -31,7 +31,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     private final String string;
     private Set<Binding> solutions;
     private FXTreePattern pattern;
-    private List<Matching> matches;
+    private Set<Matching> matches;
     private List<Node> path;
     private Node dataSourceNode = null;
     private boolean troubleshoot = L.isDebugEnabled();
@@ -45,7 +45,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
      * We initialise when any data source is triggered
      */
     private void init(){
-        this.matches = new ArrayList<>();
+        this.matches = new HashSet<>();
         this.path = new ArrayList<>();
     }
 
@@ -186,45 +186,64 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
                 spawned.add(newMatching);
             }
         }
-        Set<Matching> removable = new HashSet<>();
-        for(Matching matching: matches){
-            Set<Matching> spawn = matching.check(node, component);
-            if(troubleshoot && spawn.size() > 0){
-                L.debug(" --> {} spawned", spawn.size());
-            }
-            spawned.addAll(spawn);
-            if(matching.isUnresolvable()){
-                removable.add(matching);
-            }
-            //L.trace("[end] checking against");
-        }
-        this.matches.removeAll(removable);
-        this.matches.addAll(spawned);
 
-        // Remove duplicates (hash code possibly changed)!
+        Set<Matching> current = matches;
+        matches = new HashSet<>();            // fresh set for re-population
+//
+//        Set<Matching> removable = new HashSet<>();
+//        for(Matching matching: matches){
+//            Set<Matching> spawn = matching.check(node, component);
+//            if(troubleshoot && spawn.size() > 0){
+//                L.debug(" --> {} spawned", spawn.size());
+//            }
+//            spawned.addAll(spawn);
+//            if(matching.isUnresolvable()){
+//                removable.add(matching);
+//            }
+//            //L.trace("[end] checking against");
+//        }
+//        this.matches.removeAll(removable);
+//        this.matches.addAll(spawned);
+
+        for (Matching matching : current) {  // iterate the snapshot
+            Set<Matching> spawn = matching.check(node, component);
+            spawned.addAll(spawn);
+            if (!matching.isUnresolvable()) {
+                matches.add(matching);        // safe: check() done, hash is now stable
+            }
+        }
+        matches.addAll(spawned);
         Set<Matching> completed = new HashSet<>();
-        for(Matching matching: matches) {
-            if (matching.getMap().size() == pattern.getSize()) {
-                addQuerySolution(matching);
-                completed.add(matching);
+        for (Matching m : matches) {
+            if (m.getMap().size() == pattern.getSize()) {
+                addQuerySolution(m);
+                completed.add(m);
             }
         }
         this.matches.removeAll(completed);
+//        // Remove duplicates (hash code possibly changed)!
+//        Set<Matching> completed = new HashSet<>();
+//        for(Matching matching: matches) {
+//            if (matching.getMap().size() == pattern.getSize()) {
+//                addQuerySolution(matching);
+//                completed.add(matching);
+//            }
+//        }
+//        this.matches.removeAll(completed);
         if(troubleshoot) {
             endMatch(node, component);
         }
     }
 
     private void triggerEndContainer(){
-        Set<Matching> unresolvable = new HashSet<>();
-        for(Matching matching: matches){
+        Set<Matching> current = matches;
+        matches = new HashSet<>();
+        for(Matching matching: current){
             matching.endContainer();
-            if(matching.isUnresolvable()){
-                unresolvable.add(matching);
+            if(!matching.isUnresolvable()){
+                matches.add(matching);
             }
         }
-        // Remove unresolvable matches
-        this.matches.removeAll(unresolvable);
     }
 
     private void addQuerySolution(Matching matching){
