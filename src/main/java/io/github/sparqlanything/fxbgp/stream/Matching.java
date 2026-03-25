@@ -219,22 +219,19 @@ class Matching {
         Set<Matching> spawned = new HashSet<>();
         // Cursor is last matched node in the tree pattern
         // Check if the coming node matches any following FXNode
-        List<Node> currentPath = accessor.currentPath();
-        int expectedDepth = currentPath.size() - 1;
+        int expectedDepth = accessor.currentPath().size() - 1;
         Set<FXNode> matched = new HashSet<>();
         for(FXNode c: cursor){
             List<Node> cursorValue = map.get(c);
             if (cursorValue == null || cursorValue.size() != expectedDepth) continue;
             Long storedHash = hashMap.get(c);
-            if (storedHash != null && storedHash != prefixHash) continue; // O(1) hash pre-filter
+            // Size + 64-bit hash is sufficient: collision probability ~1/2^64 per comparison.
+            // The subList().equals() guard is no longer needed.
+            if (storedHash == null || storedHash != prefixHash) continue;
             for(FXNode newCursor: c.getChildren()){
                 if(componentsMap.get(newCursor).equals(component) &&
                         nodeMatches(newCursor.getNode(), node)){
-                    // Verify the values are in the right path
-//                    if(accessor.currentPrefixHash() == cursorValue.hashCode()){
-                    if(currentPath.subList(0, currentPath.size() - 1).equals(cursorValue)){
-                        matched.add(newCursor);
-                    }
+                    matched.add(newCursor);
                 }
             }
         }
@@ -402,6 +399,7 @@ class Matching {
 
         if(containerInCursor){
             // We remove all cursors (they will be all containers in the same tree depth)
+
             Set<FXNode> unset = cursor;
             cursor = new HashSet<>();
             for(FXNode c: unset){

@@ -26,14 +26,12 @@ interface PathAccessor {
      * most recently entered node. The list length equals the current nesting depth in
      * the stream.
      *
-     * <p>Used by {@link Matching} in three ways:</p>
+     * <p>Used by {@link Matching} in two ways:</p>
      * <ul>
-     *   <li>{@code currentPath().subList(0, currentPath().size() - 1)} — prefix compared
-     *       against a cursor's stored path snapshot in {@code Matching.check()}.</li>
-     *   <li>{@code map.get(c).equals(currentPath())} — checks whether the container being
-     *       closed is the one the cursor is positioned on, in {@code Matching.endContainer()}.</li>
      *   <li>{@code new ArrayList<>(currentPath())} — takes an immutable snapshot of the
      *       current path when a new cursor match is recorded via {@code Matching.set()}.</li>
+     *   <li>Indirectly, through {@link #currentPrefixHash()} and {@link #currentFullHash()},
+     *       which replace all O(depth) {@link List#equals} comparisons with O(1) hash checks.</li>
      * </ul>
      *
      * @return unmodifiable live view of the current path; never {@code null};
@@ -67,4 +65,20 @@ interface PathAccessor {
      * @throws IllegalStateException if called when {@code currentPath()} is empty
      */
     long currentPrefixHash();
+
+    /**
+     * Returns the polynomial rolling hash of the <em>full</em> current path,
+     * i.e. {@code currentPath()[0..size-1]}.
+     *
+     * <p>Used in {@link Matching#endContainer()} as an O(1) replacement for
+     * {@code map.get(c).equals(currentPath())}: the stored hash in {@code hashMap}
+     * is compared against this value to detect whether the container being closed
+     * is the one the cursor is positioned on.</p>
+     *
+     * <p><strong>Precondition:</strong> {@code currentPath().size() >= 1}.</p>
+     *
+     * @return polynomial hash of all nodes in the current path
+     * @throws IllegalStateException if called when {@code currentPath()} is empty
+     */
+    long currentFullHash();
 }
