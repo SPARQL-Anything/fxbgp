@@ -19,7 +19,7 @@ import java.util.List;
  *
  * <p>The only intended implementor is {@link FXQuerySolutionBuilder}.</p>
  */
-interface PathAccessor {
+public interface PathAccessor {
 
     /**
      * Returns an unmodifiable live view of the node path from the stream root to the
