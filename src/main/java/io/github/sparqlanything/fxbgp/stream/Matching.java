@@ -387,9 +387,10 @@ class Matching {
         // Relation with this cursor:
         // 1. the container we are leaving is in the cursors
         boolean containerInCursor = false;
+
         for(FXNode c: cursor){
             if(map.containsKey(c)){
-                if(map.get(c).equals(accessor.currentPath())){
+                if(hashMap.get(c) == accessor.currentFullHash()){
                     // The container we are leaving is the cursor
                     containerInCursor = true;
                     break;
@@ -399,7 +400,6 @@ class Matching {
 
         if(containerInCursor){
             // We remove all cursors (they will be all containers in the same tree depth)
-
             Set<FXNode> unset = cursor;
             cursor = new HashSet<>();
             for(FXNode c: unset){
