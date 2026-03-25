@@ -324,8 +324,10 @@ class Matching {
                 if(matchingNode.isConcrete()){
                     continue;
                 }
+                Long entryHash = hashMap.get(entry.getKey());
                 for (FXNode fxn : nodesMap.get(matchingNode)) {
-                    if (!map.containsKey(fxn) || !map.get(fxn).equals(entry.getValue())) {
+                    Long fxnHash = hashMap.get(fxn);
+                    if (!map.containsKey(fxn) || fxnHash == null || !fxnHash.equals(entryHash)) {
                         this.unresolvable = true;
                         break;
                     }
@@ -387,13 +389,13 @@ class Matching {
         // Relation with this cursor:
         // 1. the container we are leaving is in the cursors
         boolean containerInCursor = false;
+        long fullHash = accessor.currentFullHash();
         for(FXNode c: cursor){
-            if(map.containsKey(c)){
-                if(map.get(c).equals(accessor.currentPath())){
-                    // The container we are leaving is the cursor
-                    containerInCursor = true;
-                    break;
-                }
+            Long storedHash = hashMap.get(c);
+            if(storedHash != null && storedHash == fullHash){
+                // The container we are leaving is the cursor
+                containerInCursor = true;
+                break;
             }
         }
 
