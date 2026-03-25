@@ -15,6 +15,19 @@ import java.util.Set;
 
 public class CSVStreamingTest extends FXStreamExecutorTest{
 
+    /**
+     * Test force parallel
+     * @throws IOException
+     * @throws NotATreeException
+     */
+    @Test
+    public void test1_csv_all_basic_0() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        Set<Binding> it = set(executor.exec(getOpBGP(), properties(false)));
+        show(it.iterator());
+        Assert.assertEquals(21, it.size());
+    }
+
     @Test
     public void test1_csv_all_basic() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
