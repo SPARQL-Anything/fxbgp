@@ -4,28 +4,88 @@ import org.apache.jena.graph.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class FXProxyEventListener implements FXNodeEventListener {
     private static final Logger L = LoggerFactory.getLogger(FXProxyEventListener.class);
 
     static final int DEFAULT_PARALLEL_THRESHOLD = 999;
 
-    private final Set<? extends FXNodeEventListener> listeners;
-    private final ExecutorService pool;   // null when listeners.size() <= threshold
+    // Serial path: iterate this array directly.
+    private final FXNodeEventListener[] serialListeners;
+
+    // Parallel path: pre-built worker threads, null when serial.
+    private final WorkerThread[] workers;
+    private final CyclicBarrier startBarrier;
+    private final CyclicBarrier endBarrier;
+
+    /**
+     * One long-lived worker thread per listener.  It loops between two barriers:
+     * <ol>
+     *   <li>{@code startBarrier} – main thread sets {@code action} then releases all workers.</li>
+     *   <li>{@code endBarrier}   – workers signal completion; main thread waits here.</li>
+     * </ol>
+     * No tasks or futures are allocated per event.
+     */
+    private static final class WorkerThread extends Thread {
+        final FXNodeEventListener listener;
+        // Written by main before startBarrier.await(); barrier provides happens-before.
+        volatile Consumer<FXNodeEventListener> action;
+        private final CyclicBarrier startBarrier;
+        private final CyclicBarrier endBarrier;
+
+        WorkerThread(FXNodeEventListener listener, CyclicBarrier start, CyclicBarrier end) {
+            super("fx-worker");
+            this.listener = listener;
+            this.startBarrier = start;
+            this.endBarrier = end;
+            setDaemon(true);
+        }
+
+        @Override
+        public void run() {
+            try {
+                for (;;) {
+                    startBarrier.await();
+                    try {
+                        action.accept(listener);
+                    } catch (RuntimeException e) {
+                        L.error("Listener error during parallel dispatch", e);
+                    }
+                    endBarrier.await();
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (BrokenBarrierException e) {
+                // Normal shutdown path — barriers broken by shutdown().
+            }
+        }
+    }
 
     private FXProxyEventListener(Set<? extends FXNodeEventListener> listeners, int threshold) {
-        this.listeners = Collections.unmodifiableSet(listeners);
-        this.pool = listeners.size() > threshold
-                ? Executors.newWorkStealingPool()
-                : null;
+        if (listeners.size() > threshold) {
+            int n = listeners.size();
+            CyclicBarrier start = new CyclicBarrier(n + 1);
+            CyclicBarrier end   = new CyclicBarrier(n + 1);
+            workers = new WorkerThread[n];
+            int i = 0;
+            for (FXNodeEventListener l : listeners) {
+                workers[i] = new WorkerThread(l, start, end);
+                workers[i].start();
+                i++;
+            }
+            startBarrier = start;
+            endBarrier   = end;
+            serialListeners = null;
+        } else {
+            serialListeners = listeners.toArray(new FXNodeEventListener[0]);
+            workers      = null;
+            startBarrier = null;
+            endBarrier   = null;
+        }
     }
 
     public static FXProxyEventListener make(Set<? extends FXNodeEventListener> listeners) {
@@ -37,19 +97,26 @@ public class FXProxyEventListener implements FXNodeEventListener {
     }
 
     public void shutdown() {
-        if (pool != null) pool.shutdown();
+        if (workers != null) {
+            for (WorkerThread w : workers) w.interrupt();
+            startBarrier.reset();
+            endBarrier.reset();
+        }
     }
 
     private void fanOut(Consumer<FXNodeEventListener> action) {
-        if (pool != null) {
-            List<CompletableFuture<Void>> futures = listeners.stream()
-                    .map(l -> CompletableFuture.runAsync(() -> action.accept(l), pool))
-                    .collect(Collectors.toList());
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-        } else {
-            for (FXNodeEventListener listener : listeners) {
-                action.accept(listener);
+        if (workers != null) {
+            for (WorkerThread w : workers) w.action = action;
+            try {
+                startBarrier.await();   // release all workers
+                endBarrier.await();     // wait for all workers to finish
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (BrokenBarrierException e) {
+                L.warn("Barrier broken during fanOut — shutting down");
             }
+        } else {
+            for (FXNodeEventListener l : serialListeners) action.accept(l);
         }
     }
 
