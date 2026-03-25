@@ -52,6 +52,7 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
     private URL input;
     private BasicPattern bp;
     private String flavour;
+    private Integer parallelThreshold = null;
 
     @Before
     public void before(){
@@ -103,7 +104,9 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
         if("headers".equals(flavour)){
             properties.setProperty(CSVTriplifier2.PROPERTY_HEADERS.toString(), "true");
         }
-
+        if(this.parallelThreshold != null){
+            properties.setProperty(FXProxyEventListener.PARALLEL_THRESHOLD_OPTION, this.parallelThreshold.toString());
+        }
         properties.setProperty(IRIArgument.BLANK_NODES.toString(), blankNodes ? "true" : "false");
         properties.setProperty(JSONTriplifier.PROPERTY_JSONINCLUDENULLVALUES.toString(), nullValues ? "true" : "false");
 
@@ -125,6 +128,9 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
         String easyBGPName = spl[2];
         if(spl.length == 4){
             this.flavour = spl[3];
+        }
+        if(spl.length == 5){
+            this.parallelThreshold = Integer.parseInt(spl[4]);
         }
         this.input = getClass().getClassLoader().getResource("./stream/" + inputName);
         this.bp = readBGP("./stream/" + easyBGPName);
