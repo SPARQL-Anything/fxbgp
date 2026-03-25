@@ -30,7 +30,7 @@ public class SharedPathAccessor implements PathAccessor {
     private final List<Node> path     = new ArrayList<>();
     private final List<Long> hashStack = new ArrayList<>();
 
-    SharedPathAccessor() {
+    public SharedPathAccessor() {
         reset();
     }
 
