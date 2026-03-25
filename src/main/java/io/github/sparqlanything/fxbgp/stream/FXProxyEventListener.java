@@ -11,8 +11,8 @@ import java.util.function.Consumer;
 
 public class FXProxyEventListener implements FXNodeEventListener {
     private static final Logger L = LoggerFactory.getLogger(FXProxyEventListener.class);
-
-    static final int DEFAULT_PARALLEL_THRESHOLD = 999;
+    public static final String PARALLEL_THRESHOLD_OPTION = "parallel-threshold";
+    public static final int DEFAULT_PARALLEL_THRESHOLD = 999;
 
     // Serial path: iterate this array directly.
     private final FXNodeEventListener[] serialListeners;
@@ -67,6 +67,7 @@ public class FXProxyEventListener implements FXNodeEventListener {
 
     private FXProxyEventListener(Set<? extends FXNodeEventListener> listeners, int threshold) {
         if (listeners.size() > threshold) {
+            L.info("Number of listeners exceeds threshold: {}", threshold);
             int n = listeners.size();
             CyclicBarrier start = new CyclicBarrier(n + 1);
             CyclicBarrier end   = new CyclicBarrier(n + 1);
@@ -81,6 +82,7 @@ public class FXProxyEventListener implements FXNodeEventListener {
             endBarrier   = end;
             serialListeners = null;
         } else {
+            L.info("Number of listeners below threshold: {}", threshold);
             serialListeners = listeners.toArray(new FXNodeEventListener[0]);
             workers      = null;
             startBarrier = null;

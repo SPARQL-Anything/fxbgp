@@ -231,6 +231,7 @@ class Matching {
                 if(componentsMap.get(newCursor).equals(component) &&
                         nodeMatches(newCursor.getNode(), node)){
                     // Verify the values are in the right path
+//                    if(accessor.currentPrefixHash() == cursorValue.hashCode()){
                     if(currentPath.subList(0, currentPath.size() - 1).equals(cursorValue)){
                         matched.add(newCursor);
                     }
@@ -401,41 +402,29 @@ class Matching {
 
         if(containerInCursor){
             // We remove all cursors (they will be all containers in the same tree depth)
-            Set<FXNode> unset = new HashSet<>(cursor);
-            Set<FXNode> set = new HashSet<>();
+            Set<FXNode> unset = cursor;
+            cursor = new HashSet<>();
             for(FXNode c: unset){
-                cursor.remove(c);
                 if(c.isRoot()){
                     this.unresolvable = true;
                     break;
                 }
                 // Move to previous container
-                set.add(c.getParent().getParent());
-            }
-            if(!this.unresolvable){
-                for(FXNode c: set){
-                    cursor.add(c);
-                }
+                cursor.add(c.getParent().getParent());
             }
 
             // 1.1 If the removed cursors have children without mapped values, this is unsolvable
-            for(FXNode c: unset){
-                for(FXNode c2: c.getChildren()){
-                    if(!map.containsKey(c2)){
-                        this.unresolvable = true;
-                        break;
+            if(!unresolvable) {
+                for (FXNode c : unset) {
+                    for (FXNode c2 : c.getChildren()) {
+                        if (!map.containsKey(c2)) {
+                            this.unresolvable = true;
+                            break;
+                        }
                     }
                 }
             }
         }
-        // 2. the container we are leaving is not in the cursors
-        // We do nothing
-        // Check if the node we are leaving is bound to any match to the container we are leaving.
-//        if(map.values().contains(path)){
-//            // If it does, verify that alls its child terms are mapped, otherwise, mark it as unresolvable
-//            FXNode check =
-//            this.unresolvable = true;
-//        }
     }
 
     public boolean isUnresolvable() {

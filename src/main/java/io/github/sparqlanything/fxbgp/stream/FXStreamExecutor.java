@@ -19,6 +19,7 @@ import java.util.Set;
 
 public class FXStreamExecutor {
     private static final Logger L = LoggerFactory.getLogger(FXStreamExecutor.class);
+
     public QueryIterator exec(Op op, Properties properties) throws NotATreeException {
 //
         Node graphNode = null;
@@ -53,7 +54,7 @@ public class FXStreamExecutor {
         }
 
         int threshold = Integer.parseInt(properties.getProperty(
-                "parallel-threshold",
+                FXProxyEventListener.PARALLEL_THRESHOLD_OPTION,
                 String.valueOf(FXProxyEventListener.DEFAULT_PARALLEL_THRESHOLD)));
         FXStreamParser parser = FXStreamParserRegistry.get(properties);
         StreamEventsHandler handler = new StreamEventsHandler(properties,
