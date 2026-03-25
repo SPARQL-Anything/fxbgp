@@ -41,6 +41,7 @@ public class FXStreamExecutor {
         Set<FXBGPAnnotation> annotations = ag.annotate(opBGP, true);
         final Set<Binding> bindings = ConcurrentHashMap.newKeySet();
         final Set<FXQuerySolutionBuilder> patterns = new HashSet<>();
+        SharedPathAccessor accessor = new SharedPathAccessor();
         for (FXBGPAnnotation annotation : annotations) {
             FXTreePattern tp;
             if (graphNode == null) {
@@ -50,7 +51,7 @@ public class FXStreamExecutor {
                 // Play with named graph
                 tp = FXTreePattern.make(annotation, graphNode);
             }
-            patterns.add(new FXQuerySolutionBuilder(tp, bindings));
+            patterns.add(new FXQuerySolutionBuilder(tp, bindings, accessor));
         }
 
         int threshold = Integer.parseInt(properties.getProperty(
@@ -58,7 +59,7 @@ public class FXStreamExecutor {
                 String.valueOf(FXProxyEventListener.DEFAULT_PARALLEL_THRESHOLD)));
         FXStreamParser parser = FXStreamParserRegistry.get(properties);
         StreamEventsHandler handler = new StreamEventsHandler(properties,
-                FXProxyEventListener.make(patterns, threshold));
+                FXProxyEventListener.make(patterns, threshold, accessor));
         return new FXParserQueryIterator(parser, handler, bindings);
     }
 }

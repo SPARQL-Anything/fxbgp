@@ -54,6 +54,7 @@ public class FXStreamExecutorWithThread {
         AnalyserGrounder ag = new AnalyserGrounder(properties, FXModel.getFXModel());
         Set<FXBGPAnnotation> annotations = ag.annotate(opBGP, true);
         final Set<FXQuerySolutionBuilder> patterns = new HashSet<>();
+        SharedPathAccessor accessor = new SharedPathAccessor();
         for (FXBGPAnnotation annotation : annotations) {
             FXTreePattern tp;
             if(graphNode == null){
@@ -63,7 +64,7 @@ public class FXStreamExecutorWithThread {
                 // Play with named graph
                 tp = FXTreePattern.make(annotation, graphNode);
             }
-            patterns.add( new FXQuerySolutionBuilder(tp, bindings));
+            patterns.add(new FXQuerySolutionBuilder(tp, bindings, accessor));
         }
 
         // Parsing thread vs solution thread
@@ -75,7 +76,9 @@ public class FXStreamExecutorWithThread {
             try {
                 parser.triplify(properties,
                         new StreamEventsHandler(properties,
-                                FXProxyEventListener.make(patterns)));
+                                FXProxyEventListener.make(patterns,
+                                        FXProxyEventListener.DEFAULT_PARALLEL_THRESHOLD,
+                                        accessor)));
                 complete = true;
             } catch (IOException e) {
                 complete = true; // Let's leave the other thread in peace.

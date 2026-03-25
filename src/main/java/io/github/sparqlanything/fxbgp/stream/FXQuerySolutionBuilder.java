@@ -1,7 +1,6 @@
 package io.github.sparqlanything.fxbgp.stream;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -12,35 +11,30 @@ import io.github.sparqlanything.fxbgp.FX;
 import io.github.sparqlanything.model.Triplifier;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.Node_Variable;
-import org.apache.jena.query.QuerySolution;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.ResourceFactory;
-import org.apache.jena.sparql.core.Match;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
-import org.apache.jena.sparql.engine.binding.BindingBase;
 import org.apache.jena.sparql.engine.binding.BindingBuilder;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener implements PathAccessor {
+public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     private final static Logger L = LoggerFactory.getLogger(FXQuerySolutionBuilder.class);
     private final String string;
     private Set<Binding> solutions;
     private FXTreePattern pattern;
     private Set<Matching> matches;
-    private List<Node> path;
-    private static final long HASH_PRIME = 1_000_000_007L;
-    private final List<Long> pathHashStack = new ArrayList<>();
+    private final PathAccessor accessor;
     private Node dataSourceNode = null;
     private boolean troubleshoot = L.isDebugEnabled();
-    public FXQuerySolutionBuilder(FXTreePattern pattern, Set<Binding> solutions) {
-        this.pattern = pattern;
-        this.string = pattern.toString();
+
+    public FXQuerySolutionBuilder(FXTreePattern pattern, Set<Binding> solutions,
+                                   PathAccessor accessor) {
+        this.pattern  = pattern;
+        this.string   = pattern.toString();
         this.solutions = solutions;
+        this.accessor  = accessor;
     }
 
     /**
@@ -48,41 +42,10 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener implemen
      */
     private void init(){
         this.matches = new HashSet<>();
-        this.path = new ArrayList<>();
-        this.pathHashStack.clear();
-        this.pathHashStack.add(0L);
     }
 
-    private void pushPath(Node node) {
-        path.add(node);
-        long prev = pathHashStack.get(pathHashStack.size() - 1);
-        pathHashStack.add(prev * HASH_PRIME + node.hashCode());
-    }
-
-    private void popPath() {
-        path.remove(path.size() - 1);
-        pathHashStack.remove(pathHashStack.size() - 1);
-    }
-
-    @Override
-    public List<Node> currentPath() {
-        return Collections.unmodifiableList(path);
-    }
-
-    @Override
-    public long currentPrefixHash() {
-        if (pathHashStack.size() < 2) {
-            throw new IllegalStateException("currentPrefixHash() called with empty path");
-        }
-        return pathHashStack.get(pathHashStack.size() - 2);
-    }
-
-    @Override
-    public long currentFullHash() {
-        if (pathHashStack.size() < 2) {
-            throw new IllegalStateException("currentFullHash() called with empty path");
-        }
-        return pathHashStack.get(pathHashStack.size() - 1);
+    private boolean matchedDataSource(){
+        return !pattern.isGraphPattern() || this.dataSourceNode != null;
     }
 
     @Override
@@ -98,122 +61,73 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener implemen
         }
     }
 
-    private boolean matchedDataSource(){
-        return !pattern.isGraphPattern() || this.dataSourceNode != null;
-    }
-
     @Override
     public void startContainer(Node container) {
-        if(!matchedDataSource()){
-            return;
-        }
+        if(!matchedDataSource()) return;
         super.startContainer(container);
-        pushPath(container);
         match(container, FX.Container);
     }
 
     @Override
     public void onSlotNumber(Node predicate) {
-        if(!matchedDataSource()){
-            return;
-        }
+        if(!matchedDataSource()) return;
         super.onSlotNumber(predicate);
-        pushPath(predicate);
         match(predicate, FX.SlotNumber);
     }
 
     @Override
     public void onSlotString(Node predicate) {
-        if(!matchedDataSource()){
-            return;
-        }
+        if(!matchedDataSource()) return;
         super.onSlotString(predicate);
-        pushPath(predicate);
         match(predicate, FX.SlotString);
     }
 
     @Override
     public void endContainer() {
-        if(!matchedDataSource()){
-            return;
-        }
-        if(troubleshoot){
-            beginEndContainer();
-        }
+        if(!matchedDataSource()) return;
+        if(troubleshoot) beginEndContainer();
         super.endContainer();
         triggerEndContainer();
-        popPath();
-        if(!path.isEmpty()) {
-            // Go the prev container...
-            popPath();
-        }
-        if(troubleshoot) {
-            endEndContainer();
-        }
+        if(troubleshoot) endEndContainer();
     }
 
     @Override
     public void onTypeProperty() {
-        if(!matchedDataSource()){
-            return;
-        }
+        if(!matchedDataSource()) return;
         super.onTypeProperty();
-        pushPath(RDF.type.asNode());
         match(RDF.type.asNode(), FX.TypeProperty);
     }
 
     @Override
     public void onType(Node type) {
-        if(!matchedDataSource()){
-            return;
-        }
+        if(!matchedDataSource()) return;
         super.onType(type);
-        pushPath(type);
         match(type, FX.Type);
-        // Step backward
-        popPath();
-        popPath();
     }
 
     @Override
     public void onTypeRoot() {
-        if(!matchedDataSource()){
-            return;
-        }
+        if(!matchedDataSource()) return;
         super.onTypeRoot();
-        Node fxr = NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT);
-        pushPath(fxr);
-        match(fxr, FX.Root);
-        // Step backward
-        popPath();
-        popPath();
+        match(NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT), FX.Root);
     }
 
     @Override
     public void onValue(Node value) {
-        if(!matchedDataSource()){
-            return;
-        }
+        if(!matchedDataSource()) return;
         super.onValue(value);
-        pushPath(value);
         match(value, FX.Value);
-        // Step backward
-        popPath();
-        popPath();
     }
 
     private void match(Node node, FX component){
-        if(!matchedDataSource()){
-            return;
-        }
-        if(troubleshoot) {
-            beginMatch(node, component);
-        }
+        if(!matchedDataSource()) return;
+        if(troubleshoot) beginMatch(node, component);
         Set<Matching> spawned = new HashSet<>();
         // Does the node match the current node in the tree pattern?
         if(component.equals(FX.Container) &&
                 Matching.nodeMatches(pattern.getRoot().getNode(), node)){
-            Matching newMatching = new Matching(pattern.getRoot(), new ArrayList<>(path), this);
+            Matching newMatching = new Matching(pattern.getRoot(),
+                    new ArrayList<>(accessor.currentPath()), accessor);
             if(matches.isEmpty()){
                 matches.add(newMatching);
                 endMatch(node, component);
@@ -226,7 +140,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener implemen
         Set<Matching> current = matches;
         matches = new HashSet<>();            // fresh set for re-population
         for (Matching matching : current) {  // iterate the snapshot
-            Set<Matching> spawn = matching.check(node, component, currentPrefixHash());
+            Set<Matching> spawn = matching.check(node, component, accessor.currentPrefixHash());
             spawned.addAll(spawn);
             if (!matching.isUnresolvable()) {
                 matches.add(matching);        // safe: check() done, hash is now stable
@@ -241,9 +155,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener implemen
             }
         }
         this.matches.removeAll(completed);
-        if(troubleshoot) {
-            endMatch(node, component);
-        }
+        if(troubleshoot) endMatch(node, component);
     }
 
     private void triggerEndContainer(){
@@ -297,7 +209,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener implemen
        if(!(node.toString() + component).equals(TMP_LOG)){
            TMP_LOG = node + component.toString();
            L.debug("# [EVENT] - {} - {}", node, component.getName());
-           L.debug("# - Path: {}", path);
+           L.debug("# - Path: {}", accessor.currentPath());
        }
        logPattern();
        L.debug(">> Before: {} matches", matches.size());

@@ -1,6 +1,9 @@
 package io.github.sparqlanything.fxbgp.stream;
 
+import io.github.sparqlanything.model.Triplifier;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +16,11 @@ public class FXProxyEventListener implements FXNodeEventListener {
     private static final Logger L = LoggerFactory.getLogger(FXProxyEventListener.class);
     public static final String PARALLEL_THRESHOLD_OPTION = "parallel-threshold";
     public static final int DEFAULT_PARALLEL_THRESHOLD = 999;
+
+    private static final Node FX_ROOT_NODE =
+            NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT);
+
+    private final SharedPathAccessor accessor;
 
     // Serial path: iterate this array directly.
     private final FXNodeEventListener[] serialListeners;
@@ -65,7 +73,9 @@ public class FXProxyEventListener implements FXNodeEventListener {
         }
     }
 
-    private FXProxyEventListener(Set<? extends FXNodeEventListener> listeners, int threshold) {
+    private FXProxyEventListener(Set<? extends FXNodeEventListener> listeners, int threshold,
+                                  SharedPathAccessor accessor) {
+        this.accessor = accessor;
         if (listeners.size() > threshold) {
             L.info("Number of listeners exceeds threshold: {}", threshold);
             int n = listeners.size();
@@ -90,12 +100,9 @@ public class FXProxyEventListener implements FXNodeEventListener {
         }
     }
 
-    public static FXProxyEventListener make(Set<? extends FXNodeEventListener> listeners) {
-        return new FXProxyEventListener(listeners, DEFAULT_PARALLEL_THRESHOLD);
-    }
-
-    public static FXProxyEventListener make(Set<? extends FXNodeEventListener> listeners, int threshold) {
-        return new FXProxyEventListener(listeners, threshold);
+    public static FXProxyEventListener make(Set<? extends FXNodeEventListener> listeners,
+                                             int threshold, SharedPathAccessor accessor) {
+        return new FXProxyEventListener(listeners, threshold, accessor);
     }
 
     public void shutdown() {
@@ -125,6 +132,7 @@ public class FXProxyEventListener implements FXNodeEventListener {
     @Override
     public void startDataSource(Node dataSource) {
         L.trace("[start] startDataSource {}", dataSource);
+        accessor.reset();
         fanOut(l -> l.startDataSource(dataSource));
         L.trace("[end] startDataSource {}", dataSource);
     }
@@ -132,6 +140,7 @@ public class FXProxyEventListener implements FXNodeEventListener {
     @Override
     public void startContainer(Node container) {
         L.trace("[start] startContainer {}", container);
+        accessor.push(container);
         fanOut(l -> l.startContainer(container));
         L.trace("[end] startContainer {}", container);
     }
@@ -139,6 +148,7 @@ public class FXProxyEventListener implements FXNodeEventListener {
     @Override
     public void onSlotNumber(Node n) {
         L.trace("[start] onSlotNumber {}", n);
+        accessor.push(n);
         fanOut(l -> l.onSlotNumber(n));
         L.trace("[end] onSlotNumber {}", n);
     }
@@ -146,6 +156,7 @@ public class FXProxyEventListener implements FXNodeEventListener {
     @Override
     public void onSlotString(Node n) {
         L.trace("[start] onSlotString {}", n);
+        accessor.push(n);
         fanOut(l -> l.onSlotString(n));
         L.trace("[end] onSlotString {}", n);
     }
@@ -153,13 +164,17 @@ public class FXProxyEventListener implements FXNodeEventListener {
     @Override
     public void onValue(Node value) {
         L.trace("[start] onValue {}", value);
+        accessor.push(value);
         fanOut(l -> l.onValue(value));
+        accessor.pop();  // pop value
+        accessor.pop();  // pop predicate (pushed by onSlotNumber/onSlotString)
         L.trace("[end] onValue {}", value);
     }
 
     @Override
     public void onTypeProperty() {
         L.trace("[start] onTypeProperty");
+        accessor.push(RDF.type.asNode());
         fanOut(FXNodeEventListener::onTypeProperty);
         L.trace("[end] onTypeProperty");
     }
@@ -167,14 +182,20 @@ public class FXProxyEventListener implements FXNodeEventListener {
     @Override
     public void onTypeRoot() {
         L.trace("[start] onTypeRoot");
+        accessor.push(FX_ROOT_NODE);
         fanOut(FXNodeEventListener::onTypeRoot);
+        accessor.pop();  // pop fxRoot
+        accessor.pop();  // pop rdf:type (pushed by onTypeProperty)
         L.trace("[end] onTypeRoot");
     }
 
     @Override
     public void onType(Node node) {
         L.trace("[start] onType {}", node);
+        accessor.push(node);
         fanOut(l -> l.onType(node));
+        accessor.pop();  // pop type value
+        accessor.pop();  // pop rdf:type (pushed by onTypeProperty)
         L.trace("[end] onType {}", node);
     }
 
@@ -182,6 +203,8 @@ public class FXProxyEventListener implements FXNodeEventListener {
     public void endContainer() {
         L.trace("[start] endContainer");
         fanOut(FXNodeEventListener::endContainer);
+        accessor.pop();                              // pop container
+        if (!accessor.isEmpty()) accessor.pop();    // pop parent predicate, unless root
         L.trace("[end] endContainer");
     }
 }

@@ -36,6 +36,7 @@ public class FXQuerySolutionBuilderTest extends BGPTestUtils {
     private FXTreePattern pattern;
     private Set<Binding> solutions;
     private FXQuerySolutionBuilder builder;
+    private FXNodeEventListener proxy;
 
     @Before
     public void before(){
@@ -43,6 +44,7 @@ public class FXQuerySolutionBuilderTest extends BGPTestUtils {
         this.bp = null;
         this.solutions = new HashSet<>();
         this.builder = null;
+        this.proxy = null;
     }
 
     @Test
@@ -74,7 +76,12 @@ public class FXQuerySolutionBuilderTest extends BGPTestUtils {
 
     public void prepare(String easyBGPName) throws IOException{
         this.bp = readBGP("./stream/" + easyBGPName);
-        this.builder = new FXQuerySolutionBuilder(pattern(), this.solutions);
+        SharedPathAccessor accessor = new SharedPathAccessor();
+        this.builder = new FXQuerySolutionBuilder(pattern(), this.solutions, accessor);
+        this.proxy = FXProxyEventListener.make(
+                java.util.Collections.singleton(this.builder),
+                FXProxyEventListener.DEFAULT_PARALLEL_THRESHOLD,
+                accessor);
     }
 
     private FXTreePattern pattern() {
@@ -125,34 +132,34 @@ public class FXQuerySolutionBuilderTest extends BGPTestUtils {
         Node _2 = l("2");
         Node _3 = l("3");
 
-        this.builder.startDataSource(root);
+        this.proxy.startDataSource(root);
 
-        this.builder.startContainer(root);
-        this.builder.onTypeProperty();
-        this.builder.onTypeRoot();
+        this.proxy.startContainer(root);
+        this.proxy.onTypeProperty();
+        this.proxy.onTypeRoot();
 
-        this.builder.onSlotNumber(r_1);
+        this.proxy.onSlotNumber(r_1);
 
-        this.builder.startContainer(row1);
-        this.builder.onSlotNumber(c_1);
-        this.builder.onValue(A);
-        this.builder.onSlotNumber(c_2);
-        this.builder.onValue(B);
-        this.builder.onSlotNumber(c_3);
-        this.builder.onValue(C);
-        this.builder.endContainer();
+        this.proxy.startContainer(row1);
+        this.proxy.onSlotNumber(c_1);
+        this.proxy.onValue(A);
+        this.proxy.onSlotNumber(c_2);
+        this.proxy.onValue(B);
+        this.proxy.onSlotNumber(c_3);
+        this.proxy.onValue(C);
+        this.proxy.endContainer();
 
-        this.builder.onSlotNumber(r_2);
+        this.proxy.onSlotNumber(r_2);
 
-        this.builder.startContainer(row2);
-        this.builder.onSlotNumber(c_1);
-        this.builder.onValue(_1);
-        this.builder.onSlotNumber(c_2);
-        this.builder.onValue(_2);
-        this.builder.onSlotNumber(c_3);
-        this.builder.onValue(_3);
-        this.builder.endContainer();
+        this.proxy.startContainer(row2);
+        this.proxy.onSlotNumber(c_1);
+        this.proxy.onValue(_1);
+        this.proxy.onSlotNumber(c_2);
+        this.proxy.onValue(_2);
+        this.proxy.onSlotNumber(c_3);
+        this.proxy.onValue(_3);
+        this.proxy.endContainer();
 
-        this.builder.endContainer();
+        this.proxy.endContainer();
     }
 }
