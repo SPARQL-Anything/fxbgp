@@ -413,18 +413,24 @@ class Matching {
 
             // 1.1 If the removed cursors have children without mapped values, this is unsolvable
             if(!unresolvable) {
-                for (FXNode c : unset) {
-                    for (FXNode c2 : c.getChildren()) {
-                        if (!map.containsKey(c2)) {
-                            this.unresolvable = true;
-                            break;
-                        }
-                    }
-                }
+                checkOrphans(unset);
             }
         }
     }
 
+    private void checkOrphans(Set<FXNode> unset){
+        for (FXNode c : unset) {
+            for (FXNode c2 : c.getChildren()) {
+                if (!map.containsKey(c2)) {
+                    this.unresolvable = true;
+                    break;
+                }
+            }
+            if (this.unresolvable) {
+                break;
+            }
+        }
+    }
     public boolean isUnresolvable() {
         return unresolvable;
     }

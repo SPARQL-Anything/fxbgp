@@ -121,8 +121,10 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
 
     private void match(Node node, FX component){
         if(!matchedDataSource()) return;
-        if(troubleshoot) beginMatch(node, component);
-        Set<Matching> spawned = new HashSet<>();
+        if(troubleshoot) {
+            beginMatch(node, component);
+        }
+        Matching newMatch = null;
         // Does the node match the current node in the tree pattern?
         if(component.equals(FX.Container) &&
                 Matching.nodeMatches(pattern.getRoot().getNode(), node)){
@@ -130,23 +132,28 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
                     new ArrayList<>(accessor.currentPath()), accessor);
             if(matches.isEmpty()){
                 matches.add(newMatching);
-                endMatch(node, component);
+                if(troubleshoot){
+                    endMatch(node, component);
+                }
                 return;
             }else{
-                spawned.add(newMatching);
+                newMatch = newMatching;
             }
         }
 
         Set<Matching> current = matches;
         matches = new HashSet<>();            // fresh set for re-population
+        if(newMatch != null){
+            matches.add(newMatch);
+        }
         for (Matching matching : current) {  // iterate the snapshot
             Set<Matching> spawn = matching.check(node, component, accessor.currentPrefixHash());
-            spawned.addAll(spawn);
+            matches.addAll(spawn);
             if (!matching.isUnresolvable()) {
                 matches.add(matching);        // safe: check() done, hash is now stable
             }
         }
-        matches.addAll(spawned);
+//        matches.addAll(spawned);
         Set<Matching> completed = new HashSet<>();
         for (Matching m : matches) {
             if (m.getMap().size() == pattern.getSize()) {
