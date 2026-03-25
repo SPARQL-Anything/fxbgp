@@ -78,6 +78,14 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener implemen
     }
 
     @Override
+    public long currentFullHash() {
+        if (pathHashStack.size() < 2) {
+            throw new IllegalStateException("currentFullHash() called with empty path");
+        }
+        return pathHashStack.get(pathHashStack.size() - 1);
+    }
+
+    @Override
     public void startDataSource(Node dataSource) {
         super.startDataSource(dataSource);
         if(this.pattern.isGraphPattern()){
