@@ -23,7 +23,7 @@ import java.util.List;
  * by worker threads inside {@code fanOut}. The {@link java.util.concurrent.CyclicBarrier}
  * used by the proxy establishes the required happens-before relationship.</p>
  */
-class SharedPathAccessor implements PathAccessor {
+public class SharedPathAccessor implements PathAccessor {
 
     private static final long HASH_PRIME = 1_000_000_007L;
 
