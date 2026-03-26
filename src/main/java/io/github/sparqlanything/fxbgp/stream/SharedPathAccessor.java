@@ -29,7 +29,7 @@ public class SharedPathAccessor implements PathAccessor {
 
     private final List<Node> path     = new ArrayList<>();
     private final List<Long> hashStack = new ArrayList<>();
-
+    private final List<Node> unmodifiablePath = Collections.unmodifiableList(path);
     public SharedPathAccessor() {
         reset();
     }
@@ -61,7 +61,7 @@ public class SharedPathAccessor implements PathAccessor {
 
     @Override
     public List<Node> currentPath() {
-        return Collections.unmodifiableList(path);
+        return unmodifiablePath;
     }
 
     @Override
