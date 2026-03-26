@@ -37,7 +37,7 @@ class Matching {
      *
      * @param cursor
      * @param nodePath
-     * @param path
+     * @param accessor
      */
     Matching(FXNode cursor, List<Node> nodePath, PathAccessor accessor) {
         if(cursor == null) throw new RuntimeException("cursor is null");
@@ -56,7 +56,10 @@ class Matching {
      *
      * @param map
      * @param cursor
-     * @param path
+     * @param accessor
+     * @param nodesMap
+     * @param componentsMap
+     * @param hashMap
      */
     private Matching(Map<FXNode, List<Node>> map, Set<FXNode> cursor, PathAccessor accessor, Map<Node, Set<FXNode>> nodesMap, Map<FXNode,FX> componentsMap, Map<FXNode, Long> hashMap) {
         this.map = map;
