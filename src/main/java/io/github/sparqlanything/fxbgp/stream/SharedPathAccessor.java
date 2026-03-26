@@ -65,6 +65,16 @@ public class SharedPathAccessor implements PathAccessor {
     }
 
     @Override
+    public int currentDepth() {
+        return path.size();
+    }
+
+    @Override
+    public List<Node> copyCurrentPath() {
+        return new ArrayList<>(path);
+    }
+
+    @Override
     public long currentPrefixHash() {
         if (hashStack.size() < 2) {
             throw new IllegalStateException("currentPrefixHash() called with empty path");

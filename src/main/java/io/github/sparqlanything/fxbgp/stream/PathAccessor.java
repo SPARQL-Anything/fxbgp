@@ -67,6 +67,32 @@ public interface PathAccessor {
     long currentPrefixHash();
 
     /**
+     * Returns the number of nodes currently on the path, i.e.
+     * {@code currentPath().size()}, without allocating a list wrapper.
+     *
+     * <p>Used in {@link Matching#check} as a cheap O(1) depth filter before
+     * the hash comparison, replacing the previous
+     * {@code accessor.currentPath().size()} call which allocated a transient
+     * {@link java.util.Collections.UnmodifiableList} wrapper on every
+     * invocation.</p>
+     *
+     * @return current path length; {@code 0} when no node has been pushed
+     */
+    int currentDepth();
+
+    /**
+     * Returns a fresh mutable snapshot of the current path, equivalent to
+     * {@code new ArrayList<>(currentPath())} but without the intermediate
+     * unmodifiable wrapper allocation.
+     *
+     * <p>Used wherever {@link Matching} needs to record the path position at
+     * which a cursor was matched ({@code Matching.set()} call sites).</p>
+     *
+     * @return new {@link java.util.ArrayList} containing the current path nodes
+     */
+    List<Node> copyCurrentPath();
+
+    /**
      * Returns the polynomial rolling hash of the <em>full</em> current path,
      * i.e. {@code currentPath()[0..size-1]}.
      *

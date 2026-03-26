@@ -219,7 +219,7 @@ class Matching {
         Set<Matching> spawned = new HashSet<>();
         // Cursor is last matched node in the tree pattern
         // Check if the coming node matches any following FXNode
-        int expectedDepth = accessor.currentPath().size() - 1;
+        int expectedDepth = accessor.currentDepth() - 1;
         Set<FXNode> matched = new HashSet<>();
         for(FXNode c: cursor){
             List<Node> cursorValue = map.get(c);
@@ -293,7 +293,7 @@ class Matching {
                 Matching m = copy();
                 for(Object sn: s){
                     for(FXNode c: (List<FXNode>) sn){
-                        m.set(c, new ArrayList<>(accessor.currentPath()));
+                        m.set(c, accessor.copyCurrentPath());
                     }
                 }
                 spawned.add(m);
@@ -378,7 +378,7 @@ class Matching {
     private Set<Matching> setAndSpawn(Set<FXNode> matched){
         //Set<Matching> spawned = new HashSet<>();
         for(FXNode c: matched){
-            this.set(c, new ArrayList<>(accessor.currentPath()));
+            this.set(c, accessor.copyCurrentPath());
         }
         return spawn(matched);
     }

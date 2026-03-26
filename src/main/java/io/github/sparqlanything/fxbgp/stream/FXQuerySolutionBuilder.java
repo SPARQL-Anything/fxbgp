@@ -146,8 +146,9 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         if(newMatch != null){
             matches.add(newMatch);
         }
+        long prefixHash = accessor.currentPrefixHash();
         for (Matching matching : current) {  // iterate the snapshot
-            Set<Matching> spawn = matching.check(node, component, accessor.currentPrefixHash());
+            Set<Matching> spawn = matching.check(node, component, prefixHash);
             matches.addAll(spawn);
             if (!matching.isUnresolvable()) {
                 matches.add(matching);        // safe: check() done, hash is now stable
