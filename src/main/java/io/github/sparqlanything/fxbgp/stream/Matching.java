@@ -1,11 +1,7 @@
 package io.github.sparqlanything.fxbgp.stream;
 
 import io.github.sparqlanything.fxbgp.FX;
-import io.github.sparqlanything.model.Triplifier;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.jena.graph.Node;
-import org.apache.jena.sparql.core.Match;
-import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +19,6 @@ class Matching {
     private final Map<FXNode, List<Node>> unmodifiableMap;
     private Map<Node, Set<FXNode>> nodesMap;
     private Map<FXNode, Node> cachedMatches = null;
-    private Map<FXNode,FX> componentsMap;
     private Set<FXNode> cursor;
     private boolean unresolvable = false;
     private int cachedHash = 0;
@@ -58,29 +53,23 @@ class Matching {
      * @param cursor
      * @param accessor
      * @param nodesMap
-     * @param componentsMap
      * @param hashMap
      */
-    private Matching(Map<FXNode, List<Node>> map, Set<FXNode> cursor, PathAccessor accessor, Map<Node, Set<FXNode>> nodesMap, Map<FXNode,FX> componentsMap, Map<FXNode, Long> hashMap) {
+    private Matching(Map<FXNode, List<Node>> map, Set<FXNode> cursor, PathAccessor accessor, Map<Node, Set<FXNode>> nodesMap, Map<FXNode, Long> hashMap) {
         this.map = map;
         this.unmodifiableMap = Collections.unmodifiableMap(map);
         this.cursor = cursor;
         this.accessor = accessor;
         this.nodesMap = nodesMap;
-        this.componentsMap = componentsMap;
         this.hashMap = hashMap;
     }
 
     private void populate(FXNode cursor) {
         if(cursor.isRoot()) {
             nodesMap = new HashMap<>();
-            componentsMap = new HashMap<>();
         }
         if(!nodesMap.containsKey(cursor.getNode())) {
             nodesMap.put(cursor.getNode(), new HashSet<>());
-        }
-        if(!componentsMap.containsKey(cursor)) {
-            componentsMap.put(cursor, cursor.getAnnotation().getTerm());
         }
         nodesMap.get(cursor.getNode()).add(cursor);
         for(FXNode entry : cursor.getChildren()) {
@@ -188,34 +177,33 @@ class Matching {
     }
 
     public boolean isValueOrTypeOrRoot(FXNode patternNode) {
-        FX t = componentsMap.get(patternNode);
-        return t.equals(FX.Type) || t.equals(FX.Value) || t.equals(FX.Root);
+        FX t = patternNode.getAnnotation().getTerm();
+        return t == FX.Type || t == FX.Value || t == FX.Root;
     }
 
     public boolean isContainer(FXNode patternNode) {
-        FX t = componentsMap.get(patternNode);
-        return t.equals(FX.Container);
+        return patternNode.getAnnotation().getTerm() == FX.Container;
     }
 
     public boolean isPredicate(FXNode patternNode) {
-        FX t = componentsMap.get(patternNode);
-        return t.equals(FX.SlotNumber) || t.equals(FX.SlotString) || t.equals(FX.TypeProperty);
+        FX t = patternNode.getAnnotation().getTerm();
+        return t == FX.SlotNumber || t == FX.SlotString || t == FX.TypeProperty;
     }
 
     public boolean isValueOrTypeOrRoot(FX t) {
-        return t.equals(FX.Type) || t.equals(FX.Value) || t.equals(FX.Root);
+        return t == FX.Type || t == FX.Value || t == FX.Root;
     }
 
     public boolean isContainer(FX t) {
-        return t.equals(FX.Container);
+        return t == FX.Container;
     }
 
     public boolean isPredicate(FX t) {
-        return t.equals(FX.SlotNumber) || t.equals(FX.SlotString) || t.equals(FX.TypeProperty);
+        return t == FX.SlotNumber || t == FX.SlotString || t == FX.TypeProperty;
     }
 
     public Matching copy(){
-        return new Matching(new HashMap<>(this.map), new HashSet<>(this.cursor), this.accessor, this.nodesMap, this.componentsMap, new HashMap<>(this.hashMap));
+        return new Matching(new HashMap<>(this.map), new HashSet<>(this.cursor), this.accessor, this.nodesMap, new HashMap<>(this.hashMap));
     }
 
     public Set<Matching> check(Node node, FX component, long prefixHash) {
@@ -232,7 +220,7 @@ class Matching {
             // The subList().equals() guard is no longer needed.
             if (storedHash == null || storedHash != prefixHash) continue;
             for(FXNode newCursor: c.getChildren()){
-                if(componentsMap.get(newCursor).equals(component) &&
+                if(newCursor.getAnnotation().getTerm() == component &&
                         nodeMatches(newCursor.getNode(), node)){
                     matched.add(newCursor);
                 }
@@ -243,9 +231,10 @@ class Matching {
         if(matched.size() == 0) {
             // Do nothing
             // If cursor is a single container, ignore, otherwise, discard
-            if(cursor.size() == 1 && componentsMap.get(cursor.iterator().next()).equals(FX.Container )) {
+            FXNode firstCursor = cursor.iterator().next();
+            if(cursor.size() == 1 && firstCursor.getAnnotation().getTerm() == FX.Container) {
 
-            } else if(isPredicate(componentsMap.get(cursor.iterator().next()))){
+            } else if(isPredicate(firstCursor.getAnnotation().getTerm())){
                 // If cursors are predicates, since the value didn't match,
                 // Restore container
                 FXNode unmatchedPredicate = cursor.iterator().next(); // get the reference of one predicate
@@ -311,7 +300,7 @@ class Matching {
         if(cursor.size() > 1){
             for(FXNode c1: cursor){
                 for(FXNode c2: cursor){
-                    if(!componentsMap.get(c1).equals(componentsMap.get(c2))){
+                    if(c1.getAnnotation().getTerm() != c2.getAnnotation().getTerm()){
                         this.unresolvable = true;
                     }
                 }
