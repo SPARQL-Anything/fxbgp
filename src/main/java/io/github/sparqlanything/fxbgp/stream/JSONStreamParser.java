@@ -8,6 +8,8 @@ import io.github.sparqlanything.model.SPARQLAnythingConstants;
 import io.github.sparqlanything.model.Triplifier;
 import io.github.sparqlanything.model.TriplifierHTTPException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
+import org.apache.jena.graph.NodeFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -211,7 +213,7 @@ public class JSONStreamParser implements FXStreamParser {
                 this.waitForItem = false;
                 this.eventType = FXEventType.Value;
                 try {
-                    this.value = parser.getValueAsInt();
+                    this.value = NodeFactory.createLiteral(parser.getValueAsString(), XSDDatatype.XSDdecimal);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -259,7 +261,7 @@ public class JSONStreamParser implements FXStreamParser {
                 this.waitForItem = false;
                 this.eventType = FXEventType.Value;
                 try {
-                    this.value = parser.getValueAsDouble();
+                    this.value = NodeFactory.createLiteral(parser.getValueAsString(), XSDDatatype.XSDdecimal);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
