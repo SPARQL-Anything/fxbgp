@@ -341,7 +341,7 @@ class Matching {
         for(Matching m: spawned){
             sb.append(m.hashCode() + " ");
         }
-        L.debug("  ... {} generates {} and {}.", this.hashCode(), sb.toString(), unresolvable != true ? "survives" : "dies");
+        //L.debug("  ... {} generates {} and {}.", this.hashCode(), sb.toString(), unresolvable != true ? "survives" : "dies");
     }
 
     private Set<Matching> spawn(Set<FXNode> matched){
