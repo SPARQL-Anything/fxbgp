@@ -213,7 +213,7 @@ public class JSONStreamParser implements FXStreamParser {
                 this.waitForItem = false;
                 this.eventType = FXEventType.Value;
                 try {
-                    this.value = NodeFactory.createLiteral(parser.getValueAsString(), XSDDatatype.XSDdecimal);
+                    this.value = NodeFactory.createLiteralDT(parser.getValueAsString(), XSDDatatype.XSDdecimal);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -261,7 +261,7 @@ public class JSONStreamParser implements FXStreamParser {
                 this.waitForItem = false;
                 this.eventType = FXEventType.Value;
                 try {
-                    this.value = NodeFactory.createLiteral(parser.getValueAsString(), XSDDatatype.XSDdecimal);
+                    this.value = NodeFactory.createLiteralDT(parser.getValueAsString(), XSDDatatype.XSDdecimal);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
