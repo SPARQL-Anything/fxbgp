@@ -26,13 +26,23 @@ import java.util.Set;
 
 public class FXBGPUtils {
     private static final Logger L = LoggerFactory.getLogger(FXBGPUtils.class);
+
+
     public static List<OpBGP> extract(String query) {
+        List<String> opServices = new ArrayList<>();
         List<OpBGP> list = new ArrayList<>();
+        extract(query, opServices, list);
+        return list;
+    }
+
+    public static void extract(String query, List<String> opServices, List<OpBGP> list) {
         OpComponentsAnalyser opComponentsAnalyser = new OpComponentsAnalyser(){
             boolean collect = false;
+            String serviceURI = null;
             @Override
             public void visit(OpService opService) {
                 collect = true;
+                serviceURI = opService.getService().getURI();
                 super.visit(opService);
                 collect = false;
             }
@@ -58,6 +68,7 @@ public class FXBGPUtils {
                     }
                     if(!skip){
                         list.add(new OpBGP(basicPattern));
+                        opServices.add(serviceURI);
                     }
                 }
                 super.visit(opBGP);
@@ -71,7 +82,6 @@ public class FXBGPUtils {
         }catch (Exception e){
             //L.error(e.getMessage());
         }
-        return list;
     }
 
     public static int tripleSize(OpBGP opBGP){
