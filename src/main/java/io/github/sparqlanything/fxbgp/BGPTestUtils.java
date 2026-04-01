@@ -6,6 +6,7 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.sparql.core.BasicPattern;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,9 @@ import java.util.List;
 
 public class BGPTestUtils {
     public static final Logger L = LoggerFactory.getLogger(BGPTestUtils.class);
+
+
+
     public static URL getEasyBGP(String easyBgpFileName) throws IOException {
         URL url = BGPTestUtils.class.getClassLoader().getResource("./" + easyBgpFileName + ".easybgp");
         L.trace("easy bgp: {}", url);
@@ -29,7 +33,7 @@ public class BGPTestUtils {
     }
 
     public static Node v(String v) {
-        return NodeFactory.createVariable(v);
+        return Var.alloc(v);
     }
 
     public static Node u(String v) {
@@ -107,7 +111,7 @@ public class BGPTestUtils {
                     nodes.get(2));
             bp.add(t);
         }
-        L.trace("BGP: \n{}\n",bp);
+        //L.trace("BGP: \n{}\n",bp);
         return bp;
     }
 }
