@@ -1,10 +1,7 @@
 package io.github.sparqlanything.fxbgp.experiments;
 
-import io.github.sparqlanything.fxbgp.extractor.BGPExtractor;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.junit.Assert;

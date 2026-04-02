@@ -133,7 +133,6 @@ public class PerformanceTest {
         ExecutorService executor = Executors.newCachedThreadPool();
 
         TimeLimiter tl = SimpleTimeLimiter.create(executor);
-
         File baseFolder = getBaseFolder();
         int maxNumOfPatterns = rowTypes.size();
         File queriesFolder = new File(baseFolder, "queries");

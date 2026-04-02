@@ -156,35 +156,35 @@ public class Generator {
     }
 
 
-    private static Triple joinTriples(FXJoin j, Triple t2, Triple t1) {
-        switch (j) {
-            case SxS -> {
-                t2 = Triple.create(t1.getSubject(), t2.getPredicate(), t2.getObject());
-            }
-            case PxP -> {
-                t2 = Triple.create(t2.getSubject(), t1.getPredicate(), t2.getObject());
-            }
-            case OxO -> {
-                t2 = Triple.create(t2.getSubject(), t2.getPredicate(), t1.getObject());
-            }
-            case SPxSP -> {
-                t2 = Triple.create(t1.getSubject(), t1.getPredicate(), t2.getObject());
-            }
-            case SOxSO -> {
-                t2 = Triple.create(t1.getSubject(), t2.getPredicate(), t1.getObject());
-            }
-            case POxPO -> {
-                t2 = Triple.create(t2.getSubject(), t1.getPredicate(), t1.getObject());
-            }
-            case PSxPO -> {
-                t2 = Triple.create(t2.getSubject(), t1.getPredicate(), t1.getSubject());
-            }
-            case SxO -> {
-                t2 = Triple.create(t2.getSubject(), t2.getPredicate(), t1.getSubject());
-            }
-        }
-        return t2;
-    }
+//    private static Triple joinTriples(FXJoin j, Triple t2, Triple t1) {
+//        switch (j) {
+//            case SxS -> {
+//                t2 = Triple.create(t1.getSubject(), t2.getPredicate(), t2.getObject());
+//            }
+//            case PxP -> {
+//                t2 = Triple.create(t2.getSubject(), t1.getPredicate(), t2.getObject());
+//            }
+//            case OxO -> {
+//                t2 = Triple.create(t2.getSubject(), t2.getPredicate(), t1.getObject());
+//            }
+//            case SPxSP -> {
+//                t2 = Triple.create(t1.getSubject(), t1.getPredicate(), t2.getObject());
+//            }
+//            case SOxSO -> {
+//                t2 = Triple.create(t1.getSubject(), t2.getPredicate(), t1.getObject());
+//            }
+//            case POxPO -> {
+//                t2 = Triple.create(t2.getSubject(), t1.getPredicate(), t1.getObject());
+//            }
+//            case PSxPO -> {
+//                t2 = Triple.create(t2.getSubject(), t1.getPredicate(), t1.getSubject());
+//            }
+//            case SxO -> {
+//                t2 = Triple.create(t2.getSubject(), t2.getPredicate(), t1.getSubject());
+//            }
+//        }
+//        return t2;
+//    }
 
     private static List<Triple> renameBGP(List<Triple> bgp) {
         int varCount = 1;
