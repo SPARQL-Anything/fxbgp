@@ -1,5 +1,7 @@
 package io.github.sparqlanything.fxbgp.stream.performance;
 
+import com.google.common.util.concurrent.SimpleTimeLimiter;
+import com.google.common.util.concurrent.TimeLimiter;
 import io.github.sparqlanything.csv.CSVTriplifier;
 import io.github.sparqlanything.engine.FacadeX;
 import io.github.sparqlanything.fxbgp.BGPTestUtils;
@@ -36,6 +38,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static io.github.sparqlanything.fxbgp.stream.performance.CSVGenerator.createRowTypes;
 
@@ -124,6 +130,9 @@ public class PerformanceTest {
         QC.setFactory(ARQ.getContext(), FacadeX.ExecutorFactory);
         ExecutionContext execCxt = ExecutionContext.create(DatasetGraphFactory.create());
 
+        ExecutorService executor = Executors.newCachedThreadPool();
+
+        TimeLimiter tl = SimpleTimeLimiter.create(executor);
 
         File baseFolder = getBaseFolder();
         int maxNumOfPatterns = rowTypes.size();
@@ -136,31 +145,48 @@ public class PerformanceTest {
                 for (int size : sizes) {
                     String location = baseFolder.getAbsolutePath() + "/" + size + ".csv";
                     properties.setProperty(IRIArgument.LOCATION.toString(), location);
-
                     OpService opService = new OpService(NodeFactory.createURI("x-sparql-anything:location=" + location), op, false);
 
-                    QueryIterator qi;
-
+                    boolean streamException = false;
+                    long t0 = System.currentTimeMillis();
                     try {
+                        tl.runWithTimeout(()->{
+                            try {
+                                executeWithStream(exec, op, properties);
+                            } catch (NotATreeException e) {
 
-                        long t0 = System.currentTimeMillis();
-                        qi = exec.exec(op, properties);
-                        printResults(qi);
-                        long t1 = System.currentTimeMillis();
-
-                        long t2 = System.currentTimeMillis();
-                        qi = QC.execute(opService, OpExecutor.createRootQueryIterator(execCxt), execCxt);
-                        printResults(qi);
-                        long t3 = System.currentTimeMillis();
-
-                        System.out.printf("%d\t%d\t%d\t%d\t%d\n", size, numOfPatterns, numOfVariables, (t1 - t0), (t3 - t2));
-                    } catch (NotATreeException e) {
-                        //System.out.printf("%s-%s not a tree %s\n", bgpNumber, query, bgpFile.getAbsolutePath());
+                            }
+                        }, 5, TimeUnit.MINUTES);
+                    } catch (TimeoutException | InterruptedException e) {
+                        streamException = true;
                     }
+                    long t1 = System.currentTimeMillis();
+
+                    boolean materialisationException = false;
+                    long t2 = System.currentTimeMillis();
+                    try {
+                        tl.runWithTimeout(()->executeMaterialisation(opService, execCxt),5, TimeUnit.MINUTES);
+                    } catch (TimeoutException | InterruptedException e) {
+                        materialisationException = true;
+                    }
+                    long t3 = System.currentTimeMillis();
+
+                    String stream = streamException? "T" : String.format("%d",  (t1 - t0));
+                    String materialisation = materialisationException? "T" : String.format("%d",  (t3 - t2));
+
+                    System.out.printf("%d\t%d\t%d\t%s\t%s\n", size, numOfPatterns, numOfVariables, stream, materialisation);
                 }
             }
         }
 
+    }
+
+    private void executeMaterialisation(OpService opService, ExecutionContext execCxt) {
+        printResults(QC.execute(opService, OpExecutor.createRootQueryIterator(execCxt), execCxt));
+    }
+
+    private void executeWithStream(FXStreamExecutor exec, OpBGP op, Properties properties) throws NotATreeException {
+        printResults(exec.exec(op, properties));
     }
 
     private void printResults(QueryIterator qi) {
