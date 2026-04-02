@@ -28,6 +28,32 @@ public class BGPTestUtils {
         return url;
     }
 
+    public static String nodeToString(Node n){
+        if(n.isURI()){
+            return "<" + n.getURI() + ">";
+        }
+        if(n.isVariable()){
+            return "?" + n.getName();
+        }
+        if(n.isLiteral()){
+            return "\"" + n.getLiteral().getLexicalForm() +"\"" ;
+        }
+        return n.toString();
+    }
+
+    public static String basicPatternToString(BasicPattern bp){
+        StringBuilder sb = new StringBuilder();
+        for(Triple t: bp.getList()){
+            sb.append(nodeToString(t.getSubject()));
+            sb.append(" ");
+            sb.append(nodeToString(t.getPredicate()));
+            sb.append(" ");
+            sb.append(nodeToString(t.getObject()));
+            sb.append("\n");
+        }
+        return sb.toString();
+    }
+
     public static Triple t(Node s, Node p, Node o) {
         return Triple.create(s, p, o);
     }

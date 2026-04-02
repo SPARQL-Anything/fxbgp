@@ -85,6 +85,12 @@ public class PerformanceTest {
         return rowTypes;
     }
 
+    @Test
+    public void testBGP() throws IOException {
+        BasicPattern bp = BGPTestUtils.readBGP(new File("/Users/lgu/workspace/SPARQL-Anything/fxbgp/target/test-classes/io/github/sparqlanything/fxbgp/stream/performance/performance-test/input/queries/TP_1/V_1.txt").toURI().toURL());
+        System.out.println(bp);
+    }
+
     public void prepareQueries(List<String> rowType) throws URISyntaxException, IOException {
 
         File baseFolder = getBaseFolder();
@@ -107,12 +113,14 @@ public class PerformanceTest {
                 System.out.println("Number of patterns " + numOfPatterns + " Number of variables " + numOfVariables + " Generated BPs " + bps.size());
                 BasicPattern chosenPattern = bps.get(RANDOM.nextInt(bps.size()));
                 FileWriter fw = new FileWriter(new File(tpFolder, "V_" + numOfVariables + ".txt"));
-                IOUtils.write(chosenPattern.toString().replace("(", "").replace(")", ""), fw);
+                IOUtils.write(BGPTestUtils.basicPatternToString(chosenPattern), fw);
                 fw.flush();
                 fw.close();
             }
         }
     }
+
+
 
 
     @Test
