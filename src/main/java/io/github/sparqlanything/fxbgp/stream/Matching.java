@@ -17,41 +17,8 @@ class Matching {
     private static final Logger L = LoggerFactory.getLogger(Matching.class);
     private static final long HASH_PRIME = 1_000_000_007L;
 
-    // ---------------------------------------------------------------------------
-    // PathRecord — bundles the path snapshot and its precomputed hash.
-    // equals/hashCode delegate to path only so Matching.equals/hashCode
-    // preserve their original semantics when operating on recordMap directly.
-    // ---------------------------------------------------------------------------
-    public static final class PathRecord {
-        final List<Node> path;
-        final long hash;
-        final Node node;
-
-        PathRecord(List<Node> path, long hash) {
-            this.path = path;
-            this.hash = hash;
-            this.node = path.getLast();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj instanceof PathRecord) return path.equals(((PathRecord) obj).path);
-            return false;
-        }
-
-        @Override
-        public int hashCode() {
-            return path.hashCode();
-        }
-
-        public Node getNode() {
-            return node;
-        }
-    }
-
     // Single map replacing the former pair (map + hashMap).
     private Map<FXNode, PathRecord> recordMap;
-
     private Map<Node, Set<FXNode>> nodesMap;
 
     private Set<FXNode> cursor;
@@ -59,6 +26,7 @@ class Matching {
     private int cachedHash = 0;
     private boolean hashDirty = true;
     private PathAccessor accessor;
+    private int maxCursorSize = 0;
 
     Matching(FXNode cursor, List<Node> nodePath, PathAccessor accessor) {
         if (cursor == null) throw new RuntimeException("cursor is null");
@@ -71,17 +39,19 @@ class Matching {
     }
 
     private Matching(Map<FXNode, PathRecord> recordMap, Set<FXNode> cursor,
-                     PathAccessor accessor, Map<Node, Set<FXNode>> nodesMap) {
+                     PathAccessor accessor, Map<Node, Set<FXNode>> nodesMap, int maxCursorSize) {
         this.recordMap = recordMap;
         this.cursor = cursor;
         this.accessor = accessor;
         this.nodesMap = nodesMap;
+        this.maxCursorSize = maxCursorSize;
     }
 
     private void populate(FXNode cursor) {
         if (cursor.isRoot()) {
             nodesMap = new HashMap<>();
         }
+        maxCursorSize = Math.max(maxCursorSize, cursor.getChildren().size());
         if (!nodesMap.containsKey(cursor.getNode())) {
             nodesMap.put(cursor.getNode(), new HashSet<>());
         }
@@ -187,7 +157,7 @@ class Matching {
     // -----------------------------------------------------------------------
 
     public Matching copy() {
-        return new Matching(new HashMap<>(recordMap), new HashSet<>(cursor), accessor, nodesMap);
+        return new Matching(new HashMap<>(recordMap), new HashSet<>(cursor), accessor, nodesMap, maxCursorSize);
     }
 
     // -----------------------------------------------------------------------

@@ -1,9 +1,6 @@
 package io.github.sparqlanything.fxbgp.stream;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -179,7 +176,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
 
     private void addQuerySolution(Matching matching){
         BindingBuilder solution = BindingBuilder.create();
-        for(Map.Entry<FXNode, Matching.PathRecord> entry : matching.getMatches().entrySet()){
+        for(Map.Entry<FXNode, PathRecord> entry : matching.getMatches().entrySet()){
             if(troubleshoot) {
                 L.debug(" >>>>> {} {} <<<<<", entry.getKey(), entry.getValue());
                 L.debug(" ----- {} {} <<<<<", entry.getKey(), entry.getKey().getNode().isVariable());
@@ -232,7 +229,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     private void logMatches(){
         for(Matching matching: matches){
             L.debug("  {}[{}] cursor: {} ", matching.hashCode(), matching.getMatches().size(), matching.getCursor());
-            for(Map.Entry<FXNode,Matching.PathRecord> entry: matching.getMatches().entrySet()){
+            for(Map.Entry<FXNode, PathRecord> entry: matching.getMatches().entrySet()){
                 L.debug("    {} >> {}", entry.getKey(), entry.getValue().getNode());
             }
         }
