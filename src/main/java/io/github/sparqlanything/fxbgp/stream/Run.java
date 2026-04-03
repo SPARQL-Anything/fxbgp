@@ -74,11 +74,12 @@ public class Run {
         for(Triple t: bp.getList()){
             for(Node n: new Node[]{t.getSubject(),t.getPredicate(),t.getObject()}) {
                 if (n.isVariable()) {
-                    vars.add(n.getName());
+                    if(!vars.contains(n.getName())){
+                        vars.add(n.getName());
+                    }
                 }
             }
         }
-
         ResultSetWriterRegistry.init();
         ResultSet rs = ResultSetFactory.create(qi, vars);
         ResultSetFormatter.outputAsCSV(out, rs);
