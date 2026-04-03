@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,7 +22,8 @@ class Matching {
     private Map<FXNode, PathRecord> recordMap;
     private Map<Node, Set<FXNode>> nodesMap;
 
-    private Set<FXNode> cursor;
+    private FXNode[] cursorArray;
+    private int cursorCount = 0;
     private boolean unresolvable = false;
     private int cachedHash = 0;
     private boolean hashDirty = true;
@@ -31,17 +33,18 @@ class Matching {
     Matching(FXNode cursor, List<Node> nodePath, PathAccessor accessor) {
         if (cursor == null) throw new RuntimeException("cursor is null");
         if (!cursor.isRoot()) throw new RuntimeException("cursor is not root");
-        this.cursor = new HashSet<>();
         this.recordMap = new HashMap<>();
         this.accessor = accessor;
         populate(cursor);
+        this.cursorArray = new FXNode[Math.max(1, maxCursorSize)];
         this.set(cursor, nodePath);
     }
 
-    private Matching(Map<FXNode, PathRecord> recordMap, Set<FXNode> cursor,
+    private Matching(Map<FXNode, PathRecord> recordMap, FXNode[] cursorArray, int cursorCount,
                      PathAccessor accessor, Map<Node, Set<FXNode>> nodesMap, int maxCursorSize) {
         this.recordMap = recordMap;
-        this.cursor = cursor;
+        this.cursorArray = cursorArray;
+        this.cursorCount = cursorCount;
         this.accessor = accessor;
         this.nodesMap = nodesMap;
         this.maxCursorSize = maxCursorSize;
@@ -65,8 +68,38 @@ class Matching {
         return recordMap;
     }
 
-    public Set<FXNode> getCursor() {
-        return Collections.unmodifiableSet(cursor);
+    public FXNode[] getCursor() {
+        return cursorArray;
+    }
+
+    // -----------------------------------------------------------------------
+    // cursor helpers — fixed-size array; nulls mark empty slots
+    // -----------------------------------------------------------------------
+    private void cursorAdd(FXNode node) {
+        int firstNull = -1;
+        for (int i = 0; i < cursorArray.length; i++) {
+            if (cursorArray[i] == node) return;          // already present: HashSet semantics
+            if (cursorArray[i] == null && firstNull < 0) firstNull = i;
+        }
+        if (firstNull >= 0) {
+            cursorArray[firstNull] = node;
+            cursorCount++;
+        }
+    }
+
+    private void cursorRemove(FXNode node) {
+        for (int i = 0; i < cursorArray.length; i++) {
+            if (cursorArray[i] == node) {
+                cursorArray[i] = null;
+                cursorCount--;
+                return;
+            }
+        }
+    }
+
+    private void cursorClear() {
+        Arrays.fill(cursorArray, null);
+        cursorCount = 0;
     }
 
     public boolean contains(FXNode patternNode) {
@@ -98,17 +131,17 @@ class Matching {
         recordMap.put(patternNode, new PathRecord(path, hash));
         if (!patternNode.isRoot()) {
             if (isContainer(patternNode)) {
-                this.cursor.remove(patternNode.getParent());
-                this.cursor.add(patternNode);
+                cursorRemove(patternNode.getParent());
+                cursorAdd(patternNode);
             } else if (isValueOrTypeOrRoot(patternNode)) {
-                this.cursor.remove(patternNode.getParent());
-                this.cursor.add(patternNode.getParent().getParent());
+                cursorRemove(patternNode.getParent());
+                cursorAdd(patternNode.getParent().getParent());
             } else if (isPredicate(patternNode)) {
-                this.cursor.remove(patternNode.getParent());
-                this.cursor.add(patternNode);
+                cursorRemove(patternNode.getParent());
+                cursorAdd(patternNode);
             }
         } else {
-            this.cursor.add(patternNode);
+            cursorAdd(patternNode);
         }
     }
 
@@ -157,7 +190,7 @@ class Matching {
     // -----------------------------------------------------------------------
 
     public Matching copy() {
-        return new Matching(new HashMap<>(recordMap), new HashSet<>(cursor), accessor, nodesMap, maxCursorSize);
+        return new Matching(new HashMap<>(recordMap), cursorArray.clone(), cursorCount, accessor, nodesMap, maxCursorSize);
     }
 
     // -----------------------------------------------------------------------
@@ -168,16 +201,16 @@ class Matching {
         removeFromMap(patternNode);
         if (isContainer(patternNode)) {
             removeFromMap(patternNode.getParent());
-            this.cursor.remove(patternNode);
-            this.cursor.add(patternNode.getParent().getParent());
+            cursorRemove(patternNode);
+            cursorAdd(patternNode.getParent().getParent());
         } else if (isValueOrTypeOrRoot(patternNode)) {
             removeFromMap(patternNode);
-            this.cursor.remove(patternNode);
+            cursorRemove(patternNode);
             removeFromMap(patternNode.getParent());
-            this.cursor.add(patternNode.getParent().getParent());
+            cursorAdd(patternNode.getParent().getParent());
         } else if (isPredicate(patternNode)) {
-            this.cursor.remove(patternNode);
-            this.cursor.add(patternNode.getParent());
+            cursorRemove(patternNode);
+            cursorAdd(patternNode.getParent());
         }
     }
 
@@ -188,7 +221,9 @@ class Matching {
         int expectedDepth = accessor.currentDepth() - 1;
         Set<FXNode> matched = null;
 
-        for (FXNode c : cursor) {
+        for (int i = 0; i < cursorArray.length; i++) {
+            FXNode c = cursorArray[i];
+            if (c == null) continue;
             PathRecord record = recordMap.get(c);
             if (record == null || record.path.size() != expectedDepth) continue;
             if (record.hash != prefixHash) continue;
@@ -203,14 +238,19 @@ class Matching {
 
         // No match following this path
         if (matched == null) {
-            FXNode firstCursor = cursor.iterator().next();
-            if (cursor.size() == 1 && firstCursor.getAnnotation().getTerm() == FX.Container) {
+            FXNode firstCursor = null;
+            for (int i = 0; i < cursorArray.length; i++) {
+                if (cursorArray[i] != null) { firstCursor = cursorArray[i]; break; }
+            }
+            if (cursorCount == 1 && firstCursor.getAnnotation().getTerm() == FX.Container) {
                 // single container cursor — stay put, do nothing
             } else if (isPredicate(firstCursor.getAnnotation().getTerm())) {
                 // Restore container: predicate value didn't match
-                for (FXNode old : cursor) { recordMap.remove(old); }
-                cursor = new HashSet<>();
-                cursor.add(firstCursor.getParent());
+                for (int i = 0; i < cursorArray.length; i++) {
+                    if (cursorArray[i] != null) recordMap.remove(cursorArray[i]);
+                }
+                cursorClear();
+                cursorAdd(firstCursor.getParent());
             } else {
                 this.unresolvable = true;
             }
@@ -220,7 +260,7 @@ class Matching {
         Set<Matching> spawned = null;
 
         if (matched.size() == 1) {
-            if (cursor.size() != 1) {
+            if (cursorCount != 1) {
                 this.unresolvable = true;
             } else {
                 spawned = setAndSpawn(matched);
@@ -253,13 +293,13 @@ class Matching {
         }
 
         // Check if matching is partial: all cursors must be the same type
-        if (cursor.size() > 1) {
-            for (FXNode c1 : cursor) {
-                for (FXNode c2 : cursor) {
-                    if (c1.getAnnotation().getTerm() != c2.getAnnotation().getTerm()) {
-                        this.unresolvable = true;
-                    }
-                }
+        if (cursorCount > 1) {
+            FX first = null;
+            for (int i = 0; i < cursorArray.length; i++) {
+                if (cursorArray[i] == null) continue;
+                FX term = cursorArray[i].getAnnotation().getTerm();
+                if (first == null) { first = term; continue; }
+                if (term != first) { this.unresolvable = true; break; }
             }
         }
 
@@ -320,7 +360,9 @@ class Matching {
     public void endContainer() {
         long fullHash = accessor.currentFullHash();
         boolean containerInCursor = false;
-        for (FXNode c : cursor) {
+        for (int i = 0; i < cursorArray.length; i++) {
+            FXNode c = cursorArray[i];
+            if (c == null) continue;
             PathRecord record = recordMap.get(c);
             if (record != null && record.hash == fullHash) {
                 containerInCursor = true;
@@ -337,21 +379,26 @@ class Matching {
         }
 
         if (!this.unresolvable && containerInCursor) {
-            Set<FXNode> unset = cursor;
-            cursor = new HashSet<>();
-            for (FXNode c : unset) {
+            // Snapshot old cursor, clear, rebuild at parent.getParent()
+            FXNode[] old = cursorArray.clone();
+            cursorClear();
+            for (int i = 0; i < old.length; i++) {
+                FXNode c = old[i];
+                if (c == null) continue;
                 if (c.isRoot()) {
                     this.unresolvable = true;
                     break;
                 }
-                cursor.add(c.getParent().getParent());
+                cursorAdd(c.getParent().getParent());
             }
-            if (!unresolvable) checkOrphans(unset);
+            if (!unresolvable) checkOrphans(old);
         }
     }
 
-    private void checkOrphans(Set<FXNode> unset) {
-        for (FXNode c : unset) {
+    private void checkOrphans(FXNode[] unset) {
+        for (int i = 0; i < unset.length; i++) {
+            FXNode c = unset[i];
+            if (c == null) continue;
             for (FXNode c2 : c.getChildren()) {
                 if (!recordMap.containsKey(c2)) {
                     this.unresolvable = true;
