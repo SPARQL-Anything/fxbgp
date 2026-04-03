@@ -52,10 +52,6 @@ class Matching {
     // Single map replacing the former pair (map + hashMap).
     private Map<FXNode, PathRecord> recordMap;
 
-    // Lazy Map<FXNode, List<Node>> view of recordMap for external callers.
-    // Rebuilt from recordMap when null; invalidated by dirty().
-    //private Map<FXNode, List<Node>> cachedPathMap = null;
-
     private Map<Node, Set<FXNode>> nodesMap;
 
     private Set<FXNode> cursor;
@@ -95,30 +91,7 @@ class Matching {
         }
     }
 
-    // -----------------------------------------------------------------------
-    // External map view — lazily built, invalidated by dirty()
-    // -----------------------------------------------------------------------
-
-//    public Map<FXNode, List<Node>> getMap() {
-//        if (cachedPathMap == null) {
-//            Map<FXNode, List<Node>> m = new HashMap<>(recordMap.size());
-//            for (Map.Entry<FXNode, PathRecord> e : recordMap.entrySet()) {
-//                m.put(e.getKey(), e.getValue().path);
-//            }
-//            cachedPathMap = Collections.unmodifiableMap(m);
-//        }
-//        return cachedPathMap;
-//    }
-
     public Map<FXNode, PathRecord> getMatches() {
-//        if (cachedMatches == null) {
-//            Map<FXNode, Node> m = new HashMap<>();
-//            for (Map.Entry<FXNode, PathRecord> e : recordMap.entrySet()) {
-//                List<Node> vals = e.getValue().path;
-//                m.put(e.getKey(), vals.get(vals.size() - 1));
-//            }
-//            cachedMatches = Collections.unmodifiableMap(m);
-//        }
         return recordMap;
     }
 
@@ -183,7 +156,6 @@ class Matching {
     // -----------------------------------------------------------------------
     // Type helpers — two field reads, no map lookup
     // -----------------------------------------------------------------------
-
     public boolean isValueOrTypeOrRoot(FXNode patternNode) {
         FX t = patternNode.getAnnotation().getTerm();
         return t == FX.Type || t == FX.Value || t == FX.Root;
@@ -242,7 +214,6 @@ class Matching {
     // -----------------------------------------------------------------------
     // check
     // -----------------------------------------------------------------------
-
     public Set<Matching> check(Node node, FX component, long prefixHash) {
         int expectedDepth = accessor.currentDepth() - 1;
         Set<FXNode> matched = null;
