@@ -179,7 +179,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
 
     private void addQuerySolution(Matching matching){
         BindingBuilder solution = BindingBuilder.create();
-        for(Map.Entry<FXNode, Node> entry : matching.getMatches().entrySet()){
+        for(Map.Entry<FXNode, Matching.PathRecord> entry : matching.getMatches().entrySet()){
             if(troubleshoot) {
                 L.debug(" >>>>> {} {} <<<<<", entry.getKey(), entry.getValue());
                 L.debug(" ----- {} {} <<<<<", entry.getKey(), entry.getKey().getNode().isVariable());
@@ -187,7 +187,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
             if(entry.getKey().getNode().isVariable()){
                 Node var_ = entry.getKey().getNode();
                 Var var = Var.alloc(var_.getName());
-                Node val = entry.getValue();
+                Node val = entry.getValue().getNode();
                 // XXX How to do it better?
                 if(!solution.contains(var)) {
                     solution.add(var, val);
@@ -231,9 +231,9 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
 
     private void logMatches(){
         for(Matching matching: matches){
-            L.debug("  {}[{}] cursor: {} ", matching.hashCode(), matching.getMap().size(), matching.getCursor());
-            for(Map.Entry<FXNode,List<Node>> entry: matching.getMap().entrySet()){
-                L.debug("    {} >> {}", entry.getKey(), entry.getValue().get(entry.getValue().size()-1));
+            L.debug("  {}[{}] cursor: {} ", matching.hashCode(), matching.getMatches().size(), matching.getCursor());
+            for(Map.Entry<FXNode,Matching.PathRecord> entry: matching.getMatches().entrySet()){
+                L.debug("    {} >> {}", entry.getKey(), entry.getValue().getNode());
             }
         }
 

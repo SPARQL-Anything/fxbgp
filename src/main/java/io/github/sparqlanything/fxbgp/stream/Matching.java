@@ -22,13 +22,15 @@ class Matching {
     // equals/hashCode delegate to path only so Matching.equals/hashCode
     // preserve their original semantics when operating on recordMap directly.
     // ---------------------------------------------------------------------------
-    private static final class PathRecord {
+    public static final class PathRecord {
         final List<Node> path;
         final long hash;
+        final Node node;
 
         PathRecord(List<Node> path, long hash) {
             this.path = path;
             this.hash = hash;
+            this.node = path.getLast();
         }
 
         @Override
@@ -41,6 +43,10 @@ class Matching {
         public int hashCode() {
             return path.hashCode();
         }
+
+        public Node getNode() {
+            return node;
+        }
     }
 
     // Single map replacing the former pair (map + hashMap).
@@ -51,7 +57,7 @@ class Matching {
     private Map<FXNode, List<Node>> cachedPathMap = null;
 
     private Map<Node, Set<FXNode>> nodesMap;
-    private Map<FXNode, Node> cachedMatches = null;
+
     private Set<FXNode> cursor;
     private boolean unresolvable = false;
     private int cachedHash = 0;
@@ -93,32 +99,31 @@ class Matching {
     // External map view — lazily built, invalidated by dirty()
     // -----------------------------------------------------------------------
 
-    public Map<FXNode, List<Node>> getMap() {
-        if (cachedPathMap == null) {
-            Map<FXNode, List<Node>> m = new HashMap<>(recordMap.size());
-            for (Map.Entry<FXNode, PathRecord> e : recordMap.entrySet()) {
-                m.put(e.getKey(), e.getValue().path);
-            }
-            cachedPathMap = Collections.unmodifiableMap(m);
-        }
-        return cachedPathMap;
-    }
+//    public Map<FXNode, List<Node>> getMap() {
+//        if (cachedPathMap == null) {
+//            Map<FXNode, List<Node>> m = new HashMap<>(recordMap.size());
+//            for (Map.Entry<FXNode, PathRecord> e : recordMap.entrySet()) {
+//                m.put(e.getKey(), e.getValue().path);
+//            }
+//            cachedPathMap = Collections.unmodifiableMap(m);
+//        }
+//        return cachedPathMap;
+//    }
 
-    public Map<FXNode, Node> getMatches() {
-        if (cachedMatches == null) {
-            Map<FXNode, Node> m = new HashMap<>();
-            for (Map.Entry<FXNode, PathRecord> e : recordMap.entrySet()) {
-                List<Node> vals = e.getValue().path;
-                m.put(e.getKey(), vals.get(vals.size() - 1));
-            }
-            cachedMatches = Collections.unmodifiableMap(m);
-        }
-        return cachedMatches;
+    public Map<FXNode, PathRecord> getMatches() {
+//        if (cachedMatches == null) {
+//            Map<FXNode, Node> m = new HashMap<>();
+//            for (Map.Entry<FXNode, PathRecord> e : recordMap.entrySet()) {
+//                List<Node> vals = e.getValue().path;
+//                m.put(e.getKey(), vals.get(vals.size() - 1));
+//            }
+//            cachedMatches = Collections.unmodifiableMap(m);
+//        }
+        return recordMap;
     }
 
     private void dirty() {
         this.hashDirty = true;
-        this.cachedMatches = null;
         this.cachedPathMap = null;
     }
 
