@@ -385,9 +385,17 @@ class Matching {
                 containerInCursor = true;
                 break;
             }
+
+            // If a container ends but a cursor has a property waiting for value
+            // remove it
+            if (isPredicate(c.getAnnotation().getTerm())) {
+                // Remove matchings with grieving parent predicates
+                this.unresolvable = true;
+                break;
+            }
         }
 
-        if (containerInCursor) {
+        if (!this.unresolvable && containerInCursor) {
             Set<FXNode> unset = cursor;
             cursor = new HashSet<>();
             for (FXNode c : unset) {
