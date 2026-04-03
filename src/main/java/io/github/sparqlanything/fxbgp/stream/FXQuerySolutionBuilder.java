@@ -129,7 +129,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         if(component.equals(FX.Container) &&
                 Matching.nodeMatches(pattern.getRoot().getNode(), node)){
             Matching newMatching = new Matching(pattern.getRoot(),
-                    accessor);
+                    accessor.copyCurrentPath(), accessor);
             if(matches.isEmpty()){
                 matches.add(newMatching);
                 if(troubleshoot){
@@ -157,7 +157,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
 //        matches.addAll(spawned);
         Set<Matching> completed = new HashSet<>();
         for (Matching m : matches) {
-            if (m.getMap().size() == pattern.getSize()) {
+            if (m.size() == pattern.getSize()) {
                 addQuerySolution(m);
                 completed.add(m);
             }
