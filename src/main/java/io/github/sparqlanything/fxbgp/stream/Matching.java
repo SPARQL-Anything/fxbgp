@@ -54,7 +54,7 @@ class Matching {
 
     // Lazy Map<FXNode, List<Node>> view of recordMap for external callers.
     // Rebuilt from recordMap when null; invalidated by dirty().
-    private Map<FXNode, List<Node>> cachedPathMap = null;
+    //private Map<FXNode, List<Node>> cachedPathMap = null;
 
     private Map<Node, Set<FXNode>> nodesMap;
 
@@ -122,11 +122,6 @@ class Matching {
         return recordMap;
     }
 
-    private void dirty() {
-        this.hashDirty = true;
-        this.cachedPathMap = null;
-    }
-
     public Set<FXNode> getCursor() {
         return Collections.unmodifiableSet(cursor);
     }
@@ -156,7 +151,7 @@ class Matching {
 
     /** Internal fast path: hash already known from the accessor. */
     private void setRecord(FXNode patternNode, List<Node> path, long hash) {
-        dirty();
+        //dirty();
         recordMap.put(patternNode, new PathRecord(path, hash));
         if (!patternNode.isRoot()) {
             if (isContainer(patternNode)) {
@@ -175,7 +170,7 @@ class Matching {
     }
 
     private void removeFromMap(FXNode patternNode) {
-        dirty();
+        //dirty();
         if (patternNode.getNode().isVariable()) {
             for (FXNode k : nodesMap.get(patternNode.getNode())) {
                 recordMap.remove(k);
