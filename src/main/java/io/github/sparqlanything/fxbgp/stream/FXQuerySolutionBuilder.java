@@ -129,7 +129,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
         if(component.equals(FX.Container) &&
                 Matching.nodeMatches(pattern.getRoot().getNode(), node)){
             Matching newMatching = new Matching(pattern.getRoot(),
-                    new ArrayList<>(accessor.currentPath()), accessor);
+                    accessor);
             if(matches.isEmpty()){
                 matches.add(newMatching);
                 if(troubleshoot){

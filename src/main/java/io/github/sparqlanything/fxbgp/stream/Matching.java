@@ -31,10 +31,9 @@ class Matching {
      * Matching can happen later
      *
      * @param cursor
-     * @param nodePath
      * @param accessor
      */
-    Matching(FXNode cursor, List<Node> nodePath, PathAccessor accessor) {
+    Matching(FXNode cursor, PathAccessor accessor) {
         if(cursor == null) throw new RuntimeException("cursor is null");
         if(!cursor.isRoot()) throw new RuntimeException("cursor is not root");
         this.cursor = new HashSet<>();
@@ -43,7 +42,7 @@ class Matching {
         this.hashMap = new HashMap<>();
         this.accessor = accessor;
         populate(cursor);
-        this.set(cursor, nodePath);
+        this.set(cursor);
     }
 
     /**
@@ -137,12 +136,10 @@ class Matching {
         }
     }
 
-    public void set(FXNode patternNode, List<Node> valuePath) {
+    public void set(FXNode patternNode) {
         dirty();
-        this.map.put(patternNode, valuePath);
-        long h = 0L;
-        for (Node n : valuePath) { h = h * HASH_PRIME + n.hashCode(); }
-        this.hashMap.put(patternNode, h);
+        this.map.put(patternNode, accessor.copyCurrentPath());
+        this.hashMap.put(patternNode, accessor.currentFullHash());
         if(!patternNode.isRoot()) {
             if(isContainer(patternNode)) {
                 // Remove all parents with the same variable... (not node)
@@ -207,11 +204,10 @@ class Matching {
     }
 
     public Set<Matching> check(Node node, FX component, long prefixHash) {
-        Set<Matching> spawned = new HashSet<>();
         // Cursor is last matched node in the tree pattern
         // Check if the coming node matches any following FXNode
         int expectedDepth = accessor.currentDepth() - 1;
-        Set<FXNode> matched = new HashSet<>();
+        Set<FXNode> matched = null; //new HashSet<>();
         for(FXNode c: cursor){
             List<Node> cursorValue = map.get(c);
             if (cursorValue == null || cursorValue.size() != expectedDepth) continue;
@@ -222,13 +218,16 @@ class Matching {
             for(FXNode newCursor: c.getChildren()){
                 if(newCursor.getAnnotation().getTerm() == component &&
                         nodeMatches(newCursor.getNode(), node)){
+                    if(matched == null){
+                        matched = new HashSet<>();
+                    }
                     matched.add(newCursor);
                 }
             }
         }
         
         // No match following this path
-        if(matched.size() == 0) {
+        if(matched == null || matched.size() == 0) {
             // Do nothing
             // If cursor is a single container, ignore, otherwise, discard
             FXNode firstCursor = cursor.iterator().next();
@@ -252,6 +251,7 @@ class Matching {
         }
 
         // If a single cursor is matched, set it and spawn
+        Set<Matching> spawned = null;
         if(matched.size() == 1){
             // Partial matches are corrupted (e.g. if the cursor contains more than one
             // predicate, but only one matches the object, discard)
@@ -285,8 +285,11 @@ class Matching {
                 Matching m = copy();
                 for(Object sn: s){
                     for(FXNode c: (List<FXNode>) sn){
-                        m.set(c, accessor.copyCurrentPath());
+                        m.set(c);//, accessor.copyCurrentPath());
                     }
+                }
+                if(spawned == null){
+                    spawned = new HashSet<>();
                 }
                 spawned.add(m);
             }
@@ -328,9 +331,9 @@ class Matching {
             }
         }
         if(L.isDebugEnabled()) {
-            logSpawned(spawned);
+            logSpawned(spawned != null?spawned:Collections.emptySet());
         }
-        return spawned;
+        return spawned != null?spawned:Collections.emptySet();
     }
 
     private void logSpawned(Set<Matching> spawned){
@@ -370,7 +373,7 @@ class Matching {
     private Set<Matching> setAndSpawn(Set<FXNode> matched){
         //Set<Matching> spawned = new HashSet<>();
         for(FXNode c: matched){
-            this.set(c, accessor.copyCurrentPath());
+            this.set(c);//, accessor.copyCurrentPath());
         }
         return spawn(matched);
     }
