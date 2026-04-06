@@ -13,17 +13,31 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 
+import org.apache.jena.query.ARQ;
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryExecution;
+import org.apache.jena.query.QueryExecutionFactory;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.QuerySolution;
+import org.apache.jena.query.ResultSet;
+import org.apache.jena.query.ResultSetFactory;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 import org.apache.jena.riot.resultset.ResultSetWriterRegistry;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.core.BasicPattern;
+import org.apache.jena.sparql.syntax.ElementTriplesBlock;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.core.mem.DatasetGraphInMemory;
+import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.QueryIterator;
 import org.apache.jena.sparql.engine.binding.Binding;
+import org.apache.jena.sparql.engine.iterator.QueryIter;
+import org.apache.jena.sparql.engine.iterator.QueryIterRoot;
+import org.apache.jena.sparql.engine.main.QC;
 import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.junit.Assert;
@@ -33,14 +47,20 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 
+import javax.sound.midi.SysexMessage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -251,6 +271,40 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
         return it;
     }
 
+    protected ResultSet getResultSet(Properties properties){
+        try {
+            return ResultSetFactory.create(executor.exec(getOpBGP(), properties), getVars());
+        } catch (NotATreeException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected List<String> getVars(){
+        final List<String> vars = new ArrayList<>();
+        getBGP().getList().forEach(
+                t -> {
+                    Arrays.stream(new Node[]{t.getSubject(), t.getPredicate(), t.getObject()}).iterator().forEachRemaining(
+                            n-> {
+                                    if(n.isVariable())vars.add(n.getName());
+                            }
+                    );
+                }
+        );
+        return vars;
+    }
+
+    protected Query getSelectQuery(){
+        BasicPattern bp = getBGP();
+        Query query = QueryFactory.make();
+        query.setQuerySelectType();
+        query.setQueryResultStar(true);
+        ElementTriplesBlock block = new ElementTriplesBlock();
+        bp.getList().forEach(block::addTriple);
+        query.setQueryPattern(block);
+        L.info("{}", query);
+        return query;
+    }
+
     
     /**
      * Warning! This method assumes a lot of things...
@@ -293,6 +347,41 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
         while(i2.hasNext()){
             Assert.assertTrue(dg1.getDefaultGraph().contains(i2.next()));
         }
+    }
+
+    protected void testSelectStarEquals(Triplifier triplifier, Properties properties) {
+        DatasetGraph dg1 = getDatasetGraph(triplifier, properties);
+        L.error("dataset graph size: {}", dg1.getDefaultGraph().size());
+        QueryExecution qe = QueryExecutionFactory.create(getSelectQuery(), dg1);
+        ResultSet rs1 = qe.execSelect();
+        Set<Map<String,RDFNode>> qs1 = new HashSet<>();
+        rs1.forEachRemaining(qs->{
+            Map<String, RDFNode> map = new HashMap<>();
+            qs.varNames().forEachRemaining(v ->map.put(v, qs.get(v)));
+            qs1.add(map);
+        });
+//        qs1.forEach(System.out::println);
+        System.out.println("---");
+        Set<Map<String,RDFNode>> qs2 = new HashSet<>();
+        getResultSet(properties).forEachRemaining(qs->{
+            Map<String, RDFNode> map = new HashMap<>();
+            qs.varNames().forEachRemaining(v->map.put(v, qs.get(v)));
+            qs2.add(map);
+        });
+//        qs2.forEach(System.out::println);
+        L.error("Select equals? {} vs {}", qs1.size(),qs2.size());
+        L.error("Select equals? {}", qs1.equals(qs2));
+//        L.error("Select equals? {}", qs1.equals(qs2));
+        qs2.forEach(q->{
+            if(!qs1.contains(q)){
+                L.error("old does not contain new: {}", q);
+            }
+        });
+        qs1.forEach(q->{
+            if(!qs2.contains(q)){
+                L.error("new does not contain old: {}", q);
+            }
+        });
     }
 
     protected String makeString(Graph g){

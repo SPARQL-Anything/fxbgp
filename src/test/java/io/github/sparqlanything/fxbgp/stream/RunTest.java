@@ -1,5 +1,7 @@
 package io.github.sparqlanything.fxbgp.stream;
 
+import org.apache.jena.sparql.core.Var;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,5 +41,12 @@ public class RunTest {
 
     private void execute() throws IOException, NotATreeException {
         Run.main(new String[]{this.bp, this.input});
+    }
+
+    @Test
+    public void test(){
+        Var v1 = Var.alloc("s");
+        Var v2 = Var.alloc("s");
+        Assert.assertTrue(v1.equals(v2));
     }
 }

@@ -113,7 +113,7 @@ public class BGPTestUtils {
                     loaded.append(tr[c]);
                     continue;
                 }else if(tr[c].trim().endsWith("\"") && tr[c].trim().startsWith("\"")){
-                    nodes.add(l(tr[c].trim().substring(1,tr[c].length()-1)));
+                    nodes.add(l(tr[c].trim().substring(1,tr[c].trim().length()-1)));
                 }else
                 if(tr[c].trim().startsWith("<")){
                     nodes.add(u(tr[c].trim().substring(1, tr[c].trim().length()-1)));
