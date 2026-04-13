@@ -2,7 +2,6 @@ package io.github.sparqlanything.fxbgp.stream.performance;
 
 import com.google.common.util.concurrent.SimpleTimeLimiter;
 import com.google.common.util.concurrent.TimeLimiter;
-import io.github.sparqlanything.csv.CSVTriplifier;
 import io.github.sparqlanything.engine.FacadeX;
 import io.github.sparqlanything.fxbgp.BGPTestUtils;
 import io.github.sparqlanything.fxbgp.FX;
@@ -14,10 +13,10 @@ import io.github.sparqlanything.model.IRIArgument;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.jena.atlas.iterator.Iter;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.query.ARQ;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.algebra.op.OpService;
@@ -34,14 +33,15 @@ import org.junit.Test;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static io.github.sparqlanything.fxbgp.stream.performance.CSVGenerator.createRowTypes;
 
@@ -94,6 +94,11 @@ public class PerformanceTest {
     public void prepareQueries(List<String> rowType) throws URISyntaxException, IOException {
 
         File baseFolder = getBaseFolder();
+        File queriesFolder = new File(baseFolder, "queries");
+
+        if (queriesFolder.exists())
+            return;
+
         FXNode value = new FXNode(FX.SlotString, new NodeGenerator.OrderedValueGenerator(rowType));
         FXNode container = new FXNode(FX.Container, NodeGenerator.variableGenerator);
         FXNode slotNumber = new FXNode(FX.SlotNumber, NodeGenerator.slotNumberGenerator);
@@ -103,24 +108,51 @@ public class PerformanceTest {
         BasicPatternGenerator basicPatternGenerator = new BasicPatternGenerator(container, slotNumber, typeProperty, root, value);
 
         int maxNumOfPatterns = rowType.size();
-        File queriesFolder = new File(baseFolder, "queries");
+
         queriesFolder.mkdirs();
         for (int numOfPatterns = 1; numOfPatterns <= maxNumOfPatterns; numOfPatterns++) {
             File tpFolder = new File(queriesFolder, "TP_" + numOfPatterns);
             tpFolder.mkdirs();
             for (int numOfVariables = 1; numOfVariables <= numOfPatterns * 2 + 1; numOfVariables++) {
-                List<BasicPattern> bps = new ArrayList<>(basicPatternGenerator.getSxSDistinctNodesWithSlotNumber(numOfPatterns, numOfVariables));
-                System.out.println("Number of patterns " + numOfPatterns + " Number of variables " + numOfVariables + " Generated BPs " + bps.size());
-                BasicPattern chosenPattern = bps.get(RANDOM.nextInt(bps.size()));
-                FileWriter fw = new FileWriter(new File(tpFolder, "V_" + numOfVariables + ".txt"));
-                IOUtils.write(BGPTestUtils.basicPatternToString(chosenPattern), fw);
-                fw.flush();
-                fw.close();
+                Set<BasicPattern> bps = basicPatternGenerator.getSxSDistinctNodesWithSlotNumber(numOfPatterns, numOfVariables);
+
+                // 0 Variables on predicates
+                Set<BasicPattern> zeroVarsOnPredicates = bps.stream().filter(bp -> testConditionOnNumberOfVariablesInPredicates(bp, n -> n == 0)).collect(Collectors.toSet());
+
+                // 1 Variables on predicates
+                Set<BasicPattern> oneVarOnPredicates = bps.stream().filter(bp -> testConditionOnNumberOfVariablesInPredicates(bp, n -> n == 1)).collect(Collectors.toSet());
+
+                // Multiple vars on predicates
+                Set<BasicPattern> multipleVarsOnPredicates = bps.stream().filter(bp -> testConditionOnNumberOfVariablesInPredicates(bp, n -> n > 1)).collect(Collectors.toSet());
+
+                System.out.printf("TPs %d Vars %s BPs %d (%d, %d, %d)\n", numOfPatterns, numOfVariables, bps.size(), zeroVarsOnPredicates.size(), oneVarOnPredicates.size(), multipleVarsOnPredicates.size());
+
+                pickRandomAndWriteOnFile(zeroVarsOnPredicates, tpFolder, numOfVariables, String.valueOf(0));
+                pickRandomAndWriteOnFile(oneVarOnPredicates, tpFolder, numOfVariables, String.valueOf(1));
+                pickRandomAndWriteOnFile(multipleVarsOnPredicates, tpFolder, numOfVariables, "+");
             }
         }
     }
 
+    private static void pickRandomAndWriteOnFile(Set<BasicPattern> bps, File tpFolder, int numOfVariables, String numOfVariablesOnPredicates) throws IOException {
+        if (bps.isEmpty()) return;
+        BasicPattern chosenPattern = new ArrayList<>(bps).get(RANDOM.nextInt(bps.size()));
+        FileWriter fw = new FileWriter(new File(tpFolder, "V_" + numOfVariables + "_" + numOfVariablesOnPredicates + ".txt"));
+        IOUtils.write(BGPTestUtils.basicPatternToString(chosenPattern), fw);
+        fw.flush();
+        fw.close();
+    }
 
+    private static boolean testConditionOnNumberOfVariablesInPredicates(BasicPattern basicPattern, Predicate<Integer> test) {
+        int n = 0;
+        for (Triple t : basicPattern.getList()) {
+            if (t.getPredicate().isVariable()) {
+                n++;
+            }
+        }
+
+        return test.test(n);
+    }
 
 
     @Test
@@ -139,66 +171,93 @@ public class PerformanceTest {
         ExecutionContext execCxt = ExecutionContext.create(DatasetGraphFactory.create());
 
         ExecutorService executor = Executors.newCachedThreadPool();
-
         TimeLimiter tl = SimpleTimeLimiter.create(executor);
+
         File baseFolder = getBaseFolder();
         int maxNumOfPatterns = rowTypes.size();
         File queriesFolder = new File(baseFolder, "queries");
         for (int numOfPatterns = 1; numOfPatterns <= maxNumOfPatterns; numOfPatterns++) {
             File tpFolder = new File(queriesFolder, "TP_" + numOfPatterns);
             for (int numOfVariables = 1; numOfVariables <= numOfPatterns * 2 + 1; numOfVariables++) {
-                BasicPattern bp = BGPTestUtils.readBGP(new File(tpFolder, "V_" + numOfVariables + ".txt").toURI().toURL());
-                OpBGP op = new OpBGP(bp);
+
+                BasicPattern bp0 = getBasicPattern(tpFolder, numOfVariables, "0");
+                BasicPattern bp1 = getBasicPattern(tpFolder, numOfVariables, "1");
+                BasicPattern bpPlus = getBasicPattern(tpFolder, numOfVariables, "+");
+
                 for (int size : sizes) {
                     String location = baseFolder.getAbsolutePath() + "/" + size + ".csv";
                     properties.setProperty(IRIArgument.LOCATION.toString(), location);
-                    OpService opService = new OpService(NodeFactory.createURI("x-sparql-anything:location=" + location), op, false);
 
-                    boolean streamException = false;
-                    long t0 = System.currentTimeMillis();
-                    try {
-                        tl.runWithTimeout(()->{
-                            try {
-                                executeWithStream(exec, op, properties);
-                            } catch (NotATreeException e) {
+                    executeStreamVsMaterialisation(size, tl, exec, bp0, properties, execCxt, numOfPatterns, numOfVariables, "0");
+                    executeStreamVsMaterialisation(size, tl, exec, bp1, properties, execCxt, numOfPatterns, numOfVariables, "1");
+                    executeStreamVsMaterialisation(size, tl, exec, bpPlus, properties, execCxt, numOfPatterns, numOfVariables, "+");
 
-                            }
-                        }, 5, TimeUnit.MINUTES);
-                    } catch (TimeoutException | InterruptedException e) {
-                        streamException = true;
-                    }
-                    long t1 = System.currentTimeMillis();
-
-                    boolean materialisationException = false;
-                    long t2 = System.currentTimeMillis();
-                    try {
-                        tl.runWithTimeout(()->executeMaterialisation(opService, execCxt),5, TimeUnit.MINUTES);
-                    } catch (TimeoutException | InterruptedException e) {
-                        materialisationException = true;
-                    }
-                    long t3 = System.currentTimeMillis();
-
-                    String stream = streamException? "T" : String.format("%d",  (t1 - t0));
-                    String materialisation = materialisationException? "T" : String.format("%d",  (t3 - t2));
-
-                    System.out.printf("%d\t%d\t%d\t%s\t%s\n", size, numOfPatterns, numOfVariables, stream, materialisation);
                 }
             }
         }
 
     }
 
-    private void executeMaterialisation(OpService opService, ExecutionContext execCxt) {
-        printResults(QC.execute(opService, OpExecutor.createRootQueryIterator(execCxt), execCxt));
+    private void executeStreamVsMaterialisation(int size, TimeLimiter tl, FXStreamExecutor exec, BasicPattern bp, Properties properties, ExecutionContext execCxt, int numOfPatterns, int numOfVariables, String numOfPredicateVariables) {
+        if (bp == null)
+            return;
+
+        OpBGP op = new OpBGP(bp);
+        OpService opService = new OpService(NodeFactory.createURI("x-sparql-anything:location=" + properties.getProperty(IRIArgument.LOCATION.toString())), op, false);
+
+        boolean streamException = false;
+        AtomicLong numOfBindingsStream = new AtomicLong(0L);
+        long t0 = System.currentTimeMillis();
+        try {
+            tl.runWithTimeout(() -> {
+                try {
+                    numOfBindingsStream.set(executeWithStream(exec, op, properties));
+                } catch (NotATreeException e) {
+                    throw new RuntimeException("Not a Tree!");
+                }
+            }, 5, TimeUnit.MINUTES);
+        } catch (TimeoutException | InterruptedException e) {
+            streamException = true;
+        }
+        long t1 = System.currentTimeMillis();
+
+        AtomicLong numOfBindingsMaterialisation = new AtomicLong(0L);
+        boolean materialisationException = false;
+        long t2 = System.currentTimeMillis();
+        try {
+            tl.runWithTimeout(() -> numOfBindingsMaterialisation.set(executeMaterialisation(opService, execCxt)), 5, TimeUnit.MINUTES);
+        } catch (TimeoutException | InterruptedException e) {
+            materialisationException = true;
+        }
+        long t3 = System.currentTimeMillis();
+
+        String stream = streamException ? "T" : String.format("%d", (t1 - t0));
+        String materialisation = materialisationException ? "T" : String.format("%d", (t3 - t2));
+
+        System.out.printf("%d\t%d\t%d\t%s\t%s\t%s\t%s\n", size, numOfPatterns, numOfVariables, numOfPredicateVariables, stream, materialisation, numOfBindingsStream.get()!=numOfBindingsMaterialisation.get()?String.format("- %d %d", numOfBindingsStream.get(), numOfBindingsMaterialisation.get()):"");
     }
 
-    private void executeWithStream(FXStreamExecutor exec, OpBGP op, Properties properties) throws NotATreeException {
-        printResults(exec.exec(op, properties));
+    private static BasicPattern getBasicPattern(File tpFolder, int numOfVariables, String numberOfVariablesOnPredicates) throws IOException {
+        File f = new File(tpFolder, "V_" + numOfVariables + "_" + numberOfVariablesOnPredicates + ".txt");
+        if (f.exists())
+            return BGPTestUtils.readBGP(f.toURI().toURL());
+        return null;
     }
 
-    private void printResults(QueryIterator qi) {
+    private long executeMaterialisation(OpService opService, ExecutionContext execCxt) {
+        return countResults(QC.execute(opService, OpExecutor.createRootQueryIterator(execCxt), execCxt));
+    }
+
+    private long executeWithStream(FXStreamExecutor exec, OpBGP op, Properties properties) throws NotATreeException {
+        return countResults(exec.exec(op, properties));
+    }
+
+    private long countResults(QueryIterator qi) {
+        long l = 0L;
         while (qi.hasNext()) {
             qi.next();
+            l++;
         }
+        return l;
     }
 }

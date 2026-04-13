@@ -92,7 +92,7 @@ public class FXProxyEventListener implements FXNodeEventListener {
             endBarrier   = end;
             serialListeners = null;
         } else {
-            L.info("Number of listeners below threshold: {}", threshold);
+            //L.info("Number of listeners below threshold: {}", threshold);
             serialListeners = listeners.toArray(new FXNodeEventListener[0]);
             workers      = null;
             startBarrier = null;
