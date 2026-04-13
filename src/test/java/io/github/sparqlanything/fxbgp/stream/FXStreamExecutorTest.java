@@ -382,6 +382,7 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
                 L.error("new does not contain old: {}", q);
             }
         });
+        Assert.assertEquals(qs1,qs2);
     }
 
     protected String makeString(Graph g){
