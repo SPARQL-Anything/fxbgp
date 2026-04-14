@@ -3,10 +3,7 @@ package io.github.sparqlanything.fxbgp.stream.performance;
 import com.google.common.util.concurrent.SimpleTimeLimiter;
 import com.google.common.util.concurrent.TimeLimiter;
 import io.github.sparqlanything.engine.FacadeX;
-import io.github.sparqlanything.fxbgp.BGPTestUtils;
-import io.github.sparqlanything.fxbgp.FX;
-import io.github.sparqlanything.fxbgp.FXNode;
-import io.github.sparqlanything.fxbgp.NodeGenerator;
+import io.github.sparqlanything.fxbgp.*;
 import io.github.sparqlanything.fxbgp.stream.FXStreamExecutor;
 import io.github.sparqlanything.fxbgp.stream.NotATreeException;
 import io.github.sparqlanything.model.IRIArgument;
@@ -38,7 +35,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -176,6 +172,9 @@ public class PerformanceTest {
         File baseFolder = getBaseFolder();
         int maxNumOfPatterns = rowTypes.size();
         File queriesFolder = new File(baseFolder, "queries");
+
+        System.out.println("Size\t#TPs\t#VARs\t#pVARs\t#TreePatterns\ttStream\ttMaterialisation\tDiff\t#StremSolutions\t#MatSolutions");
+
         for (int numOfPatterns = 1; numOfPatterns <= maxNumOfPatterns; numOfPatterns++) {
             File tpFolder = new File(queriesFolder, "TP_" + numOfPatterns);
             for (int numOfVariables = 1; numOfVariables <= numOfPatterns * 2 + 1; numOfVariables++) {
@@ -203,6 +202,7 @@ public class PerformanceTest {
             return;
 
         OpBGP op = new OpBGP(bp);
+        int numSolutionPatters = computeNumberOfFXBGPAnnotations(properties, op);
         OpService opService = new OpService(NodeFactory.createURI("x-sparql-anything:location=" + properties.getProperty(IRIArgument.LOCATION.toString())), op, false);
 
         boolean streamException = false;
@@ -234,7 +234,7 @@ public class PerformanceTest {
         String stream = streamException ? "T" : String.format("%d", (t1 - t0));
         String materialisation = materialisationException ? "T" : String.format("%d", (t3 - t2));
 
-        System.out.printf("%d\t%d\t%d\t%s\t%s\t%s\t%s\n", size, numOfPatterns, numOfVariables, numOfPredicateVariables, stream, materialisation, numOfBindingsStream.get()!=numOfBindingsMaterialisation.get()?String.format("- %d %d", numOfBindingsStream.get(), numOfBindingsMaterialisation.get()):"");
+        System.out.printf("%d\t%d\t%d\t%s\t%d\t%s\t%s\t%s\n", size, numOfPatterns, numOfVariables, numOfPredicateVariables, numSolutionPatters, stream, materialisation, numOfBindingsStream.get()!=numOfBindingsMaterialisation.get()?String.format("yes\t%d\t%d", numOfBindingsStream.get(), numOfBindingsMaterialisation.get()):"");
     }
 
     private static BasicPattern getBasicPattern(File tpFolder, int numOfVariables, String numberOfVariablesOnPredicates) throws IOException {
@@ -259,5 +259,11 @@ public class PerformanceTest {
             l++;
         }
         return l;
+    }
+
+    private int computeNumberOfFXBGPAnnotations(Properties properties, OpBGP opBGP){
+        AnalyserGrounder ag = new AnalyserGrounder(properties, FXModel.getFXModel());
+        Set<FXBGPAnnotation> annotations = ag.annotate(opBGP, true);
+        return annotations.size();
     }
 }
