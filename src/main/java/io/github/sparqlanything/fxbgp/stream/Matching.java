@@ -228,8 +228,13 @@ class Matching {
             if (record == null || record.path.size() != expectedDepth) continue;
             if (record.hash != prefixHash) continue;
             for (FXNode newCursor : c.getChildren()) {
+                if(recordMap.containsKey(newCursor)) {continue;}
                 if (newCursor.getAnnotation().getTerm() == component &&
-                        nodeMatches(newCursor.getNode(), node)) {
+                        nodeMatches(newCursor.getNode(), node) ) {
+//                    // If it is a predicate and the object is already in the map, ignore
+//                    if(isPredicate(component) && recordMap.containsKey(newCursor.getChildren().iterator().next())) {
+//                        continue;
+//                    }
                     if (matched == null) matched = new HashSet<>();
                     matched.add(newCursor);
                 }

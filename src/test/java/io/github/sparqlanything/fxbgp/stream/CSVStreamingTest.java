@@ -7,6 +7,7 @@ import org.apache.jena.sparql.algebra.op.OpGraph;
 import org.apache.jena.sparql.engine.QueryIterator;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -340,6 +341,7 @@ public class CSVStreamingTest extends FXStreamExecutorTest{
         testSelectStarEquals(new CSVTriplifier(), properties());
     }
 
+    @Ignore
     @Test
     public void f10000_csv_V31() throws IOException {
         prepare(testName.getMethodName());

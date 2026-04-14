@@ -1,5 +1,5 @@
 target/
-
+.DS_Store
 /.idea/.gitignore
 /src/main/java/io/github/sparqlanything/fxbgp/extractor/BGPExtractor.java
 /.idea/compiler.xml
