@@ -17,8 +17,12 @@ import org.apache.jena.sparql.serializer.SerializationContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.jena.graph.Triple;
+
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -67,6 +71,11 @@ public class FXStreamExecutorWithThread {
             patterns.add(new FXQuerySolutionBuilder(tp, bindings, accessor));
         }
 
+        List<Triple> bgpTriples = new ArrayList<>();
+        for (FXBGPAnnotation a : annotations) {
+            a.getOpBGP().getPattern().getList().forEach(bgpTriples::add);
+        }
+
         // Parsing thread vs solution thread
         final ExecutorService executor = Executors.newCachedThreadPool();
         executor.execute(() -> {
@@ -78,7 +87,7 @@ public class FXStreamExecutorWithThread {
                         new StreamEventsHandler(properties,
                                 FXProxyEventListener.make(patterns,
                                         FXProxyEventListener.DEFAULT_PARALLEL_THRESHOLD,
-                                        accessor)));
+                                        accessor, bgpTriples)));
                 complete = true;
             } catch (IOException e) {
                 complete = true; // Let's leave the other thread in peace.

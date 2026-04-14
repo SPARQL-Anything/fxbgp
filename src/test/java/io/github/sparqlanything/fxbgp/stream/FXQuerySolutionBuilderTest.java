@@ -81,7 +81,8 @@ public class FXQuerySolutionBuilderTest extends BGPTestUtils {
         this.proxy = FXProxyEventListener.make(
                 java.util.Collections.singleton(this.builder),
                 FXProxyEventListener.DEFAULT_PARALLEL_THRESHOLD,
-                accessor);
+                accessor,
+                this.bp.getList());
     }
 
     private FXTreePattern pattern() {

@@ -1,12 +1,16 @@
 package io.github.sparqlanything.fxbgp.stream;
 
+import io.github.sparqlanything.fxbgp.FX;
 import io.github.sparqlanything.model.Triplifier;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
@@ -30,6 +34,17 @@ public class FXProxyEventListener implements FXNodeEventListener {
     private final CyclicBarrier startBarrier;
     private final CyclicBarrier endBarrier;
 
+    // BGP triples cache
+    private List<Triple> bgpTriples;
+
+    private Node subjectNode = null;
+    private Node predicateNode = null;
+    private Node objectNode = null;
+    private FX predicateComponent = null;
+    private FX objectComponent = null;
+//    private int containersSent = 0;
+    private List<Node> containersSent = new ArrayList<>();
+    private List<Node> containersReceived = new ArrayList<>();
     /**
      * One long-lived worker thread per listener.  It loops between two barriers:
      * <ol>
@@ -74,8 +89,9 @@ public class FXProxyEventListener implements FXNodeEventListener {
     }
 
     private FXProxyEventListener(Set<? extends FXNodeEventListener> listeners, int threshold,
-                                  SharedPathAccessor accessor) {
+                                  SharedPathAccessor accessor, List<Triple> bgpTriples) {
         this.accessor = accessor;
+        this.bgpTriples = bgpTriples;
         if (listeners.size() > threshold) {
             L.info("Number of listeners exceeds threshold: {}", threshold);
             int n = listeners.size();
@@ -101,8 +117,8 @@ public class FXProxyEventListener implements FXNodeEventListener {
     }
 
     public static FXProxyEventListener make(Set<? extends FXNodeEventListener> listeners,
-                                             int threshold, SharedPathAccessor accessor) {
-        return new FXProxyEventListener(listeners, threshold, accessor);
+                                             int threshold, SharedPathAccessor accessor, List<Triple> bgpTriples) {
+        return new FXProxyEventListener(listeners, threshold, accessor, bgpTriples);
     }
 
     public void shutdown() {
@@ -140,71 +156,200 @@ public class FXProxyEventListener implements FXNodeEventListener {
     @Override
     public void startContainer(Node container) {
         L.trace("[start] startContainer {}", container);
-        accessor.push(container);
-        fanOut(l -> l.startContainer(container));
+        containersReceived.add(container);
+        if(subjectNode == null) {
+            this.subjectNode = container;
+        } else {
+            this.objectNode = container;
+            this.objectComponent = FX.Container;
+//            if(tripleMatches()){
+//                triggerEvents();
+//            }
+            triggerEvents(tripleMatches());
+            clear();
+            this.subjectNode = container;
+        }
+        //accessor.push(container);
+        //fanOut(l -> l.startContainer(container));
         L.trace("[end] startContainer {}", container);
     }
 
     @Override
     public void onSlotNumber(Node n) {
         L.trace("[start] onSlotNumber {}", n);
-        accessor.push(n);
-        fanOut(l -> l.onSlotNumber(n));
+        //accessor.push(n);
+        //fanOut(l -> l.onSlotNumber(n));
+        predicateComponent = FX.SlotNumber;
+        predicateNode = n;
         L.trace("[end] onSlotNumber {}", n);
     }
 
     @Override
     public void onSlotString(Node n) {
         L.trace("[start] onSlotString {}", n);
-        accessor.push(n);
-        fanOut(l -> l.onSlotString(n));
+//        accessor.push(n);
+//        fanOut(l -> l.onSlotString(n));
+        predicateComponent = FX.SlotString;
+        predicateNode = n;
         L.trace("[end] onSlotString {}", n);
     }
 
     @Override
     public void onValue(Node value) {
         L.trace("[start] onValue {}", value);
-        accessor.push(value);
-        fanOut(l -> l.onValue(value));
-        accessor.pop();  // pop value
-        accessor.pop();  // pop predicate (pushed by onSlotNumber/onSlotString)
+//        accessor.push(value);
+//        fanOut(l -> l.onValue(value));
+//        accessor.pop();  // pop value
+//        accessor.pop();  // pop predicate (pushed by onSlotNumber/onSlotString)
+        objectComponent = FX.Value;
+        objectNode = value;
+        Node subject = subjectNode;
+//        if(tripleMatches()){
+//            triggerEvents();
+//        }
+        triggerEvents(tripleMatches());
+        clear();
+        subjectNode = subject;
         L.trace("[end] onValue {}", value);
     }
 
     @Override
     public void onTypeProperty() {
         L.trace("[start] onTypeProperty");
-        accessor.push(RDF.type.asNode());
-        fanOut(FXNodeEventListener::onTypeProperty);
+//        accessor.push(RDF.type.asNode());
+//        fanOut(FXNodeEventListener::onTypeProperty);
+        predicateComponent = FX.TypeProperty;
+        predicateNode = RDF.type.asNode();
         L.trace("[end] onTypeProperty");
     }
 
     @Override
     public void onTypeRoot() {
         L.trace("[start] onTypeRoot");
-        accessor.push(FX_ROOT_NODE);
-        fanOut(FXNodeEventListener::onTypeRoot);
-        accessor.pop();  // pop fxRoot
-        accessor.pop();  // pop rdf:type (pushed by onTypeProperty)
+//        accessor.push(FX_ROOT_NODE);
+//        fanOut(FXNodeEventListener::onTypeRoot);
+//        accessor.pop();  // pop fxRoot
+//        accessor.pop();  // pop rdf:type (pushed by onTypeProperty)
+        objectComponent = FX.Root;
+        objectNode = FX_ROOT_NODE;
+//        if(tripleMatches()){
+//            triggerEvents();
+//        }
+        triggerEvents(tripleMatches());
+        Node subject = subjectNode;
+        clear();
+        subjectNode = subject;
         L.trace("[end] onTypeRoot");
     }
 
     @Override
     public void onType(Node node) {
         L.trace("[start] onType {}", node);
-        accessor.push(node);
-        fanOut(l -> l.onType(node));
-        accessor.pop();  // pop type value
-        accessor.pop();  // pop rdf:type (pushed by onTypeProperty)
+//        accessor.push(node);
+//        fanOut(l -> l.onType(node));
+//        accessor.pop();  // pop type value
+//        accessor.pop();  // pop rdf:type (pushed by onTypeProperty)
+        objectComponent = FX.Type;
+        objectNode = node;
+//        if(tripleMatches()){
+//            ;
+//        }
+        triggerEvents(tripleMatches());
+        Node subject = subjectNode;
+        clear();
+        subjectNode = subject;
         L.trace("[end] onType {}", node);
     }
 
     @Override
     public void endContainer() {
         L.trace("[start] endContainer");
-        fanOut(FXNodeEventListener::endContainer);
+
+        Node n = containersReceived.removeLast();
+        //System.err.println("Close container " + n );
+        //System.err.println("Accessor depth before " + accessor.currentDepth() );
+        if(containersSent.size() > 0 && containersSent.getLast().equals(n) && ! accessor.isEmpty()) {
+            fanOut(FXNodeEventListener::endContainer);
+            // pop parent predicate, unless root
+            //Node sent =
+            //if((containersSent.size() > 1)){
+            containersSent.removeLast();
+            //accessor.push(subjectNode);
+            //}
+        }
         accessor.pop();                              // pop container
-        if (!accessor.isEmpty()) accessor.pop();    // pop parent predicate, unless root
+        if (!accessor.isEmpty()) accessor.pop();
+        if(!accessor.isEmpty()) {
+            this.subjectNode = accessor.currentPath().getLast(); // containersReceived.getLast();
+        }
+        //System.err.println("Accessor depth after " + accessor.currentDepth() );
         L.trace("[end] endContainer");
+    }
+
+    protected boolean tripleMatches(){
+        //System.out.println(subjectNode + " " + predicateNode + " " + objectNode);
+        for(Triple t: bgpTriples){
+            if(Matching.nodeMatches(t.getPredicate(), predicateNode) && Matching.nodeMatches(t.getSubject(), subjectNode) &&
+                    Matching.nodeMatches(t.getObject(), objectNode)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected void triggerEvents(boolean tripleMatches){
+        //System.out.println(" --> " + subjectNode + " " + predicateNode + " " + objectNode);
+        // Do subject (only if root)
+//        if(containersSent.size() == 0){
+        if(accessor.isEmpty()){
+            accessor.push(subjectNode);
+        }
+        if(tripleMatches && (containersSent.isEmpty() || !containersSent.getLast().equals(subjectNode))){
+            fanOut(l -> l.startContainer(subjectNode));
+            containersSent.add(subjectNode);
+        }
+        // Do predicate
+        accessor.push(predicateNode);
+        if(tripleMatches) {
+            if (predicateComponent == FX.TypeProperty) {
+                fanOut(l -> l.onTypeProperty());
+            } else if (predicateComponent == FX.SlotString) {
+                fanOut(l -> l.onSlotString(predicateNode));
+            } else if (predicateComponent == FX.SlotNumber) {
+                fanOut(l -> l.onSlotNumber(predicateNode));
+            }
+        }
+
+        // Do Object
+        accessor.push(objectNode);
+        if (objectComponent == FX.Type) {
+            if(tripleMatches)
+                fanOut(l -> l.onType(objectNode));
+            accessor.pop();
+            accessor.pop();
+        }else if(objectComponent == FX.Root){
+            if(tripleMatches)
+                fanOut(l -> l.onTypeRoot());
+            accessor.pop();
+            accessor.pop();
+        }else if(objectComponent == FX.Value){
+            if(tripleMatches)
+                fanOut(l -> l.onValue(objectNode));
+            accessor.pop();
+            accessor.pop();
+        }else if(objectComponent == FX.Container){
+            if(tripleMatches) {
+                fanOut(l -> l.startContainer(objectNode));
+                containersSent.add(objectNode);
+            }
+        }
+    }
+
+    protected void clear(){
+        subjectNode = null;
+        predicateNode = null;
+        predicateComponent = null;
+        objectNode = null;
+        objectComponent = null;
     }
 }

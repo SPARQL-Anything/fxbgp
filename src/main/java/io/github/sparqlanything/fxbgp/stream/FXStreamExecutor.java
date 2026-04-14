@@ -4,6 +4,7 @@ import io.github.sparqlanything.fxbgp.AnalyserGrounder;
 import io.github.sparqlanything.fxbgp.FXBGPAnnotation;
 import io.github.sparqlanything.fxbgp.FXModel;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.algebra.Op;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.algebra.op.OpGraph;
@@ -12,7 +13,9 @@ import org.apache.jena.sparql.engine.binding.Binding;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Properties;
 import java.util.Set;
@@ -54,12 +57,17 @@ public class FXStreamExecutor {
             patterns.add(new FXQuerySolutionBuilder(tp, bindings, accessor));
         }
 
+        List<Triple> bgpTriples = new ArrayList<>();
+        for (FXBGPAnnotation a : annotations) {
+            a.getOpBGP().getPattern().getList().forEach(bgpTriples::add);
+        }
+
         int threshold = Integer.parseInt(properties.getProperty(
                 FXProxyEventListener.PARALLEL_THRESHOLD_OPTION,
                 String.valueOf(FXProxyEventListener.DEFAULT_PARALLEL_THRESHOLD)));
         FXStreamParser parser = FXStreamParserRegistry.get(properties);
         StreamEventsHandler handler = new StreamEventsHandler(properties,
-                FXProxyEventListener.make(patterns, threshold, accessor));
+                FXProxyEventListener.make(patterns, threshold, accessor, bgpTriples));
         return new FXParserQueryIterator(parser, handler, bindings);
     }
 }
