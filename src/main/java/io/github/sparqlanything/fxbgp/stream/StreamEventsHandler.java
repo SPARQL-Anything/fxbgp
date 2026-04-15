@@ -1,7 +1,9 @@
 package io.github.sparqlanything.fxbgp.stream;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import io.github.sparqlanything.model.FacadeXAbstractNodeBuilder;
 import io.github.sparqlanything.model.Triplifier;
@@ -13,9 +15,12 @@ import org.slf4j.LoggerFactory;
 
 public class StreamEventsHandler extends FacadeXAbstractNodeBuilder implements FXParserEventsHandler {
     private static final Logger L =  LoggerFactory.getLogger(StreamEventsHandler.class);
+    public static final String PREDICATE_CACHE_OPTION = "predicate-cache";
     protected FXNodeEventListener eventListener;
     protected List<String> containerStack = new ArrayList<>();
     private boolean blankNodes = true;
+    // null when disabled; populated on first use when enabled
+    private final Map<String, Node> predicateCache;
     public StreamEventsHandler(Properties properties, FXNodeEventListener eventListener) {
         super(properties);
         if(properties.containsKey("blank-nodes")){
@@ -24,6 +29,10 @@ public class StreamEventsHandler extends FacadeXAbstractNodeBuilder implements F
             this.blankNodes = true;
         }
         this.eventListener = eventListener;
+        this.predicateCache = Boolean.parseBoolean(
+                properties.getProperty(PREDICATE_CACHE_OPTION, "false"))
+                ? new HashMap<>()
+                : null;
     }
 
     @Override
@@ -74,7 +83,10 @@ public class StreamEventsHandler extends FacadeXAbstractNodeBuilder implements F
     @Override
     public void onSlotString(String key) {
         L.trace("onSlotString {}", key);
-        this.eventListener.onSlotString(this.key2predicate(key));
+        Node predicate = predicateCache != null
+                ? predicateCache.computeIfAbsent(key, this::key2predicate)
+                : this.key2predicate(key);
+        this.eventListener.onSlotString(predicate);
     }
 
     @Override

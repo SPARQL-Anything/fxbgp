@@ -9,7 +9,9 @@ import org.apache.jena.vocabulary.RDF;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,8 +48,8 @@ public class FXProxyEventListener implements FXNodeEventListener {
     private FX predicateComponent = null;
     private FX objectComponent = null;
 //    private int containersSent = 0;
-    private List<Node> containersSent = new ArrayList<>();
-    private List<Node> containersReceived = new ArrayList<>();
+    private Deque<Node> containersSent = new ArrayDeque<>();
+    private Deque<Node> containersReceived = new ArrayDeque<>();
     /**
      * One long-lived worker thread per listener.  It loops between two barriers:
      * <ol>
