@@ -65,9 +65,14 @@ public class FXStreamExecutor {
         int threshold = Integer.parseInt(properties.getProperty(
                 FXProxyEventListener.PARALLEL_THRESHOLD_OPTION,
                 String.valueOf(FXProxyEventListener.DEFAULT_PARALLEL_THRESHOLD)));
+        boolean eventsFiltering = Boolean.parseBoolean(properties.getProperty(
+                FXProxyEventListener.EVENTS_FILTERING_OPTION,
+                String.valueOf(FXProxyEventListener.DEFAULT_EVENTS_FILTERING)));
+        FXProxyEventListener proxy = eventsFiltering
+                ? FXProxyEventListener.make(patterns, threshold, accessor, bgpTriples)
+                : FXProxyEventListener.make(patterns, threshold, accessor);
         FXStreamParser parser = FXStreamParserRegistry.get(properties);
-        StreamEventsHandler handler = new StreamEventsHandler(properties,
-                FXProxyEventListener.make(patterns, threshold, accessor, bgpTriples));
+        StreamEventsHandler handler = new StreamEventsHandler(properties, proxy);
         return new FXParserQueryIterator(parser, handler, bindings);
     }
 }

@@ -109,16 +109,20 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
     }
 
     protected final Properties properties(boolean blankNodes){
-        return properties(blankNodes, false);
-    }
-    protected final Properties properties() {
-        return properties(true, false);
-    }
-    protected final Properties propertiesNullValueTrue() {
-        return properties(true, true);
+        return properties(blankNodes, false, true);
     }
 
-    protected final Properties properties(boolean blankNodes, boolean nullValues) {
+    protected final Properties propertiesEventsFilteringFalse(boolean blankNodes){
+        return properties(blankNodes, false, true);
+    }
+    protected final Properties properties() {
+        return properties(true, false,true);
+    }
+    protected final Properties propertiesNullValueTrue() {
+        return properties(true, true, true);
+    }
+
+    protected final Properties properties(boolean blankNodes, boolean nullValues, boolean eventsFiltering) {
         Properties properties = new Properties();
         properties.setProperty(IRIArgument.LOCATION.toString(), input.toString());
         if("headers".equals(flavour)){
@@ -127,6 +131,7 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
         if(this.parallelThreshold != null){
             properties.setProperty(FXProxyEventListener.PARALLEL_THRESHOLD_OPTION, this.parallelThreshold.toString());
         }
+        properties.setProperty(FXProxyEventListener.EVENTS_FILTERING_OPTION.toString(), eventsFiltering ? "true" : "false");
         properties.setProperty(IRIArgument.BLANK_NODES.toString(), blankNodes ? "true" : "false");
         properties.setProperty(JSONTriplifier.PROPERTY_JSONINCLUDENULLVALUES.toString(), nullValues ? "true" : "false");
 

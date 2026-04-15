@@ -24,6 +24,8 @@ public class FXProxyEventListener implements FXNodeEventListener {
     private static final Logger L = LoggerFactory.getLogger(FXProxyEventListener.class);
     public static final String PARALLEL_THRESHOLD_OPTION = "parallel-threshold";
     public static final int DEFAULT_PARALLEL_THRESHOLD = 99999;
+    public static final String EVENTS_FILTERING_OPTION = "events-filtering";
+    public static final boolean DEFAULT_EVENTS_FILTERING = true;
 
     private static final Node FX_ROOT_NODE =
             NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT);
@@ -41,6 +43,7 @@ public class FXProxyEventListener implements FXNodeEventListener {
     // BGP triples index: concrete predicate → triples; wildcards always checked
     private final Map<Node, Triple[]> bgpByPredicate;
     private final Triple[] bgpWildcardTriples;
+    private final boolean eventsFiltering;
 
     private Node subjectNode = null;
     private Node predicateNode = null;
@@ -96,6 +99,7 @@ public class FXProxyEventListener implements FXNodeEventListener {
     private FXProxyEventListener(Set<? extends FXNodeEventListener> listeners, int threshold,
                                   SharedPathAccessor accessor, List<Triple> bgpTriples) {
         this.accessor = accessor;
+        this.eventsFiltering = true;
         // Build predicate index
         Map<Node, List<Triple>> byPred = new HashMap<>();
         List<Triple> wildcards = new ArrayList<>();
@@ -137,9 +141,43 @@ public class FXProxyEventListener implements FXNodeEventListener {
         }
     }
 
+    private FXProxyEventListener(Set<? extends FXNodeEventListener> listeners, int threshold,
+                                  SharedPathAccessor accessor) {
+        this.accessor = accessor;
+        this.eventsFiltering = false;
+        this.bgpByPredicate = java.util.Collections.emptyMap();
+        this.bgpWildcardTriples = new Triple[0];
+        if (listeners.size() > threshold) {
+            L.info("Number of listeners exceeds threshold: {}", threshold);
+            int n = listeners.size();
+            CyclicBarrier start = new CyclicBarrier(n + 1);
+            CyclicBarrier end   = new CyclicBarrier(n + 1);
+            workers = new WorkerThread[n];
+            int i = 0;
+            for (FXNodeEventListener l : listeners) {
+                workers[i] = new WorkerThread(l, start, end);
+                workers[i].start();
+                i++;
+            }
+            startBarrier = start;
+            endBarrier   = end;
+            serialListeners = null;
+        } else {
+            serialListeners = listeners.toArray(new FXNodeEventListener[0]);
+            workers      = null;
+            startBarrier = null;
+            endBarrier   = null;
+        }
+    }
+
     public static FXProxyEventListener make(Set<? extends FXNodeEventListener> listeners,
                                              int threshold, SharedPathAccessor accessor, List<Triple> bgpTriples) {
         return new FXProxyEventListener(listeners, threshold, accessor, bgpTriples);
+    }
+
+    public static FXProxyEventListener make(Set<? extends FXNodeEventListener> listeners,
+                                             int threshold, SharedPathAccessor accessor) {
+        return new FXProxyEventListener(listeners, threshold, accessor);
     }
 
     public void shutdown() {
@@ -177,6 +215,12 @@ public class FXProxyEventListener implements FXNodeEventListener {
     @Override
     public void startContainer(Node container) {
         L.trace("[start] startContainer {}", container);
+        if (!eventsFiltering) {
+            accessor.push(container);
+            fanOut(l -> l.startContainer(container));
+            L.trace("[end] startContainer {}", container);
+            return;
+        }
         containersReceived.add(container);
         if(subjectNode == null) {
             this.subjectNode = container;
@@ -193,6 +237,12 @@ public class FXProxyEventListener implements FXNodeEventListener {
     @Override
     public void onSlotNumber(Node n) {
         L.trace("[start] onSlotNumber {}", n);
+        if (!eventsFiltering) {
+            accessor.push(n);
+            fanOut(l -> l.onSlotNumber(n));
+            L.trace("[end] onSlotNumber {}", n);
+            return;
+        }
         predicateComponent = FX.SlotNumber;
         predicateNode = n;
         L.trace("[end] onSlotNumber {}", n);
@@ -201,6 +251,12 @@ public class FXProxyEventListener implements FXNodeEventListener {
     @Override
     public void onSlotString(Node n) {
         L.trace("[start] onSlotString {}", n);
+        if (!eventsFiltering) {
+            accessor.push(n);
+            fanOut(l -> l.onSlotString(n));
+            L.trace("[end] onSlotString {}", n);
+            return;
+        }
         predicateComponent = FX.SlotString;
         predicateNode = n;
         L.trace("[end] onSlotString {}", n);
@@ -209,6 +265,14 @@ public class FXProxyEventListener implements FXNodeEventListener {
     @Override
     public void onValue(Node value) {
         L.trace("[start] onValue {}", value);
+        if (!eventsFiltering) {
+            accessor.push(value);
+            fanOut(l -> l.onValue(value));
+            accessor.pop();
+            accessor.pop();
+            L.trace("[end] onValue {}", value);
+            return;
+        }
         objectComponent = FX.Value;
         objectNode = value;
         Node subject = subjectNode;
@@ -221,6 +285,12 @@ public class FXProxyEventListener implements FXNodeEventListener {
     @Override
     public void onTypeProperty() {
         L.trace("[start] onTypeProperty");
+        if (!eventsFiltering) {
+            accessor.push(RDF.type.asNode());
+            fanOut(l -> l.onTypeProperty());
+            L.trace("[end] onTypeProperty");
+            return;
+        }
         predicateComponent = FX.TypeProperty;
         predicateNode = RDF.type.asNode();
         L.trace("[end] onTypeProperty");
@@ -229,6 +299,14 @@ public class FXProxyEventListener implements FXNodeEventListener {
     @Override
     public void onTypeRoot() {
         L.trace("[start] onTypeRoot");
+        if (!eventsFiltering) {
+            accessor.push(FX_ROOT_NODE);
+            fanOut(l -> l.onTypeRoot());
+            accessor.pop();
+            accessor.pop();
+            L.trace("[end] onTypeRoot");
+            return;
+        }
         objectComponent = FX.Root;
         objectNode = FX_ROOT_NODE;
         triggerEvents(tripleMatches());
@@ -241,6 +319,14 @@ public class FXProxyEventListener implements FXNodeEventListener {
     @Override
     public void onType(Node node) {
         L.trace("[start] onType {}", node);
+        if (!eventsFiltering) {
+            accessor.push(node);
+            fanOut(l -> l.onType(node));
+            accessor.pop();
+            accessor.pop();
+            L.trace("[end] onType {}", node);
+            return;
+        }
         objectComponent = FX.Type;
         objectNode = node;
         triggerEvents(tripleMatches());
@@ -253,7 +339,13 @@ public class FXProxyEventListener implements FXNodeEventListener {
     @Override
     public void endContainer() {
         L.trace("[start] endContainer");
-
+        if (!eventsFiltering) {
+            fanOut(FXNodeEventListener::endContainer);
+            accessor.pop();
+            if (!accessor.isEmpty()) accessor.pop();
+            L.trace("[end] endContainer");
+            return;
+        }
         Node n = containersReceived.removeLast();
         if(containersSent.size() > 0 && containersSent.getLast().equals(n) && ! accessor.isEmpty()) {
             fanOut(FXNodeEventListener::endContainer);

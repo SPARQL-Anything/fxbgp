@@ -333,12 +333,22 @@ public class CSVStreamingTest extends FXStreamExecutorTest{
         prepare(testName.getMethodName());
         testABCEquals(new CSVTriplifier(), properties(false ));
 
+        prepare(testName.getMethodName());
+        testABCEquals(new CSVTriplifier(), propertiesEventsFilteringFalse(false ));
+
+        prepare(testName.getMethodName());
+        testABCEquals(new CSVTriplifier(), propertiesEventsFilteringFalse(true ));
+
     }
 
     @Test
     public void f10000_csv_Vp2p1() throws IOException {
         prepare(testName.getMethodName());
         testSelectStarEquals(new CSVTriplifier(), properties());
+
+        testSelectStarEquals(new CSVTriplifier(), properties(false));
+
+        testSelectStarEquals(new CSVTriplifier(), propertiesEventsFilteringFalse(false ));
     }
 
     @Ignore
