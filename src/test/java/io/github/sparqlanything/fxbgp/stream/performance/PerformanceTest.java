@@ -20,7 +20,6 @@ import org.apache.jena.sparql.algebra.op.OpService;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
 import org.apache.jena.sparql.engine.ExecutionContext;
-import org.apache.jena.sparql.engine.QueryIterator;
 import org.apache.jena.sparql.engine.main.OpExecutor;
 import org.apache.jena.sparql.engine.main.QC;
 import org.apache.jena.sys.JenaSystem;
@@ -46,7 +45,7 @@ public class PerformanceTest {
     private static final String PERFORMANCE_TEST_INPUT = "performance-test/input";
     private static final String ROW_TYPES_CSV = "rowTypes.csv";
     private static final Random RANDOM = new Random(42);
-    //private final static int[] sizes = new int[]{10_000, 100_000, 500_000, 1_000_000, 5_000_000, 10_000_000, 50_000_000, 100_000_000};
+    // private final static int[] sizes = new int[]{10_000, 1_000_000, 2_000_000, 3_000_000, 4_000_000, 5_000_000, 10_000_000};
     private final static int[] sizes = new int[]{10_000};
 
     public void prepareCSVInput() throws IOException, URISyntaxException {
@@ -54,6 +53,7 @@ public class PerformanceTest {
         System.out.println(baseFolder.getAbsolutePath());
         if (!baseFolder.exists()) {
             baseFolder.mkdirs();
+
             List<List<String>> rowTypes = createRowTypes(100, 10, 1000, 10, 20);
             CSVGenerator.printCSV(rowTypes, baseFolder.getAbsolutePath() + "/" + ROW_TYPES_CSV);
 
@@ -79,12 +79,6 @@ public class PerformanceTest {
             rowTypes.add(Iter.toList(r.iterator()));
         }
         return rowTypes;
-    }
-
-    @Test
-    public void testBGP() throws IOException {
-        BasicPattern bp = BGPTestUtils.readBGP(new File("/Users/lgu/workspace/SPARQL-Anything/fxbgp/target/test-classes/io/github/sparqlanything/fxbgp/stream/performance/performance-test/input/queries/TP_1/V_1.txt").toURI().toURL());
-        System.out.println(bp);
     }
 
     public void prepareQueries(List<String> rowType) throws URISyntaxException, IOException {
@@ -173,8 +167,9 @@ public class PerformanceTest {
         int maxNumOfPatterns = rowTypes.size();
         File queriesFolder = new File(baseFolder, "queries");
 
-        System.out.println("Size\t#TPs\t#VARs\t#pVARs\t#TreePatterns\ttStream\ttMaterialisation\tDiff\t#StremSolutions\t#MatSolutions");
+        System.out.println("Size\t#TPs\t#VARs\t#pVARs\t#TreePatterns\t#StreamSolutions\t#MatSolutions\ttStream\ttMaterialisation\t#SolutionsDiff?");
 
+        //TODO numOfPatterns from 1
         for (int numOfPatterns = 1; numOfPatterns <= maxNumOfPatterns; numOfPatterns++) {
             File tpFolder = new File(queriesFolder, "TP_" + numOfPatterns);
             for (int numOfVariables = 1; numOfVariables <= numOfPatterns * 2 + 1; numOfVariables++) {
@@ -202,7 +197,13 @@ public class PerformanceTest {
             return;
 
         OpBGP op = new OpBGP(bp);
-        int numSolutionPatters = computeNumberOfFXBGPAnnotations(properties, op);
+        int numSolutionPatterns = computeNumberOfFXBGPAnnotations(properties, op);
+
+        if (numSolutionPatterns > 32) {
+            System.out.printf("%d\t%d\t%d\t%s\t%d\n", size, numOfPatterns, numOfVariables, numOfPredicateVariables, numSolutionPatterns);
+            return;
+        }
+
         OpService opService = new OpService(NodeFactory.createURI("x-sparql-anything:location=" + properties.getProperty(IRIArgument.LOCATION.toString())), op, false);
 
         boolean streamException = false;
@@ -211,11 +212,11 @@ public class PerformanceTest {
         try {
             tl.runWithTimeout(() -> {
                 try {
-                    numOfBindingsStream.set(executeWithStream(exec, op, properties));
+                    executeWithStream(exec, op, properties, numOfBindingsStream);
                 } catch (NotATreeException e) {
                     throw new RuntimeException("Not a Tree!");
                 }
-            }, 5, TimeUnit.MINUTES);
+            }, 1, TimeUnit.MINUTES);
         } catch (TimeoutException | InterruptedException e) {
             streamException = true;
         }
@@ -225,16 +226,16 @@ public class PerformanceTest {
         boolean materialisationException = false;
         long t2 = System.currentTimeMillis();
         try {
-            tl.runWithTimeout(() -> numOfBindingsMaterialisation.set(executeMaterialisation(opService, execCxt)), 5, TimeUnit.MINUTES);
+            tl.runWithTimeout(() -> executeMaterialisation(opService, execCxt, numOfBindingsMaterialisation), 5, TimeUnit.MINUTES);
         } catch (TimeoutException | InterruptedException e) {
             materialisationException = true;
         }
         long t3 = System.currentTimeMillis();
 
-        String stream = streamException ? "T" : String.format("%d", (t1 - t0));
-        String materialisation = materialisationException ? "T" : String.format("%d", (t3 - t2));
+        String tStream = streamException ? "T" : String.format("%d", (t1 - t0));
+        String tMaterialisation = materialisationException ? "T" : String.format("%d", (t3 - t2));
 
-        System.out.printf("%d\t%d\t%d\t%s\t%d\t%s\t%s\t%s\n", size, numOfPatterns, numOfVariables, numOfPredicateVariables, numSolutionPatters, stream, materialisation, numOfBindingsStream.get()!=numOfBindingsMaterialisation.get()?String.format("yes\t%d\t%d", numOfBindingsStream.get(), numOfBindingsMaterialisation.get()):"");
+        System.out.printf("%d\t%d\t%d\t%s\t%d\t%d\t%d\t%s\t%s\t%s\n", size, numOfPatterns, numOfVariables, numOfPredicateVariables, numSolutionPatterns, numOfBindingsStream.get(), numOfBindingsMaterialisation.get(), tStream, tMaterialisation, numOfBindingsStream.get() != numOfBindingsMaterialisation.get() && !tStream.equals("T") && numOfBindingsStream.get() != 0L ? "yes" : "");
     }
 
     private static BasicPattern getBasicPattern(File tpFolder, int numOfVariables, String numberOfVariablesOnPredicates) throws IOException {
@@ -244,26 +245,27 @@ public class PerformanceTest {
         return null;
     }
 
-    private long executeMaterialisation(OpService opService, ExecutionContext execCxt) {
-        return countResults(QC.execute(opService, OpExecutor.createRootQueryIterator(execCxt), execCxt));
+    private void executeMaterialisation(OpService opService, ExecutionContext execCxt, AtomicLong numOfResults) {
+        RunExecutionTests.countResults(QC.execute(opService, OpExecutor.createRootQueryIterator(execCxt), execCxt), numOfResults);
     }
 
-    private long executeWithStream(FXStreamExecutor exec, OpBGP op, Properties properties) throws NotATreeException {
-        return countResults(exec.exec(op, properties));
+    private void executeWithStream(FXStreamExecutor exec, OpBGP op, Properties properties, AtomicLong numOfResults) throws NotATreeException {
+        RunExecutionTests.countResults(exec.exec(op, properties), numOfResults);
     }
 
-    private long countResults(QueryIterator qi) {
-        long l = 0L;
-        while (qi.hasNext()) {
-            qi.next();
-            l++;
-        }
-        return l;
-    }
 
-    private int computeNumberOfFXBGPAnnotations(Properties properties, OpBGP opBGP){
+    private int computeNumberOfFXBGPAnnotations(Properties properties, OpBGP opBGP) {
         AnalyserGrounder ag = new AnalyserGrounder(properties, FXModel.getFXModel());
         Set<FXBGPAnnotation> annotations = ag.annotate(opBGP, true);
         return annotations.size();
     }
+
+
+    @Test
+    public void test2() throws IOException, URISyntaxException {
+        prepareCSVInput();
+        List<List<String>> rowTypes = readRowTypes();
+        prepareQueries(rowTypes.get(RANDOM.nextInt(rowTypes.size())));
+    }
+
 }
