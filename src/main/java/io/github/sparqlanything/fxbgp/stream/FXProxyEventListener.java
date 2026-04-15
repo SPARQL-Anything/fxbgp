@@ -10,7 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
@@ -34,8 +36,9 @@ public class FXProxyEventListener implements FXNodeEventListener {
     private final CyclicBarrier startBarrier;
     private final CyclicBarrier endBarrier;
 
-    // BGP triples cache
-    private List<Triple> bgpTriples;
+    // BGP triples index: concrete predicate → triples; wildcards always checked
+    private final Map<Node, Triple[]> bgpByPredicate;
+    private final Triple[] bgpWildcardTriples;
 
     private Node subjectNode = null;
     private Node predicateNode = null;
@@ -91,7 +94,23 @@ public class FXProxyEventListener implements FXNodeEventListener {
     private FXProxyEventListener(Set<? extends FXNodeEventListener> listeners, int threshold,
                                   SharedPathAccessor accessor, List<Triple> bgpTriples) {
         this.accessor = accessor;
-        this.bgpTriples = bgpTriples;
+        // Build predicate index
+        Map<Node, List<Triple>> byPred = new HashMap<>();
+        List<Triple> wildcards = new ArrayList<>();
+        for (Triple t : bgpTriples) {
+            Node p = t.getPredicate();
+            if (p.isVariable() || p.isBlank()) {
+                wildcards.add(t);
+            } else {
+                byPred.computeIfAbsent(p, k -> new ArrayList<>()).add(t);
+            }
+        }
+        Map<Node, Triple[]> indexed = new HashMap<>();
+        for (Map.Entry<Node, List<Triple>> e : byPred.entrySet()) {
+            indexed.put(e.getKey(), e.getValue().toArray(new Triple[0]));
+        }
+        this.bgpByPredicate = indexed;
+        this.bgpWildcardTriples = wildcards.toArray(new Triple[0]);
         if (listeners.size() > threshold) {
             L.info("Number of listeners exceeds threshold: {}", threshold);
             int n = listeners.size();
@@ -248,12 +267,20 @@ public class FXProxyEventListener implements FXNodeEventListener {
     }
 
     protected boolean tripleMatches(){
-        //System.out.println(subjectNode + " " + predicateNode + " " + objectNode);
-        for(Triple t: bgpTriples){
-            if(Matching.nodeMatches(t.getPredicate(), predicateNode) && Matching.nodeMatches(t.getSubject(), subjectNode) &&
-                    Matching.nodeMatches(t.getObject(), objectNode)){
-                return true;
+        // Concrete-predicate bucket: predicate match is implicit in the map lookup
+        Triple[] bucket = bgpByPredicate.get(predicateNode);
+        if (bucket != null) {
+            for (Triple t : bucket) {
+                if (Matching.nodeMatches(t.getSubject(), subjectNode) &&
+                        Matching.nodeMatches(t.getObject(), objectNode))
+                    return true;
             }
+        }
+        // Wildcard-predicate triples: predicate is var/blank, skip that check
+        for (Triple t : bgpWildcardTriples) {
+            if (Matching.nodeMatches(t.getSubject(), subjectNode) &&
+                    Matching.nodeMatches(t.getObject(), objectNode))
+                return true;
         }
         return false;
     }
