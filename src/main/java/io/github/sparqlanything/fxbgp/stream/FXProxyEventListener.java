@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 public class FXProxyEventListener implements FXNodeEventListener {
     private static final Logger L = LoggerFactory.getLogger(FXProxyEventListener.class);
     public static final String PARALLEL_THRESHOLD_OPTION = "parallel-threshold";
-    public static final int DEFAULT_PARALLEL_THRESHOLD = 999;
+    public static final int DEFAULT_PARALLEL_THRESHOLD = 99999;
 
     private static final Node FX_ROOT_NODE =
             NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT);
