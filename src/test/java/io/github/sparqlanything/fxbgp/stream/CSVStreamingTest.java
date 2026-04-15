@@ -354,6 +354,13 @@ public class CSVStreamingTest extends FXStreamExecutorTest{
         testSelectStarEquals(new CSVTriplifier(), properties());
     }
 
+
+    @Test
+    public void f100_csv_fVVLVVL() throws IOException {
+        prepare(testName.getMethodName());
+        testSelectStarEquals(new CSVTriplifier(), properties());
+    }
+
     @Test
     public void f1_csv_V31a2() throws IOException {
         prepare(testName.getMethodName());
