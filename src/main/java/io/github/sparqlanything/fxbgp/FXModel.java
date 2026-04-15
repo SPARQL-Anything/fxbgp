@@ -27,7 +27,7 @@ public class FXModel {
 	protected final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 	private static FXModel instance = null;
 
-	private FXAnnotationFactory IF = null;
+	protected FXAnnotationFactory IF = null;
 	private Set<FX> terms;
 	private Map<FX,Set<FX>> specialisedBy;
 	private Map<FX,Set<FX>> specialisationOf;
