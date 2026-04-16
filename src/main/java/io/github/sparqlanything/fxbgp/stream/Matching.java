@@ -265,7 +265,7 @@ class Matching {
                     setRecord(c, currentPath, currentHash);
                 }
                 return Collections.emptySet();
-            }else{
+        }else{
 
             // matched.size() > 1 — spawn all combinations
             // TODO Optimise according to FX model expectations on Slots, Type, and Root
@@ -275,12 +275,18 @@ class Matching {
             // 2.1 String
             // 2.2 Number
             // 3. If the match is Type and concrete in the BGP, we don't want to allow any more partial matches without it (only 1 type)
+
             // Filter out fx node types we don't want to reset
             Map<Object, Set<FXNode>> dn = new HashMap<>();
             int splitType = 0;
+            Set<FXNode> keep = new HashSet<>();
             for (FXNode c : matched) {
                 Object index;
-                if(c.getAnnotation().getTerm() == FX.TypeProperty) {
+                if(component != FX.TypeProperty && c.getNode().isConcrete()) {
+                    // Always keep
+                    keep.add(c);
+                    index = c.getNode();
+                }else if(component == FX.TypeProperty) {
                     // Keep both separate
                     index = splitType;
                     splitType++;
@@ -291,7 +297,7 @@ class Matching {
                 dn.get(index).add(c);
             }
             List<List> input = new ArrayList<>();
-            for (Set<FXNode> nn : dn.values()) { input.add(new ArrayList<>(nn)); }
+            for (Set<FXNode> nn : dn.values()) { nn.addAll(keep); input.add(new ArrayList<>(nn)); }
             List subsets = FXTreeUtils.subsets(input);
             List<Node> currentPath = accessor.copyCurrentPath();
             long currentHash = accessor.currentFullHash();
