@@ -69,7 +69,7 @@ public class FXTreePattern {
         this.root = makeRoot(subjects.iterator().next(), bpa);
         this.variables = Collections.unmodifiableSet(variables);
         this.nodes = Collections.unmodifiableSet(nodes);
-        FXNode n = this.root;
+        //FXNode n = this.root;
         this.size = 1 + countChildren(this.root);
     }
     public int getSize(){
@@ -93,16 +93,21 @@ public class FXTreePattern {
     }
 
     private static FXNode makeRoot(Node node, FXBGPAnnotation bpa) {
-        return makeNode(null, node, bpa);
+        for(Triple tq: bpa.getOpBGP().getPattern()){
+            if(tq.getSubject().equals(node)){
+                return makeNode(tq,null, node, bpa);
+            }
+        }
+        throw new RuntimeException("Not a root?");
     }
 
-    private static List<FXNode> makeChildren(Node parent, Node node, FXBGPAnnotation bpa) {
+    private static List<FXNode> makeChildren(Triple tp, Node parent, Node node, FXBGPAnnotation bpa) {
         List<FXNode> children = new ArrayList<>();
         for(Triple t : bpa.getOpBGP().getPattern()){
             if(t.getSubject().equals(node)) {
-                children.add(makeNode(node, t.getPredicate(), bpa));
-            }else if(t.getPredicate().equals(node) && t.getSubject().equals(parent)) {
-                children.add(makeNode(node, t.getObject(), bpa));
+                children.add(makeNode(t, node, t.getPredicate(), bpa));
+            }else if(t.getPredicate().equals(node) && t.getSubject().equals(parent) && tp.equals(t)) {
+                children.add(makeNode(t, node, t.getObject(), bpa));
             }else if(t.getObject().equals(node)) {
                 // Ignore, only subjects have children
             }
@@ -110,9 +115,9 @@ public class FXTreePattern {
         return Collections.unmodifiableList(children);
     }
 
-    private static FXNode makeNode(Node parent, Node node, FXBGPAnnotation bpa) {
+    private static FXNode makeNode(Triple t, Node parent, Node node, FXBGPAnnotation bpa) {
         FXNodeAnnotation annotation = bpa.getAnnotation(node);
-        List<FXNode> children = makeChildren(parent, node, bpa);
+        List<FXNode> children = makeChildren(t, parent, node, bpa);
         return new FXNode(node,  annotation, children);
     }
 

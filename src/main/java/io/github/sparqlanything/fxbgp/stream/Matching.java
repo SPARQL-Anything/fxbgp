@@ -134,7 +134,7 @@ class Matching {
                 cursorRemove(patternNode.getParent());
                 cursorAdd(patternNode);
             } else if (isValueOrTypeOrRoot(patternNode)) {
-                cursorRemove(patternNode.getParent());
+                cursorClear(); //cursorRemove(patternNode.getParent());
                 cursorAdd(patternNode.getParent().getParent());
             } else if (isPredicate(patternNode)) {
                 cursorRemove(patternNode.getParent());
@@ -231,10 +231,6 @@ class Matching {
                 if(recordMap.containsKey(newCursor)) {continue;}
                 if (newCursor.getAnnotation().getTerm() == component &&
                         nodeMatches(newCursor.getNode(), node) ) {
-//                    // If it is a predicate and the object is already in the map, ignore
-//                    if(isPredicate(component) && recordMap.containsKey(newCursor.getChildren().iterator().next())) {
-//                        continue;
-//                    }
                     if (matched == null) matched = new HashSet<>();
                     matched.add(newCursor);
                 }
@@ -272,10 +268,27 @@ class Matching {
             }
         } else {
             // matched.size() > 1 — spawn all combinations
-            Map<Node, Set<FXNode>> dn = new HashMap<>();
+            // TODO Optimise according to FX model expectations on Slots, Type, and Root
+            // Optimisation on terms
+            // 1. If the match is Root, we don't want to allow any more partial matches without it
+            // 2. If the match is Slot
+            // 2.1 String
+            // 2.2 Number
+            // 3. If the match is Type and concrete in the BGP, we don't want to allow any more partial matches without it (only 1 type)
+            // Filter out fx node types we don't want to reset
+            Map<Object, Set<FXNode>> dn = new HashMap<>();
+            int splitType = 0;
             for (FXNode c : matched) {
-                if (!dn.containsKey(c.getNode())) dn.put(c.getNode(), new HashSet<>());
-                dn.get(c.getNode()).add(c);
+                Object index;
+                if(c.getAnnotation().getTerm() == FX.TypeProperty) {
+                    // Keep both separate
+                    index = splitType;
+                    splitType++;
+                }else {
+                    index = c.getNode();
+                }
+                if (!dn.containsKey(c.getNode())) dn.put(index, new HashSet<>());
+                dn.get(index).add(c);
             }
             List<List> input = new ArrayList<>();
             for (Set<FXNode> nn : dn.values()) { input.add(new ArrayList<>(nn)); }
@@ -286,9 +299,19 @@ class Matching {
                 List sList = (List) s;
                 if (sList.isEmpty()) continue;
                 Matching m = copy();
+                m.cursorClear();
+                Set<FXNode> added = new HashSet<>();
                 for (Object sn : sList) {
                     for (FXNode c : (List<FXNode>) sn) {
                         m.setRecord(c, currentPath, currentHash);
+                        added.add(c);
+                    }
+                }
+                // If component is root or type, remove orphans TypeProperty
+                if(component == FX.Root || component == FX.Type  || component == FX.Value) {
+                    for(FXNode ma: matched) {
+                        if(!added.contains(ma))
+                            m.removeFromMap(ma.getParent());
                     }
                 }
                 if (spawned == null) spawned = new HashSet<>();
@@ -334,10 +357,20 @@ class Matching {
     // -----------------------------------------------------------------------
 
     private Set<Matching> spawn(Set<FXNode> matched) {
+        // TODO Optimise according to FX model expectations on Slots, Type, and Root
+        // Optimisation on terms
+        // 1. If the match is Root, we don't want to allow any more partial matches without it
+        // 2. If the match is Slot
+        // 2.1 String (nothing to do here)
+        // 2.2 Number (nothing to do here)
+        // 3. If the match is Type and concrete in the BGP, we don't want to allow any more partial matches without it (only 1 type)
         Set<Matching> spawned = null;
         for (FXNode match : matched) {
             FX component = match.getAnnotation().getTerm();
-            if (isContainer(component) || isValueOrTypeOrRoot(component)) {
+            //
+            //
+            // if(component == FX.Container || isValueOrTypeOrRoot(component)) {
+            if(component == FX.Container || component == FX.Value) { // Implements 1 and 3
                 Matching m = copy();
                 m.unset(match);
                 if (spawned == null) spawned = new HashSet<>();
