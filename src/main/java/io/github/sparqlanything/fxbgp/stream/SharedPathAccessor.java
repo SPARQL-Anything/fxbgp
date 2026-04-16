@@ -36,9 +36,9 @@ public class SharedPathAccessor implements PathAccessor {
     private final List<Node> path     = new ArrayList<>();
     private final List<Long> hashStack = new ArrayList<>();
     private final List<Node> unmodifiablePath = Collections.unmodifiableList(path);
-    private final Map<Node,Integer> slotNumberMemory = new HashMap<>();
-    private final Map<Node, Set<Node>> slotStringMemory = new HashMap<>();
-    private final Map<Node, Set<Node>> typesMemory = new HashMap<>();
+//    private final Map<Node,Integer> slotNumberMemory = new HashMap<>();
+//    private final Map<Node, Set<Node>> slotStringMemory = new HashMap<>();
+//    private final Map<Node, Set<Node>> typesMemory = new HashMap<>();
     public SharedPathAccessor() {
         reset();
     }
@@ -98,61 +98,61 @@ public class SharedPathAccessor implements PathAccessor {
         }
         return hashStack.get(hashStack.size() - 1);
     }
-
-    @Override
-    public boolean rememberSlot(Node container, Node slot, FX slotTerm) {
-        if(slotTerm == FX.SlotNumber){
-            //if(!slotNumberMemory.containsKey(container)){
-            slotNumberMemory.put(container,toNumber(slot));
-        }else{
-            if(!slotStringMemory.containsKey(container)){
-                slotStringMemory.put(container, new HashSet<>());
-            }
-            slotStringMemory.get(container).add(slot);
-        }
-        return false;
-    }
-
-    @Override
-    public boolean rememberType(Node container, Node type) {
-        if(!typesMemory.containsKey(type)){
-            typesMemory.put(container, new HashSet<>());
-        }
-        typesMemory.get(container).add(type);
-        return false;
-    }
-
-    @Override
-    public void forget(Node container) {
-        typesMemory.remove(container);
-        slotStringMemory.remove(container);
-        slotNumberMemory.remove(container);
-    }
-
-    @Override
-    public boolean visited(Node container, Node what, FX term) {
-        if(term == FX.SlotNumber){
-            Integer max = slotNumberMemory.get(container);
-            if(max != null){
-                return toNumber(what) <= max;
-            }
-            return false;
-        }else if(term == FX.SlotString){
-            Set<Node> sss = slotStringMemory.get(container);
-            if(sss != null){
-                return sss.contains(what);
-            }
-            return false;
-        }else if(term == FX.Type){
-            Set<Node> sss = typesMemory.get(container);
-            if(sss != null){
-                return sss.contains(what);
-            }
-            return false;
-        }else{
-            throw new RuntimeException("Unsupported term: " + term);
-        }
-    }
+//
+//    @Override
+//    public boolean rememberSlot(Node container, Node slot, FX slotTerm) {
+//        if(slotTerm == FX.SlotNumber){
+//            //if(!slotNumberMemory.containsKey(container)){
+//            slotNumberMemory.put(container,toNumber(slot));
+//        }else{
+//            if(!slotStringMemory.containsKey(container)){
+//                slotStringMemory.put(container, new HashSet<>());
+//            }
+//            slotStringMemory.get(container).add(slot);
+//        }
+//        return false;
+//    }
+//
+//    @Override
+//    public boolean rememberType(Node container, Node type) {
+//        if(!typesMemory.containsKey(type)){
+//            typesMemory.put(container, new HashSet<>());
+//        }
+//        typesMemory.get(container).add(type);
+//        return false;
+//    }
+//
+//    @Override
+//    public void forget(Node container) {
+//        typesMemory.remove(container);
+//        slotStringMemory.remove(container);
+//        slotNumberMemory.remove(container);
+//    }
+//
+//    @Override
+//    public boolean visited(Node container, Node what, FX term) {
+//        if(term == FX.SlotNumber){
+//            Integer max = slotNumberMemory.get(container);
+//            if(max != null){
+//                return toNumber(what) <= max;
+//            }
+//            return false;
+//        }else if(term == FX.SlotString){
+//            Set<Node> sss = slotStringMemory.get(container);
+//            if(sss != null){
+//                return sss.contains(what);
+//            }
+//            return false;
+//        }else if(term == FX.Type){
+//            Set<Node> sss = typesMemory.get(container);
+//            if(sss != null){
+//                return sss.contains(what);
+//            }
+//            return false;
+//        }else{
+//            throw new RuntimeException("Unsupported term: " + term);
+//        }
+//    }
 
     public static int toNumber(Node cmp){
         String prefix = "http://www.w3.org/1999/02/22-rdf-syntax-ns#_";
