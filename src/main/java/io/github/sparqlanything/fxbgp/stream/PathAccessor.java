@@ -1,5 +1,6 @@
 package io.github.sparqlanything.fxbgp.stream;
 
+import io.github.sparqlanything.fxbgp.FX;
 import org.apache.jena.graph.Node;
 
 import java.util.List;
@@ -107,4 +108,29 @@ public interface PathAccessor {
      * @throws IllegalStateException if called when {@code currentPath()} is empty
      */
     long currentFullHash();
+
+    /**
+     * To verify if a slot was already received on this container.
+     *
+     * @param container
+     * @param slot
+     * @return
+     */
+    boolean rememberSlot(Node container, Node slot, FX slotTerm);
+
+    /**
+     * To verify if a type was already received on this container.
+     *
+     * @param container
+     * @param type
+     * @return
+     */
+    boolean rememberType(Node container, Node type);
+
+    /**
+     * We remove the container and its data from the cached types and slots
+     */
+    void forget(Node container);
+
+    boolean visited(Node container, Node what, FX term);
 }

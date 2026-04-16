@@ -240,6 +240,7 @@ public class FXProxyEventListener implements FXNodeEventListener {
         if (!eventsFiltering) {
             accessor.push(n);
             fanOut(l -> l.onSlotNumber(n));
+            accessor.rememberSlot(containersReceived.getLast(), n, FX.SlotNumber);
             L.trace("[end] onSlotNumber {}", n);
             return;
         }
@@ -254,6 +255,7 @@ public class FXProxyEventListener implements FXNodeEventListener {
         if (!eventsFiltering) {
             accessor.push(n);
             fanOut(l -> l.onSlotString(n));
+            accessor.rememberSlot(containersReceived.getLast(), n, FX.SlotString);
             L.trace("[end] onSlotString {}", n);
             return;
         }
@@ -324,6 +326,7 @@ public class FXProxyEventListener implements FXNodeEventListener {
             fanOut(l -> l.onType(node));
             accessor.pop();
             accessor.pop();
+            accessor.rememberType(containersReceived.getLast(), node);
             L.trace("[end] onType {}", node);
             return;
         }
@@ -354,6 +357,7 @@ public class FXProxyEventListener implements FXNodeEventListener {
         }
         accessor.pop();                              // pop container
         if (!accessor.isEmpty()) accessor.pop();
+        accessor.forget(n);
         if(!accessor.isEmpty()) {
             this.subjectNode = accessor.currentPath().getLast(); // containersReceived.getLast();
         }
@@ -395,8 +399,10 @@ public class FXProxyEventListener implements FXNodeEventListener {
                 fanOut(l -> l.onTypeProperty());
             } else if (predicateComponent == FX.SlotString) {
                 fanOut(l -> l.onSlotString(predicateNode));
+                accessor.rememberSlot(subjectNode, predicateNode, FX.SlotString);
             } else if (predicateComponent == FX.SlotNumber) {
                 fanOut(l -> l.onSlotNumber(predicateNode));
+                accessor.rememberSlot(subjectNode, predicateNode, FX.SlotNumber);
             }
         }
 
@@ -405,6 +411,7 @@ public class FXProxyEventListener implements FXNodeEventListener {
         if (objectComponent == FX.Type) {
             if(tripleMatches)
                 fanOut(l -> l.onType(objectNode));
+            accessor.rememberType(subjectNode, objectNode);
             accessor.pop();
             accessor.pop();
         }else if(objectComponent == FX.Root){
