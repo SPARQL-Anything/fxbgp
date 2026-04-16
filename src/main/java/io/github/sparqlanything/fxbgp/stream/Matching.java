@@ -128,6 +128,7 @@ class Matching {
     /** Internal fast path: hash already known from the accessor. */
     private void setRecord(FXNode patternNode, List<Node> path, long hash) {
         //dirty();
+        hashDirty = true;
         recordMap.put(patternNode, new PathRecord(path, hash));
         if (!patternNode.isRoot()) {
             if (isContainer(patternNode)) {
@@ -248,7 +249,7 @@ class Matching {
         if (matched.size() == 1) {
             if (cursorCount != 1) {
                 this.unresolvable = true;
-            } else if(component == FX.Root) {
+            } else if(component == FX.Root || matched.iterator().next().getNode().isConcrete()) {
                 for(FXNode c : matched) {
                     List<Node> currentPath = accessor.copyCurrentPath();
                     long currentHash = accessor.currentFullHash();
@@ -363,9 +364,17 @@ class Matching {
         for (int i = 0; i < cursorArray.length; i++) {
             if (cursorArray[i] != null) { firstCursor = cursorArray[i]; break; }
         }
+
         if (cursorCount == 1 && firstCursor.getAnnotation().getTerm() == FX.Container) {
             // single container cursor — stay put, do nothing
         } else if (isPredicate(firstCursor.getAnnotation().getTerm())) {
+            // If the cursor is a concrete predicate, the matching is unsatisfiable
+            for(FXNode cursor : cursorArray) {
+                if(cursor != null && cursor.getNode().isConcrete() && firstCursor.getAnnotation().getTerm() != FX.TypeProperty) {
+                    this.unresolvable = true;
+                    return;
+                }
+            }
             // Restore container: predicate value didn't match
             for (int i = 0; i < cursorArray.length; i++) {
                 if (cursorArray[i] != null) recordMap.remove(cursorArray[i]);
@@ -392,10 +401,12 @@ class Matching {
         Set<Matching> spawned = null;
         for (FXNode match : matched) {
             FX component = match.getAnnotation().getTerm();
-            //
-            //
             // if(component == FX.Container || isValueOrTypeOrRoot(component)) {
             if(component == FX.Container || component == FX.Value) { // Implements 1 and 3
+                // Do not unset if predicate parent is concrete
+                if(match.getParent() != null && match.getParent().getNode().isConcrete()){
+                    continue;
+                }
                 Matching m = copy();
                 m.unset(match);
                 if (spawned == null) spawned = new HashSet<>();

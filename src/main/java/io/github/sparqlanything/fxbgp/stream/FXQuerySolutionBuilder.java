@@ -121,8 +121,11 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
             beginMatch(node, component);
         }
         if(!pattern.containsComponent(component)) {
-            for(Matching m : matches){
+            Set<Matching> current = matches;
+            matches = new HashSet<>();
+            for(Matching m : current){
                 m.noMatchOnPath();
+                matches.add(m);
             }
             return;
         }
@@ -233,9 +236,9 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
 
     private void logMatches(){
         for(Matching matching: matches){
-            L.debug("  {}[{}] cursor: {} ", matching.hashCode(), matching.getMatches().size(), matching.getCursor());
+            L.debug("  {}[{}]/{} cursor: {} ", matching.hashCode(), matching.getMatches().hashCode(), matching.getMatches().size(), matching.getCursor());
             for(Map.Entry<FXNode, PathRecord> entry: matching.getMatches().entrySet()){
-                L.debug("    {} >> {}", entry.getKey(), entry.getValue().getNode());
+                L.debug("  {} >> {}", entry.getKey(), entry.getValue().getNode());
             }
         }
 
