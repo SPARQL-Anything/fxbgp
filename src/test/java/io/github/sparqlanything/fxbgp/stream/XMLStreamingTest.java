@@ -58,6 +58,36 @@ public class XMLStreamingTest extends FXStreamExecutorTest{
     }
 
     @Test
+    public void test4_xml_all() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        testSelectStarEquals(new XMLTriplifier(), properties());
+    }
+
+    @Test
+    public void test4_xml_x1() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        testSelectStarEquals(new XMLTriplifier(), properties());
+    }
+
+    @Test
+    public void test4_xml_x2() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        testSelectStarEquals(new XMLTriplifier(), properties());
+    }
+
+    @Test
+    public void test4_xml_x3() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        testSelectStarEquals(new XMLTriplifier(), properties());
+    }
+
+    @Test
+    public void test4_xml_x4() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        testSelectStarEquals(new XMLTriplifier(), properties());
+    }
+
+    @Test
     public void test3_xml_s12() throws IOException, NotATreeException {
         prepare(testName.getMethodName());
         Set<Binding> it = set(executor.exec(getOpBGP(), properties(true)));
