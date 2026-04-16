@@ -28,7 +28,7 @@ public final class PathRecord {
 
     @Override
     public int hashCode() {
-        return path.hashCode();
+        return Long.hashCode(hash);
     }
 
     public Node getNode() {
