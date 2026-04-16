@@ -248,10 +248,25 @@ class Matching {
         if (matched.size() == 1) {
             if (cursorCount != 1) {
                 this.unresolvable = true;
-            } else {
+            } else if(component == FX.Root) {
+                for(FXNode c : matched) {
+                    List<Node> currentPath = accessor.copyCurrentPath();
+                    long currentHash = accessor.currentFullHash();
+                    setRecord(c, currentPath, currentHash);
+                }
+            }else {
                 spawned = setAndSpawn(matched);
             }
-        } else {
+        } else if(component == FX.Root){
+                // If component is root, set all matches and do not spawn (there will be no more roots...)
+                for(FXNode c : matched) {
+                    List<Node> currentPath = accessor.copyCurrentPath();
+                    long currentHash = accessor.currentFullHash();
+                    setRecord(c, currentPath, currentHash);
+                }
+                return Collections.emptySet();
+            }else{
+
             // matched.size() > 1 — spawn all combinations
             // TODO Optimise according to FX model expectations on Slots, Type, and Root
             // Optimisation on terms
@@ -293,7 +308,7 @@ class Matching {
                     }
                 }
                 // If component is root or type, remove orphans TypeProperty
-                if(component == FX.Root || component == FX.Type  || component == FX.Value) {
+                if(component == FX.Type  || component == FX.Value) {
                     for(FXNode ma: matched) {
                         if(!added.contains(ma))
                             m.removeFromMap(ma.getParent());
