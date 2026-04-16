@@ -239,22 +239,7 @@ class Matching {
 
         // No match following this path
         if (matched == null) {
-            FXNode firstCursor = null;
-            for (int i = 0; i < cursorArray.length; i++) {
-                if (cursorArray[i] != null) { firstCursor = cursorArray[i]; break; }
-            }
-            if (cursorCount == 1 && firstCursor.getAnnotation().getTerm() == FX.Container) {
-                // single container cursor — stay put, do nothing
-            } else if (isPredicate(firstCursor.getAnnotation().getTerm())) {
-                // Restore container: predicate value didn't match
-                for (int i = 0; i < cursorArray.length; i++) {
-                    if (cursorArray[i] != null) recordMap.remove(cursorArray[i]);
-                }
-                cursorClear();
-                cursorAdd(firstCursor.getParent());
-            } else {
-                this.unresolvable = true;
-            }
+            noMatchOnPath();
             return Collections.emptySet();
         }
 
@@ -350,6 +335,25 @@ class Matching {
 
         if (L.isDebugEnabled()) logSpawned(spawned);
         return spawned != null ? spawned : Collections.emptySet();
+    }
+
+    public void noMatchOnPath() {
+        FXNode firstCursor = null;
+        for (int i = 0; i < cursorArray.length; i++) {
+            if (cursorArray[i] != null) { firstCursor = cursorArray[i]; break; }
+        }
+        if (cursorCount == 1 && firstCursor.getAnnotation().getTerm() == FX.Container) {
+            // single container cursor — stay put, do nothing
+        } else if (isPredicate(firstCursor.getAnnotation().getTerm())) {
+            // Restore container: predicate value didn't match
+            for (int i = 0; i < cursorArray.length; i++) {
+                if (cursorArray[i] != null) recordMap.remove(cursorArray[i]);
+            }
+            cursorClear();
+            cursorAdd(firstCursor.getParent());
+        } else {
+            this.unresolvable = true;
+        }
     }
 
     // -----------------------------------------------------------------------

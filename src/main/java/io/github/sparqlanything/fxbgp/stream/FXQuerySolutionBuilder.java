@@ -25,7 +25,6 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     private final PathAccessor accessor;
     private Node dataSourceNode = null;
     private boolean troubleshoot = L.isDebugEnabled();
-
     public FXQuerySolutionBuilder(FXTreePattern pattern, Set<Binding> solutions,
                                    PathAccessor accessor) {
         this.pattern  = pattern;
@@ -117,9 +116,15 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     }
 
     private void match(Node node, FX component){
-        if(!matchedDataSource()) return;
+        if(!matchedDataSource()) return; //
         if(troubleshoot) {
             beginMatch(node, component);
+        }
+        if(!pattern.containsComponent(component)) {
+            for(Matching m : matches){
+                m.noMatchOnPath();
+            }
+            return;
         }
         Matching newMatch = null;
         // Does the node match the current node in the tree pattern?

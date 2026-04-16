@@ -1,5 +1,6 @@
 package io.github.sparqlanything.fxbgp.stream;
 
+import io.github.sparqlanything.fxbgp.FX;
 import io.github.sparqlanything.fxbgp.FXBGPAnnotation;
 import io.github.sparqlanything.fxbgp.FXNodeAnnotation;
 import org.apache.jena.graph.Node;
@@ -23,7 +24,7 @@ public class FXTreePattern {
     private int size;
     private Node graphPatternNode;
     private boolean isGraphPattern;
-
+    private Set<FX> components;
     private FXTreePattern(FXBGPAnnotation bpa, Node graphPatternNode) throws NotATreeException {
         this.graphPatternNode = graphPatternNode;
         isGraphPattern = true;
@@ -37,6 +38,7 @@ public class FXTreePattern {
     private void init(FXBGPAnnotation bpa) throws NotATreeException {
         // Verify it is a tree pattern
         // All but one subject must be objects as well
+        components = new HashSet<>();
         Set<Node> nodes = new HashSet<>();
         Set<Node> variables = new HashSet<>();
         Set<Node> subjects = new HashSet<>();
@@ -92,7 +94,7 @@ public class FXTreePattern {
         return new FXTreePattern(bpa, graphNode);
     }
 
-    private static FXNode makeRoot(Node node, FXBGPAnnotation bpa) {
+    private FXNode makeRoot(Node node, FXBGPAnnotation bpa) {
         for(Triple tq: bpa.getOpBGP().getPattern()){
             if(tq.getSubject().equals(node)){
                 return makeNode(tq,null, node, bpa);
@@ -101,7 +103,7 @@ public class FXTreePattern {
         throw new RuntimeException("Not a root?");
     }
 
-    private static List<FXNode> makeChildren(Triple tp, Node parent, Node node, FXBGPAnnotation bpa) {
+    private List<FXNode> makeChildren(Triple tp, Node parent, Node node, FXBGPAnnotation bpa) {
         List<FXNode> children = new ArrayList<>();
         for(Triple t : bpa.getOpBGP().getPattern()){
             if(t.getSubject().equals(node)) {
@@ -109,14 +111,15 @@ public class FXTreePattern {
             }else if(t.getPredicate().equals(node) && t.getSubject().equals(parent) && tp.equals(t)) {
                 children.add(makeNode(t, node, t.getObject(), bpa));
             }else if(t.getObject().equals(node)) {
-                // Ignore, only subjects have children
+                // Ignore, only subjects have children, just remember the component type
             }
         }
         return Collections.unmodifiableList(children);
     }
 
-    private static FXNode makeNode(Triple t, Node parent, Node node, FXBGPAnnotation bpa) {
+    private FXNode makeNode(Triple t, Node parent, Node node, FXBGPAnnotation bpa) {
         FXNodeAnnotation annotation = bpa.getAnnotation(node);
+        components.add(annotation.getTerm());
         List<FXNode> children = makeChildren(t, parent, node, bpa);
         return new FXNode(node,  annotation, children);
     }
@@ -138,5 +141,13 @@ public class FXTreePattern {
 
     public Node getGraphPatternNode(){
         return this.graphPatternNode;
+    }
+
+    public boolean containsComponent(FX term){
+        return components.contains(term);
+    }
+
+    public FX[] components(){
+        return components.toArray(new FX[components.size()]);
     }
 }
