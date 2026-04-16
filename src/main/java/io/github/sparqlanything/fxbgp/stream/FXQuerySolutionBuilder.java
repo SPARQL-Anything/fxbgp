@@ -21,7 +21,9 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     private final String string;
     private Set<Binding> solutions;
     private FXTreePattern pattern;
-    private Set<Matching> matches;
+    private final Set<Matching> matchesA = new HashSet<>();
+    private final Set<Matching> matchesB = new HashSet<>();
+    private Set<Matching> matches = matchesA;
     private final PathAccessor accessor;
     private Node dataSourceNode = null;
     private boolean troubleshoot = L.isDebugEnabled();
@@ -37,7 +39,16 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
      * We initialise when any data source is triggered
      */
     private void init(){
-        this.matches = new HashSet<>();
+        matchesA.clear();
+        matchesB.clear();
+        this.matches = matchesA;
+    }
+
+    private Set<Matching> swapBuffer() {
+        Set<Matching> current = matches;
+        matches = (matches == matchesA) ? matchesB : matchesA;
+        matches.clear();
+        return current;
     }
 
     private boolean matchedDataSource(){
@@ -121,8 +132,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
             beginMatch(node, component);
         }
         if(!pattern.containsComponent(component)) {
-            Set<Matching> current = matches;
-            matches = new HashSet<>();
+            Set<Matching> current = swapBuffer();
             for(Matching m : current){
                 m.noMatchOnPath();
                 matches.add(m);
@@ -146,8 +156,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
             }
         }
 
-        Set<Matching> current = matches;
-        matches = new HashSet<>();            // fresh set for re-population
+        Set<Matching> current = swapBuffer();
         if(newMatch != null){
             matches.add(newMatch);
         }
@@ -172,8 +181,7 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     }
 
     private void triggerEndContainer(){
-        Set<Matching> current = matches;
-        matches = new HashSet<>();
+        Set<Matching> current = swapBuffer();
         for(Matching matching: current){
             matching.endContainer();
             if(!matching.isUnresolvable()){
