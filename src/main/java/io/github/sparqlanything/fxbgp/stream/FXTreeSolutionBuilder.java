@@ -16,8 +16,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
-    private final static Logger L = LoggerFactory.getLogger(FXQuerySolutionBuilder.class);
+public class FXTreeSolutionBuilder extends FXAbstractNodeEventListener {
+    private final static Logger L = LoggerFactory.getLogger(FXTreeSolutionBuilder.class);
     private final String string;
     private Set<Binding> solutions;
     private FXTreePattern pattern;
@@ -27,8 +27,8 @@ public class FXQuerySolutionBuilder extends FXAbstractNodeEventListener {
     private final PathAccessor accessor;
     private Node dataSourceNode = null;
     private boolean troubleshoot = L.isDebugEnabled();
-    public FXQuerySolutionBuilder(FXTreePattern pattern, Set<Binding> solutions,
-                                   PathAccessor accessor) {
+    public FXTreeSolutionBuilder(FXTreePattern pattern, Set<Binding> solutions,
+                                 PathAccessor accessor) {
         this.pattern  = pattern;
         this.string   = pattern.toString();
         this.solutions = solutions;

@@ -1,13 +1,12 @@
 package io.github.sparqlanything.fxbgp.stream;
 
-import io.github.sparqlanything.fxbgp.FX;
 import org.apache.jena.graph.Node;
 
 import java.util.List;
 
 /**
  * Read-only access to the stream-position state maintained by
- * {@link FXQuerySolutionBuilder} during a streaming parse.
+ * {@link FXTreeSolutionBuilder} during a streaming parse.
  *
  * <p>A {@link Matching} object holds a reference to its owning builder through this
  * interface rather than a raw {@link List} live-view. This makes the live-access
@@ -18,7 +17,7 @@ import java.util.List;
  * position at the moment of the call. Callers must not retain the return value of
  * {@link #currentPath()} across events; its contents change as the stream advances.</p>
  *
- * <p>The only intended implementor is {@link FXQuerySolutionBuilder}.</p>
+ * <p>The only intended implementor is {@link FXTreeSolutionBuilder}.</p>
  */
 public interface PathAccessor {
 
@@ -50,7 +49,7 @@ public interface PathAccessor {
      * prefix. A hash mismatch is a definitive rejection; a hash match triggers the full
      * comparison to guard against collisions.</p>
      *
-     * <p>The hash is maintained incrementally by {@link FXQuerySolutionBuilder} using
+     * <p>The hash is maintained incrementally by {@link FXTreeSolutionBuilder} using
      * a path-hash stack. Each push appends
      * {@code previousHash * PRIME + node.hashCode()}; each pop discards the top entry.
      * This makes both push and pop O(1) and gives O(1) access to the prefix hash at any

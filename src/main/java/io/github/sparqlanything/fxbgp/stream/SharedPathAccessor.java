@@ -1,21 +1,15 @@
 package io.github.sparqlanything.fxbgp.stream;
 
-import io.github.sparqlanything.fxbgp.FX;
 import org.apache.jena.graph.Node;
-import org.apache.jena.vocabulary.RDF;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Mutable implementation of {@link PathAccessor} owned by {@link FXProxyEventListener}.
  *
- * <p>A single instance is shared across all {@link FXQuerySolutionBuilder} listeners for a
+ * <p>A single instance is shared across all {@link FXTreeSolutionBuilder} listeners for a
  * given query execution. The proxy drives {@link #push}/{@link #pop}/{@link #reset} in its
  * event handlers; builders receive only the read-only {@link PathAccessor} view and never
  * mutate the path themselves.</p>

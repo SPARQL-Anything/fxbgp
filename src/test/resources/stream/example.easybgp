@@ -1,0 +1,3 @@
+?x <http://sparql.xyz/facade-x/data/name> ?name
+?x <http://sparql.xyz/facade-x/data/stars> ?list
+?list ?item "Courteney Cox"
