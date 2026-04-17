@@ -85,8 +85,8 @@ public class FXStreamExecutorWithThread {
             try {
                 parser.triplify(properties,
                         new StreamEventsHandler(properties,
-                                FXProxyEventListener.make(patterns,
-                                        FXProxyEventListener.DEFAULT_PARALLEL_THRESHOLD,
+                                FXBroadcastEventListener.make(patterns,
+                                        FXBroadcastEventListener.DEFAULT_PARALLEL_THRESHOLD,
                                         accessor, bgpTriples)));
                 complete = true;
             } catch (IOException e) {

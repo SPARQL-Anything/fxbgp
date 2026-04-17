@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Mutable implementation of {@link PathAccessor} owned by {@link FXProxyEventListener}.
+ * Mutable implementation of {@link PathAccessor} owned by {@link FXBroadcastEventListener}.
  *
  * <p>A single instance is shared across all {@link FXTreeSolutionBuilder} listeners for a
  * given query execution. The proxy drives {@link #push}/{@link #pop}/{@link #reset} in its

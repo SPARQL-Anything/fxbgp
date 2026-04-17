@@ -241,9 +241,9 @@ public class FXTreeSolutionBuilder extends FXAbstractNodeEventListener {
 
     private void logMatches(){
         for(Matching matching: matches){
-            L.debug("  {}[{}]/{} cursor: {} ", matching.hashCode(), matching.getMatches().hashCode(), matching.getMatches().size(), matching.getCursor());
+            L.debug("  Active match {} ({} bindings assigned), cursor: {} ", matching.getMatches().hashCode(), matching.getMatches().size(), matching.getCursor());
             for(Map.Entry<FXNode, PathRecord> entry: matching.getMatches().entrySet()){
-                L.debug("  {} >> {}", entry.getKey(), entry.getValue().getNode());
+                L.debug("   - binding   {} >> {}", entry.getKey(), entry.getValue().getNode());
             }
         }
 

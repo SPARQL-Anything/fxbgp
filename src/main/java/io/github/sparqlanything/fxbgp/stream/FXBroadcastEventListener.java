@@ -20,8 +20,8 @@ import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.function.Consumer;
 
-public class FXProxyEventListener implements FXNodeEventListener {
-    private static final Logger L = LoggerFactory.getLogger(FXProxyEventListener.class);
+public class FXBroadcastEventListener implements FXNodeEventListener {
+    private static final Logger L = LoggerFactory.getLogger(FXBroadcastEventListener.class);
     public static final String PARALLEL_THRESHOLD_OPTION = "parallel-threshold";
     public static final int DEFAULT_PARALLEL_THRESHOLD = 99999;
     public static final String EVENTS_FILTERING_OPTION = "events-filtering";
@@ -96,8 +96,8 @@ public class FXProxyEventListener implements FXNodeEventListener {
         }
     }
 
-    private FXProxyEventListener(Set<? extends FXNodeEventListener> listeners, int threshold,
-                                  SharedPathAccessor accessor, List<Triple> bgpTriples) {
+    private FXBroadcastEventListener(Set<? extends FXNodeEventListener> listeners, int threshold,
+                                     SharedPathAccessor accessor, List<Triple> bgpTriples) {
         this.accessor = accessor;
         this.eventsFiltering = true;
         // Build predicate index
@@ -141,8 +141,8 @@ public class FXProxyEventListener implements FXNodeEventListener {
         }
     }
 
-    private FXProxyEventListener(Set<? extends FXNodeEventListener> listeners, int threshold,
-                                  SharedPathAccessor accessor) {
+    private FXBroadcastEventListener(Set<? extends FXNodeEventListener> listeners, int threshold,
+                                     SharedPathAccessor accessor) {
         this.accessor = accessor;
         this.eventsFiltering = false;
         this.bgpByPredicate = java.util.Collections.emptyMap();
@@ -170,14 +170,14 @@ public class FXProxyEventListener implements FXNodeEventListener {
         }
     }
 
-    public static FXProxyEventListener make(Set<? extends FXNodeEventListener> listeners,
-                                             int threshold, SharedPathAccessor accessor, List<Triple> bgpTriples) {
-        return new FXProxyEventListener(listeners, threshold, accessor, bgpTriples);
+    public static FXBroadcastEventListener make(Set<? extends FXNodeEventListener> listeners,
+                                                int threshold, SharedPathAccessor accessor, List<Triple> bgpTriples) {
+        return new FXBroadcastEventListener(listeners, threshold, accessor, bgpTriples);
     }
 
-    public static FXProxyEventListener make(Set<? extends FXNodeEventListener> listeners,
-                                             int threshold, SharedPathAccessor accessor) {
-        return new FXProxyEventListener(listeners, threshold, accessor);
+    public static FXBroadcastEventListener make(Set<? extends FXNodeEventListener> listeners,
+                                                int threshold, SharedPathAccessor accessor) {
+        return new FXBroadcastEventListener(listeners, threshold, accessor);
     }
 
     public void shutdown() {

@@ -116,6 +116,6 @@ public class StreamEventsHandler extends FacadeXAbstractNodeBuilder implements F
     }
 
     public void shutdown() {
-        if (eventListener instanceof FXProxyEventListener p) p.shutdown();
+        if (eventListener instanceof FXBroadcastEventListener p) p.shutdown();
     }
 }
