@@ -127,7 +127,10 @@ public class FXTreeSolutionBuilder extends FXAbstractNodeEventListener {
     }
 
     private void match(Node node, FX component){
-        if(!matchedDataSource()) return; //
+        if(!matchedDataSource()) {
+            if(troubleshoot) L.debug("Not this data source");
+            return; //
+        }
         if(troubleshoot) {
             beginMatch(node, component);
         }
@@ -190,10 +193,6 @@ public class FXTreeSolutionBuilder extends FXAbstractNodeEventListener {
     private void addQuerySolution(Matching matching){
         BindingBuilder solution = BindingBuilder.create();
         for(Map.Entry<FXNode, PathRecord> entry : matching.getMatches().entrySet()){
-            if(troubleshoot) {
-                L.debug(" >>>>> {} {} <<<<<", entry.getKey(), entry.getValue());
-                L.debug(" ----- {} {} <<<<<", entry.getKey(), entry.getKey().getNode().isVariable());
-            }
             if(entry.getKey().getNode().isVariable()){
                 Node var_ = entry.getKey().getNode();
                 Var var = Var.alloc(var_.getName());
@@ -216,8 +215,11 @@ public class FXTreeSolutionBuilder extends FXAbstractNodeEventListener {
                 solution.add(Var.alloc(graphPN.getName()), dataSourceNode);
             }
         }
-
-        solutions.add(solution.build());
+        Binding binding = solution.build();
+        if(troubleshoot) {
+            L.debug(" EMIT > {} <", binding);
+        }
+        solutions.add(binding);
 
     }
 
@@ -226,7 +228,7 @@ public class FXTreeSolutionBuilder extends FXAbstractNodeEventListener {
     public void beginMatch(Node node, FX component){
        if(!(node.toString() + component).equals(TMP_LOG)){
            TMP_LOG = node + component.toString();
-           L.debug("# [EVENT] - {} - {}", node, component.getName());
+           L.debug("# [EVENT]:  ({} , {})", node, component.getName());
            L.debug("# - Path: {}", accessor.currentPath());
        }
        logPattern();
@@ -266,7 +268,7 @@ public class FXTreeSolutionBuilder extends FXAbstractNodeEventListener {
     }
 
     private void logPattern(){
-        L.debug("## {} - {}", this.hashCode(), patternToString(this.pattern.getRoot()));
+        L.debug("## TSP {} - {}", this.hashCode(), patternToString(this.pattern.getRoot()));
     }
 
     private String patternToString(FXNode node){

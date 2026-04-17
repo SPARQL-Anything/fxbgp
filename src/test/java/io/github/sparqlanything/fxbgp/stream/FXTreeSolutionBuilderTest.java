@@ -5,12 +5,9 @@ import io.github.sparqlanything.fxbgp.BGPTestUtils;
 import io.github.sparqlanything.fxbgp.FXBGPAnnotation;
 import io.github.sparqlanything.fxbgp.FXModel;
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.query.QuerySolution;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.core.Var;
-import org.apache.jena.sparql.engine.QueryIterator;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.vocabulary.RDF;
 import org.junit.Assert;
@@ -27,15 +24,15 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.Set;
 
-public class FXQuerySolutionBuilderTest extends BGPTestUtils {
-    private static final Logger L = LoggerFactory.getLogger(FXQuerySolutionBuilderTest.class);
+public class FXTreeSolutionBuilderTest extends BGPTestUtils {
+    private static final Logger L = LoggerFactory.getLogger(FXTreeSolutionBuilderTest.class);
     @Rule
     public TestName testName = new TestName();
 
     private BasicPattern bp;
     private FXTreePattern pattern;
     private Set<Binding> solutions;
-    private FXQuerySolutionBuilder builder;
+    private FXTreeSolutionBuilder builder;
     private FXNodeEventListener proxy;
 
     @Before
@@ -77,10 +74,10 @@ public class FXQuerySolutionBuilderTest extends BGPTestUtils {
     public void prepare(String easyBGPName) throws IOException{
         this.bp = readBGP("./stream/" + easyBGPName);
         SharedPathAccessor accessor = new SharedPathAccessor();
-        this.builder = new FXQuerySolutionBuilder(pattern(), this.solutions, accessor);
-        this.proxy = FXProxyEventListener.make(
+        this.builder = new FXTreeSolutionBuilder(pattern(), this.solutions, accessor);
+        this.proxy = FXBroadcastEventListener.make(
                 java.util.Collections.singleton(this.builder),
-                FXProxyEventListener.DEFAULT_PARALLEL_THRESHOLD,
+                FXBroadcastEventListener.DEFAULT_PARALLEL_THRESHOLD,
                 accessor,
                 this.bp.getList());
     }

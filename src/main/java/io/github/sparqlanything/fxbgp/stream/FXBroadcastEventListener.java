@@ -26,7 +26,7 @@ public class FXBroadcastEventListener implements FXNodeEventListener {
     public static final int DEFAULT_PARALLEL_THRESHOLD = 99999;
     public static final String EVENTS_FILTERING_OPTION = "events-filtering";
     public static final boolean DEFAULT_EVENTS_FILTERING = true;
-
+    private static final boolean troubleshoot = L.isTraceEnabled();
     private static final Node FX_ROOT_NODE =
             NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT);
 
@@ -384,6 +384,9 @@ public class FXBroadcastEventListener implements FXNodeEventListener {
     }
 
     protected void triggerEvents(boolean tripleMatches){
+        if(troubleshoot){
+            L.debug("BGP match ({} {} {})? {}", subjectNode, predicateNode, objectNode, tripleMatches);
+        }
         // Do subject (only if root)
         if(accessor.isEmpty()){
             accessor.push(subjectNode);

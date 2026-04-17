@@ -13,12 +13,10 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 
-import org.apache.jena.query.ARQ;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
-import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFactory;
 import org.apache.jena.rdf.model.RDFNode;
@@ -32,14 +30,9 @@ import org.apache.jena.sparql.syntax.ElementTriplesBlock;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.core.mem.DatasetGraphInMemory;
-import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.QueryIterator;
 import org.apache.jena.sparql.engine.binding.Binding;
-import org.apache.jena.sparql.engine.iterator.QueryIter;
-import org.apache.jena.sparql.engine.iterator.QueryIterRoot;
-import org.apache.jena.sparql.engine.main.QC;
 import org.apache.jena.sparql.graph.GraphFactory;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -47,7 +40,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 
-import javax.sound.midi.SysexMessage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -129,9 +121,9 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
             properties.setProperty(CSVTriplifier2.PROPERTY_HEADERS.toString(), "true");
         }
         if(this.parallelThreshold != null){
-            properties.setProperty(FXProxyEventListener.PARALLEL_THRESHOLD_OPTION, this.parallelThreshold.toString());
+            properties.setProperty(FXBroadcastEventListener.PARALLEL_THRESHOLD_OPTION, this.parallelThreshold.toString());
         }
-        properties.setProperty(FXProxyEventListener.EVENTS_FILTERING_OPTION.toString(), eventsFiltering ? "true" : "false");
+        properties.setProperty(FXBroadcastEventListener.EVENTS_FILTERING_OPTION.toString(), eventsFiltering ? "true" : "false");
         properties.setProperty(IRIArgument.BLANK_NODES.toString(), blankNodes ? "true" : "false");
         properties.setProperty(JSONTriplifier.PROPERTY_JSONINCLUDENULLVALUES.toString(), nullValues ? "true" : "false");
 
@@ -306,7 +298,7 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
         ElementTriplesBlock block = new ElementTriplesBlock();
         bp.getList().forEach(block::addTriple);
         query.setQueryPattern(block);
-        L.info("{}", query);
+        L.debug("{}", query);
         return query;
     }
 
@@ -356,7 +348,7 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
 
     protected void testSelectStarEquals(Triplifier triplifier, Properties properties) {
         DatasetGraph dg1 = getDatasetGraph(triplifier, properties);
-        L.error("dataset graph size: {}", dg1.getDefaultGraph().size());
+        L.debug("Dataset graph size: {}", dg1.getDefaultGraph().size());
         QueryExecution qe = QueryExecutionFactory.create(getSelectQuery(), dg1);
         ResultSet rs1 = qe.execSelect();
         Set<Map<String,RDFNode>> qs1 = new HashSet<>();
@@ -374,8 +366,8 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
             qs2.add(map);
         });
 //        qs2.forEach(System.out::println);
-        L.error("Select equals? {} vs {}", qs1.size(),qs2.size());
-        L.error("Select equals? {}", qs1.equals(qs2));
+        L.debug("Select equals? {} vs {}", qs1.size(),qs2.size());
+        L.debug("Select equals? {}", qs1.equals(qs2));
 //        L.error("Select equals? {}", qs1.equals(qs2));
         qs2.forEach(q->{
             if(!qs1.contains(q)){
