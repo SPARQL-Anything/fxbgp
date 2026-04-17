@@ -168,7 +168,7 @@
                         <execution>
                             <id>sparql-anything-fxbgp</id>
                             <configuration>
-                                <outputFile>target/sparql-anything-fxbgp-${project.version}-SNAPSHOT.jar</outputFile>
+                                <outputFile>target/fxbgp-test-executor-${project.version}.jar</outputFile>
                                 <shadedArtifactAttached>false</shadedArtifactAttached>
 
                                 <transformers>
