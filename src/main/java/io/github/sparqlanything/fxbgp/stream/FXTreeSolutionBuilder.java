@@ -156,27 +156,6 @@ public class FXTreeSolutionBuilder extends FXAbstractNodeEventListener {
             }
         }
 
-//        Set<Matching> current = swapBuffer();
-//        if(newMatch != null){
-//            matches.add(newMatch);
-//        }
-//        long prefixHash = accessor.currentPrefixHash();
-//        for (Matching matching : current) {  // iterate the snapshot
-//            Set<Matching> spawn = matching.check(node, component, prefixHash);
-//            matches.addAll(spawn);
-//            if (!matching.isUnresolvable()) {
-//                matches.add(matching);        // safe: check() done, hash is now stable
-//            }
-//        }
-////        matches.addAll(spawned);
-//        Set<Matching> completed = new HashSet<>();
-//        for (Matching m : matches) {
-//            if (m.size() == pattern.getSize()) {
-//                addQuerySolution(m);
-//                completed.add(m);
-//            }
-//        }
-//        this.matches.removeAll(completed);
         Set<Matching> current = swapBuffer();
         if(newMatch != null){
             addOrComplete(newMatch);
