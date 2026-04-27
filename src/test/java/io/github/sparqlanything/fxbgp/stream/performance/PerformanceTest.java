@@ -45,7 +45,7 @@ public class PerformanceTest {
     private static final String PERFORMANCE_TEST_INPUT = "performance-test/input";
     private static final String ROW_TYPES_CSV = "rowTypes.csv";
     private static final Random RANDOM = new Random(42);
-    // private final static int[] sizes = new int[]{10_000, 1_000_000, 2_000_000, 3_000_000, 4_000_000, 5_000_000, 10_000_000};
+    //private final static int[] sizes = new int[]{10_000, 1_000_000, 2_000_000, 3_000_000, 4_000_000, 5_000_000, 10_000_000};
     private final static int[] sizes = new int[]{10_000};
 
     public void prepareCSVInput() throws IOException, URISyntaxException {

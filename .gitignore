@@ -11,3 +11,5 @@ target/
 .flattened-pom.xml
 .idea/
 .java-version
+/stream-performance-evaluation/run
+/debug.log

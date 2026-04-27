@@ -43,8 +43,9 @@ public class RunExecutionTests {
         countResults(QC.execute(opService, OpExecutor.createRootQueryIterator(execCxt), execCxt), numOfResults);
     }
 
-    private static BasicPattern getBasicPattern(File queriesBaseFolder, int numOfTps, int numOfVariables, String numberOfVariablesOnPredicates) throws IOException {
-        File tpFolder = new File(queriesBaseFolder, "TP_" + numOfTps);
+    private static BasicPattern getBasicPattern(File queriesBaseFolder, String graphPatternType, int numOfTps, int numOfVariables, String numberOfVariablesOnPredicates) throws IOException {
+        File dFolder = new File(queriesBaseFolder, graphPatternType);
+        File tpFolder = new File(dFolder, "TP_" + numOfTps);
         File f = new File(tpFolder, "V_" + numOfVariables + "_" + numberOfVariablesOnPredicates + ".txt");
         if (f.exists())
             return BGPTestUtils.readBGP(f.toURI().toURL());
@@ -69,14 +70,16 @@ public class RunExecutionTests {
         String testInputBaseFolder = args[0];
 
         File queryFolder = new File(testInputBaseFolder + "/queries");
-        int numOfTps = Integer.parseInt(args[1]);
-        int numOfVariables = Integer.parseInt(args[2]);
-        String predicateVariables = args[3];
-        BasicPattern bp = getBasicPattern(queryFolder, numOfTps, numOfVariables, predicateVariables);
+
+        String graphPatternType = args[1];
+        int numOfTps = Integer.parseInt(args[2]);
+        int numOfVariables = Integer.parseInt(args[3]);
+        String predicateVariables = args[4];
+        BasicPattern bp = getBasicPattern(queryFolder, graphPatternType, numOfTps, numOfVariables, predicateVariables);
         OpBGP opBGP = new OpBGP(bp);
 
-        int inputSize = Integer.parseInt(args[4]);
-        String format = args[5];
+        int inputSize = Integer.parseInt(args[5]);
+        String format = args[6];
         String location = testInputBaseFolder + "/" + inputSize + "." + format;
         Properties properties = new Properties();
         properties.setProperty(IRIArgument.MEDIA_TYPE.toString(), "text/csv");
@@ -84,7 +87,9 @@ public class RunExecutionTests {
 
         int numSolutionPatters = computeNumberOfFXBGPAnnotations(properties, opBGP);
 
-        String fxExecutor = args[6];
+        String fxExecutor = args[7];
+
+        int timeoutLimit = Integer.parseInt(args[8]);
 
         ExecutorService executor = Executors.newCachedThreadPool();
         TimeLimiter tl = SimpleTimeLimiter.create(executor);
@@ -103,7 +108,7 @@ public class RunExecutionTests {
                 } else if (fxExecutor.equalsIgnoreCase("materialisation")) {
                     executeMaterialisation(opBGP, properties, numOfBindings);
                 }
-            }, 5, TimeUnit.MINUTES);
+            }, timeoutLimit, TimeUnit.MINUTES);
         } catch (TimeoutException | InterruptedException e) {
             timeout = true;
         }
@@ -111,7 +116,7 @@ public class RunExecutionTests {
 
         String executionTime = timeout ? "T" : String.valueOf(t1 - t0);
 
-        System.out.printf("%d\t%d\t%d\t%s\t%d\t%d\t%s\t%s\n", inputSize, numOfTps, numOfVariables, predicateVariables, numSolutionPatters, numOfBindings.get(), fxExecutor, executionTime);
+        System.out.printf("%d\t%s\t%d\t%d\t%s\t%d\t%d\t%s\t%s\n", inputSize, graphPatternType, numOfTps, numOfVariables, predicateVariables, numSolutionPatters, numOfBindings.get(), fxExecutor, executionTime);
 
         executor.shutdown();
     }
