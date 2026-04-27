@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static io.github.sparqlanything.fxbgp.stream.performance.CSVGenerator.createRowTypes;
+import static io.github.sparqlanything.fxbgp.stream.performance.StringValueGenerator.createRecordTypes;
 
 public class PerformanceTest {
 
@@ -46,33 +46,58 @@ public class PerformanceTest {
     private static final String ROW_TYPES_CSV = "rowTypes.csv";
     private static final Random RANDOM = new Random(42);
     //private final static int[] sizes = new int[]{10_000, 1_000_000, 2_000_000, 3_000_000, 4_000_000, 5_000_000, 10_000_000};
-    private final static int[] sizes = new int[]{10_000};
+    private final static int[] sizes = new int[]{100_000};
+    private static final int NUMBER_OF_COLUMNS = 10;
 
-    public void prepareCSVInput() throws IOException, URISyntaxException {
+    public void prepareCSVInput(List<List<String>> rowTypes) throws IOException, URISyntaxException {
         File baseFolder = getBaseFolder();
         System.out.println(baseFolder.getAbsolutePath());
         if (!baseFolder.exists()) {
             baseFolder.mkdirs();
-
-            List<List<String>> rowTypes = createRowTypes(100, 10, 1000, 10, 20);
-            CSVGenerator.printCSV(rowTypes, baseFolder.getAbsolutePath() + "/" + ROW_TYPES_CSV);
-
-            for (int size : sizes) {
-                System.out.print("Generating size " + size + "...");
-                CSVGenerator.generateCSV(size, rowTypes, baseFolder.getAbsolutePath() + "/" + size + ".csv");
-                System.out.println("done!");
-            }
         }
+
+
+        for (int size : sizes) {
+            System.out.print("Generating CSV size " + size + "...");
+            CSVGenerator.generateCSV(size, rowTypes, baseFolder.getAbsolutePath() + "/" + size + ".csv");
+            System.out.println("done!");
+
+        }
+    }
+
+    public void prepareJSONInput(List<List<String>> rowTypes) throws URISyntaxException, IOException {
+        // Number of triples CSV = ROWS * COLUMNS + ROWS + 1
+        // Number of triples JSON = NUMBER_OF_OBJECTS * NUMBER_OF_SLOTS_OF_OBJECTS + 1
+
+        File baseFolder = getBaseFolder();
+
+        for (int size : sizes) {
+            int height = (int) Math.ceil(Math.log10(size * NUMBER_OF_COLUMNS));
+            System.out.print("Generating JSON size " + size + " of height " + height + " ...");
+            JSONGenerator.generateJSON(height, NUMBER_OF_COLUMNS, rowTypes, baseFolder.getAbsolutePath() + "/" + size + ".json");
+            System.out.println("done!");
+        }
+
     }
 
     private File getBaseFolder() throws URISyntaxException {
         URL baseURL = getClass().getResource(".");
         Assert.assertNotNull(baseURL);
-        return new File(new File(baseURL.toURI()), PERFORMANCE_TEST_INPUT);
+        File result = new File(new File(baseURL.toURI()), PERFORMANCE_TEST_INPUT);
+        if(!result.exists())
+            result.mkdirs();
+        return result;
     }
 
     public List<List<String>> readRowTypes() throws URISyntaxException, IOException {
         File baseFolder = getBaseFolder();
+
+        if(new File(baseFolder + "/" + ROW_TYPES_CSV).exists()){
+            List<List<String>> rowTypes = createRecordTypes(100, NUMBER_OF_COLUMNS, 1000, 10, 20);
+            CSVGenerator.printCSV(rowTypes, baseFolder.getAbsolutePath() + "/" + ROW_TYPES_CSV);
+            return rowTypes;
+        }
+
         CSVParser csvParser = new CSVParser(new FileReader(baseFolder + "/" + ROW_TYPES_CSV), CSVFormat.DEFAULT);
         List<List<String>> rowTypes = new ArrayList<>();
         for (CSVRecord r : csvParser) {
@@ -147,8 +172,8 @@ public class PerformanceTest {
 
     @Test
     public void test1() throws IOException, URISyntaxException {
-        prepareCSVInput();
         List<List<String>> rowTypes = readRowTypes();
+        prepareCSVInput(rowTypes);
         prepareQueries(rowTypes.get(RANDOM.nextInt(rowTypes.size())));
 
         Properties properties = new Properties();
@@ -263,9 +288,11 @@ public class PerformanceTest {
 
     @Test
     public void test2() throws IOException, URISyntaxException {
-        prepareCSVInput();
         List<List<String>> rowTypes = readRowTypes();
-        prepareQueries(rowTypes.get(RANDOM.nextInt(rowTypes.size())));
+        prepareCSVInput(rowTypes);
+        prepareJSONInput(rowTypes);
+        //List<List<String>> rowTypes = readRowTypes();
+        //prepareQueries(rowTypes.get(RANDOM.nextInt(rowTypes.size())));
     }
 
 }
