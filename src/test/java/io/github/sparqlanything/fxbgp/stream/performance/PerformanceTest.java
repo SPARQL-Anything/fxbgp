@@ -12,6 +12,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.IOUtils;
 import org.apache.jena.atlas.iterator.Iter;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.ARQ;
@@ -19,10 +20,12 @@ import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.algebra.op.OpService;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.core.DatasetGraphFactory;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.ExecutionContext;
 import org.apache.jena.sparql.engine.main.OpExecutor;
 import org.apache.jena.sparql.engine.main.QC;
 import org.apache.jena.sys.JenaSystem;
+import org.apache.jena.vocabulary.RDF;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -130,10 +133,10 @@ public class PerformanceTest {
         return rowTypes;
     }
 
-    public void prepareQueries(List<String> rowType) throws URISyntaxException, IOException {
+    public void prepareCSVQueries(List<String> rowType) throws URISyntaxException, IOException {
 
         File baseFolder = getBaseFolder();
-        File queriesFolder = new File(baseFolder, "queries");
+        File queriesFolder = new File(baseFolder, "csv_queries/H_1");
 
         if (queriesFolder.exists())
             return;
@@ -182,6 +185,13 @@ public class PerformanceTest {
         fw.close();
     }
 
+    private static void writePatternOnFile(BasicPattern bps, String filepath) throws IOException {
+        FileWriter fw = new FileWriter(filepath);
+        IOUtils.write(BGPTestUtils.basicPatternToString(bps), fw);
+        fw.flush();
+        fw.close();
+    }
+
     private static boolean testConditionOnNumberOfVariablesInPredicates(BasicPattern basicPattern, Predicate<Integer> test) {
         int n = 0;
         for (Triple t : basicPattern.getList()) {
@@ -198,7 +208,7 @@ public class PerformanceTest {
     public void test1() throws IOException, URISyntaxException {
         List<List<String>> rowTypes = readRowTypes();
         prepareCSVInput(rowTypes);
-        prepareQueries(rowTypes.get(RANDOM.nextInt(rowTypes.size())));
+        prepareCSVQueries(rowTypes.get(RANDOM.nextInt(rowTypes.size())));
 
         Properties properties = new Properties();
         properties.setProperty(IRIArgument.MEDIA_TYPE.toString(), "text/csv");
@@ -310,13 +320,98 @@ public class PerformanceTest {
     }
 
 
+    public void prepareJSONQueries(List<List<String>> rowType, int recordToFind, int height, int branching, int maxNumOfPatterns) throws URISyntaxException, IOException {
+
+        File baseFolder = getBaseFolder();
+        File queriesFolder = new File(baseFolder, "json_queries/H=" + height + "_K=" + branching);
+
+        if (!queriesFolder.exists())
+            queriesFolder.mkdirs();
+
+        FXNode value = new FXNode(FX.SlotString, new NodeGenerator.OrderedValueGenerator(rowType.get(recordToFind)));
+        FXNode container = new FXNode(FX.Container, NodeGenerator.variableGenerator);
+        FXNode slotNumber = new FXNode(FX.SlotNumber, NodeGenerator.slotNumberGenerator);
+        FXNode typeProperty = new FXNode(FX.Type, NodeGenerator.typePropertyGenerator);
+        FXNode root = new FXNode(FX.Root, NodeGenerator.rootGenerator);
+
+        BasicPatternGenerator basicPatternGenerator = new BasicPatternGenerator(container, slotNumber, typeProperty, root, value);
+
+        for (int numOfPatterns = 1; numOfPatterns <= maxNumOfPatterns; numOfPatterns++) {
+            File tpFolder = new File(queriesFolder, "TP_" + numOfPatterns);
+            tpFolder.mkdirs();
+            for (int numOfVariables = 1; numOfVariables <= numOfPatterns * 2 + 1; numOfVariables++) {
+
+                Set<BasicPattern> bps = basicPatternGenerator.getSxSDistinctNodesWithSlotNumber(numOfPatterns - height + 1, numOfVariables);
+
+                // 0 Variables on predicates
+                Set<BasicPattern> zeroVarsOnPredicates = bps.stream().filter(bp -> testConditionOnNumberOfVariablesInPredicates(bp, n -> n == 0)).collect(Collectors.toSet());
+                if (!zeroVarsOnPredicates.isEmpty()) {
+                    BasicPattern zeroVarsOnPredicatesPattern = new ArrayList<>(zeroVarsOnPredicates).get(RANDOM.nextInt(zeroVarsOnPredicates.size()));
+                    addPathToContainer(zeroVarsOnPredicatesPattern, height, branching, recordToFind);
+                    writePatternOnFile(zeroVarsOnPredicatesPattern, String.format("%s/V_%d_0.txt", tpFolder.getAbsolutePath(), numOfVariables));
+                }
+
+                // 1 Variables on predicates
+                Set<BasicPattern> oneVarOnPredicates = bps.stream().filter(bp -> testConditionOnNumberOfVariablesInPredicates(bp, n -> n == 1)).collect(Collectors.toSet());
+                if (!oneVarOnPredicates.isEmpty()) {
+                    BasicPattern oneVarOnPredicatesPattern = new ArrayList<>(oneVarOnPredicates).get(RANDOM.nextInt(oneVarOnPredicates.size()));
+                    addPathToContainer(oneVarOnPredicatesPattern, height, branching, recordToFind);
+                    writePatternOnFile(oneVarOnPredicatesPattern, String.format("%s/V_%d_1.txt", tpFolder.getAbsolutePath(), numOfVariables));
+                }
+
+                // Multiple vars on predicates
+                System.out.printf("TPs %d Vars %s BPs %d (%d, %d)\n", numOfPatterns, numOfVariables, bps.size(), zeroVarsOnPredicates.size(), oneVarOnPredicates.size());
+            }
+        }
+    }
+
+    public void addPathToContainer(BasicPattern bp, int height, int branching, int containerToFind) {
+        Node s = bp.get(0).getSubject();
+        Node currentNode = Var.alloc("r");
+        int i = 0;
+        for (; i < height - 2; i++) {
+            int slot = RANDOM.nextInt(branching);
+            Node nextNode = Var.alloc("h_" + i + 1);
+            if (i % 2 == 0) {
+                // slot number
+                bp.add(Triple.create(currentNode, RDF.li(slot).asNode(), nextNode));
+            } else {
+                bp.add(Triple.create(currentNode, NodeFactory.createURI("http://sparql.xyz/facade-x/data/f" + slot), nextNode));
+            }
+            currentNode = nextNode;
+        }
+
+        if (i % 2 == 0) {
+            // slot number
+            bp.add(Triple.create(currentNode, RDF.li(containerToFind).asNode(), s));
+        } else {
+            bp.add(Triple.create(currentNode, NodeFactory.createURI("http://sparql.xyz/facade-x/data/f" + containerToFind), s));
+        }
+
+    }
+
+
     @Test
     public void generateData() throws IOException, URISyntaxException {
         List<List<String>> rowTypes = readRowTypes();
         prepareCSVInput(rowTypes);
         prepareJSONInput(rowTypes);
-        //List<List<String>> rowTypes = readRowTypes();
-        //prepareQueries(rowTypes.get(RANDOM.nextInt(rowTypes.size())));
+
+        int recordToFind = RANDOM.nextInt(rowTypes.size());
+        prepareCSVQueries(rowTypes.get(recordToFind));
+
+        for (int size : sizes) {
+
+            int nodes = size * NUMBER_OF_COLUMNS;
+            int height = (int) Math.ceil(Math.log10(nodes));
+            prepareJSONQueries(rowTypes, recordToFind, height, NUMBER_OF_COLUMNS, NUMBER_OF_COLUMNS);
+
+            for (int h = 2; h < height; h++) {
+                int k = (int) Math.ceil(Math.pow(nodes, 1 / (double) h));
+                prepareJSONQueries(rowTypes, recordToFind, h, k, NUMBER_OF_COLUMNS);
+            }
+        }
+
     }
 
 }

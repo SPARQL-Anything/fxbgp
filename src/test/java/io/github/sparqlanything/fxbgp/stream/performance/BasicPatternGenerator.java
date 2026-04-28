@@ -84,6 +84,8 @@ public class BasicPatternGenerator {
         Map<FXTriplePattern, Integer> patterns = new HashMap<>();
         patterns.put(new FXTriplePattern(container, slotNumber, value), numberOfPatterns);
         BasicPattern pattern = generateContainerConcretePattern(patterns);
+        if(pattern.isEmpty())
+            return new HashSet<>();
 
         return new HashSet<>(insertVariables(pattern, numberOfVariables));
     }

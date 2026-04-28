@@ -47,18 +47,19 @@ public class JSONGenerator {
         }
 
         // last level
+        int leafContainer = 0;
 
         for (JsonNode n : nextLevel) {
+            List<String> container = leafContainers.get(leafContainer % leafContainers.size());
+            leafContainer++;
             if (n instanceof ArrayNode currentNode) {
                 // next level will be ObjectNodes
-                List<String> container = leafContainers.get(r.nextInt(leafContainers.size()));
                 for (String s : container) {
                     currentNode.add(s);
                     slots++;
                 }
             } else if (n instanceof ObjectNode currentNode) {
                 // next level will be Array
-                List<String> container = leafContainers.get(r.nextInt(leafContainers.size()));
                 for (int i = 0; i < container.size(); i++) {
                     currentNode.put("f".concat(String.valueOf(i)), container.get(i));
                     slots++;
@@ -66,6 +67,6 @@ public class JSONGenerator {
             }
         }
         mapper.writeValue(new File(filename), root);
-        //System.out.println(slots);
+        // System.out.println(slots);
     }
 }
