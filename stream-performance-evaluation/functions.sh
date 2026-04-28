@@ -32,6 +32,11 @@ function monitor-query-stream {
   RESULT_FOLDER=${11}
   RUN=${12}
 
+  TIMEOUT=360000
+  if [ -n "${13}" ]; then
+      TIMEOUT=${13}
+  fi
+
   TIME_FILE="${RESULT_FOLDER}/time.tsv"
   MEM_FILE="$RESULT_FOLDER/MEM_${D}_${TPs}_${VARs}_${PVARS}_${SIZE}_${FORMAT}_${EXECUTOR}${RUN}.tsv"
   ERR_FILE="$RESULT_FOLDER/ERR_${D}_${TPs}_${VARs}_${PVARS}_${SIZE}_${FORMAT}_${EXECUTOR}${RUN}.tsv"
@@ -39,7 +44,7 @@ function monitor-query-stream {
 
   # echo "$INPUT_FOLDER $D $TPs $VARs $PVARS $SIZE $FORMAT $EXECUTOR"
 
-  java "-Xmx${MEM}m" -jar $JAR $INPUT_FOLDER $D $TPs $VARs $PVARS $SIZE $FORMAT $EXECUTOR 360000  2>"$ERR_FILE" >> ${TIME_FILE} &
+  java "-Xmx${MEM}m" -jar $JAR $INPUT_FOLDER $D $TPs $VARs $PVARS $SIZE $FORMAT $EXECUTOR $TIMEOUT  2>"$ERR_FILE" >> ${TIME_FILE} &
 
   MPID=$!
 
