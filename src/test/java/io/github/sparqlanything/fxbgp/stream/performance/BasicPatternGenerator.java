@@ -1,7 +1,7 @@
 package io.github.sparqlanything.fxbgp.stream.performance;
 
 import com.google.common.collect.Sets;
-import io.github.sparqlanything.fxbgp.FXNode;
+import io.github.sparqlanything.fxbgp.FXNodeGenerator;
 import io.github.sparqlanything.fxbgp.FXTriplePattern;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -22,14 +22,15 @@ public class BasicPatternGenerator {
 //    private static final FXNode type = new FXNode(FX.SlotString, new NodeGenerator.xyzPredicateGenerator(Set.of("t")));
 //    private static final FXNode value = new FXNode(FX.SlotString, new NodeGenerator.ValueGenerator(Set.of("a")));
 
-    private final FXNode container, slotNumber, typeProperty, root, value;
+    private final FXNodeGenerator container, slotNumber, typeProperty, root, value, slotString;
 
-    public BasicPatternGenerator(FXNode container, FXNode slotNumber, FXNode typeProperty, FXNode root, FXNode value) {
+    public BasicPatternGenerator(FXNodeGenerator container, FXNodeGenerator slotNumber, FXNodeGenerator slotString,  FXNodeGenerator typeProperty, FXNodeGenerator root, FXNodeGenerator value) {
         this.container = container;
         this.slotNumber = slotNumber;
         this.typeProperty = typeProperty;
         this.root = root;
         this.value = value;
+        this.slotString = slotString;
     }
 
 
@@ -83,6 +84,18 @@ public class BasicPatternGenerator {
 
         Map<FXTriplePattern, Integer> patterns = new HashMap<>();
         patterns.put(new FXTriplePattern(container, slotNumber, value), numberOfPatterns);
+        BasicPattern pattern = generateContainerConcretePattern(patterns);
+        if(pattern.isEmpty())
+            return new HashSet<>();
+
+        return new HashSet<>(insertVariables(pattern, numberOfVariables));
+    }
+
+    public Set<BasicPattern> getSxSDistinctNodesWithSlotString(int numberOfPatterns, int numberOfVariables) {
+
+        Map<FXTriplePattern, Integer> patterns = new HashMap<>();
+
+        patterns.put(new FXTriplePattern(container, slotString, value), numberOfPatterns);
         BasicPattern pattern = generateContainerConcretePattern(patterns);
         if(pattern.isEmpty())
             return new HashSet<>();
