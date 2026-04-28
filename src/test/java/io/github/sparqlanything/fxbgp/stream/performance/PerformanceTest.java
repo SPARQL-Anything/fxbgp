@@ -29,6 +29,8 @@ import org.apache.jena.vocabulary.RDF;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
 import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -85,6 +87,30 @@ public class PerformanceTest {
                 int k = (int) Math.ceil(Math.pow(nodes, 1 / (double) h));
                 System.out.print("Generating JSON size " + size + " of height " + h + " and branching factor " + k + " ...");
                 JSONGenerator.generateJSON(h, k, extendRowTypes(rowTypes, k), String.format("%s/%d_h=%d_k=%d.json", baseFolder.getAbsolutePath(), size, h, k));
+                System.out.println("done!");
+            }
+        }
+
+    }
+
+
+    public void prepareXMLInput(List<List<String>> rowTypes) throws URISyntaxException, IOException, ParserConfigurationException, TransformerException {
+        // Number of triples CSV = ROWS * COLUMNS + ROWS + 1
+        // Number of triples JSON = NUMBER_OF_OBJECTS * NUMBER_OF_SLOTS_OF_OBJECTS + 1
+
+        File baseFolder = getBaseFolder();
+
+        for (int size : sizes) {
+            int nodes = size * NUMBER_OF_COLUMNS;
+            int height = (int) Math.ceil(Math.log10(nodes));
+            System.out.print("Generating XML size " + size + " of height " + height + " of branching 10...");
+            XMLGenerator.generateXML(height, NUMBER_OF_COLUMNS, rowTypes, String.format("%s/%d_h=%d_k=%d.xml", baseFolder.getAbsolutePath(), size, height, NUMBER_OF_COLUMNS));
+            System.out.println("done!");
+
+            for (int h = 2; h < height; h++) {
+                int k = (int) Math.ceil(Math.pow(nodes, 1 / (double) h));
+                System.out.print("Generating XML size " + size + " of height " + h + " and branching factor " + k + " ...");
+                XMLGenerator.generateXML(h, k, extendRowTypes(rowTypes, k), String.format("%s/%d_h=%d_k=%d.xml", baseFolder.getAbsolutePath(), size, h, k));
                 System.out.println("done!");
             }
         }
@@ -399,10 +425,12 @@ public class PerformanceTest {
 
 
     @Test
-    public void generateData() throws IOException, URISyntaxException {
+    public void generateData() throws IOException, URISyntaxException, ParserConfigurationException, TransformerException {
         List<List<String>> rowTypes = readRowTypes();
+
         prepareCSVInput(rowTypes);
         prepareJSONInput(rowTypes);
+        prepareXMLInput(rowTypes);
 
         int recordToFind = RANDOM.nextInt(rowTypes.size());
         prepareCSVQueries(rowTypes.get(recordToFind));
