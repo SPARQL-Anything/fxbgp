@@ -1,13 +1,18 @@
 package io.github.sparqlanything.fxbgp;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.util.concurrent.SimpleTimeLimiter;
 import com.google.common.util.concurrent.TimeLimiter;
 import io.github.sparqlanything.engine.FacadeX;
+import io.github.sparqlanything.engine.Utils;
 import io.github.sparqlanything.fxbgp.stream.FXStreamExecutor;
 import io.github.sparqlanything.fxbgp.stream.NotATreeException;
 import io.github.sparqlanything.model.IRIArgument;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.ARQ;
+import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.algebra.op.OpService;
 import org.apache.jena.sparql.core.BasicPattern;
@@ -41,6 +46,20 @@ public class RunExecutionTests {
         ExecutionContext execCxt = ExecutionContext.create(DatasetGraphFactory.create());
         OpService opService = new OpService(NodeFactory.createURI("x-sparql-anything:location=" + properties.getProperty(IRIArgument.LOCATION.toString())), op, false);
         countResults(QC.execute(opService, OpExecutor.createRootQueryIterator(execCxt), execCxt), numOfResults);
+    }
+
+    private static void executeMaterialisationTest(OpBGP op, Properties properties) throws IOException {
+
+        ObjectMapper mapper = new ObjectMapper();
+        String location =  properties.getProperty(IRIArgument.LOCATION.toString());
+        JsonNode rootNode = mapper.readTree(new File(location));
+        System.out.println(rootNode.get(30).get("f0"));
+        JenaSystem.init();
+        QC.setFactory(ARQ.getContext(), FacadeX.ExecutorFactory);
+        ExecutionContext execCxt = ExecutionContext.create(DatasetGraphFactory.create());
+        OpService opService = new OpService(NodeFactory.createURI("x-sparql-anything:location=" +location), op, false);
+        QueryIterator queryIterator = QC.execute(opService, OpExecutor.createRootQueryIterator(execCxt), execCxt);
+        System.out.println(Utils.queryIteratorToString(queryIterator));
     }
 
     private static BasicPattern getBasicPattern(File queriesBaseFolder, String graphPatternType, int numOfTps, int numOfVariables, String numberOfVariablesOnPredicates) throws IOException {
@@ -80,9 +99,15 @@ public class RunExecutionTests {
         OpBGP opBGP = new OpBGP(bp);
 
         int inputSize = Integer.parseInt(args[5]);
-        String location = testInputBaseFolder + "/" + inputSize + "." + format;
+        String patternType = format.equalsIgnoreCase("json") ? "_" + graphPatternType : "";
+        String location = testInputBaseFolder + "/" + inputSize + patternType + "." + format;
         Properties properties = new Properties();
-        properties.setProperty(IRIArgument.MEDIA_TYPE.toString(), "text/csv");
+
+        if(format.equalsIgnoreCase("csv"))
+            properties.setProperty(IRIArgument.MEDIA_TYPE.toString(), "text/csv");
+        else if (format.equalsIgnoreCase("json"))
+            properties.setProperty(IRIArgument.MEDIA_TYPE.toString(), "application/json");
+
         properties.setProperty(IRIArgument.LOCATION.toString(), location);
 
         int numSolutionPatters = computeNumberOfFXBGPAnnotations(properties, opBGP);

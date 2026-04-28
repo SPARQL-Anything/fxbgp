@@ -15,13 +15,13 @@ public class Generator {
 
     private static final Set<FXTriplePattern> FX_PATTERNS_NO_TYPE = new HashSet<>();
 
-    private static FXNode container = new FXNode(FX.Container, NodeGenerator.variableGenerator),
-            slotNumber = new FXNode(FX.SlotNumber, NodeGenerator.slotNumberGenerator),
-            typeProperty = new FXNode(FX.Type, NodeGenerator.typePropertyGenerator),
-            root = new FXNode(FX.Root, NodeGenerator.rootGenerator),
-            slotString = new FXNode(FX.SlotString, new NodeGenerator.xyzPredicateGenerator(Set.of("a"))),
-            type = new FXNode(FX.SlotString, new NodeGenerator.xyzPredicateGenerator(Set.of("t"))),
-            value = new FXNode(FX.SlotString, new NodeGenerator.ValueGenerator(Set.of("a")));
+    private static FXNodeGenerator container = new FXNodeGenerator(FX.Container, NodeGenerator.variableGenerator),
+            slotNumber = new FXNodeGenerator(FX.SlotNumber, NodeGenerator.slotNumberGenerator),
+            typeProperty = new FXNodeGenerator(FX.Type, NodeGenerator.typePropertyGenerator),
+            root = new FXNodeGenerator(FX.Root, NodeGenerator.rootGenerator),
+            slotString = new FXNodeGenerator(FX.SlotString, new NodeGenerator.xyzPredicateGenerator(Set.of("a"))),
+            type = new FXNodeGenerator(FX.SlotString, new NodeGenerator.xyzPredicateGenerator(Set.of("t"))),
+            value = new FXNodeGenerator(FX.SlotString, new NodeGenerator.ValueGenerator(Set.of("a")));
 
     static {
         // Compute FX Triple patterns
@@ -242,7 +242,7 @@ public class Generator {
         return result;
     }
 
-    private static Set<Node> nodeToConcrete(FXNode node) {
+    private static Set<Node> nodeToConcrete(FXNodeGenerator node) {
         Set<Node> result = new HashSet<>();
         result.add(NodeFactory.createVariable("v"));
         if (node.equals(FX.SlotNumber)) {

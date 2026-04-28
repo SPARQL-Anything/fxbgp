@@ -29,6 +29,18 @@ public interface NodeGenerator {
         }
     };
 
+    NodeGenerator slotStringGenerator = new NodeGenerator() {
+
+        @Override
+        public List<Node> getConcreteNodes(int numberOfNodes) {
+            List<Node> result = new ArrayList<>();
+            for (int i = 1; i < numberOfNodes + 1; i++) {
+                result.add(NodeFactory.createURI(Triplifier.XYZ_NS + "f" + (i - 1)));
+            }
+            return result;
+        }
+    };
+
     NodeGenerator typePropertyGenerator = new NodeGenerator() {
         @Override
         public List<Node> getConcreteNodes(int numberOfNodes) {

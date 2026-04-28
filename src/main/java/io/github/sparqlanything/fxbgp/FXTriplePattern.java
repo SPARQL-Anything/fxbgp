@@ -4,23 +4,23 @@ import java.util.Objects;
 
 public class FXTriplePattern {
 
-    final private FXNode subject, predicate, object;
+    final private FXNodeGenerator subject, predicate, object;
 
-    public FXTriplePattern(FXNode subject, FXNode predicate, FXNode object) {
+    public FXTriplePattern(FXNodeGenerator subject, FXNodeGenerator predicate, FXNodeGenerator object) {
         this.subject = subject;
         this.predicate = predicate;
         this.object = object;
     }
 
-    public FXNode getSubject() {
+    public FXNodeGenerator getSubject() {
         return subject;
     }
 
-    public FXNode getPredicate() {
+    public FXNodeGenerator getPredicate() {
         return predicate;
     }
 
-    public FXNode getObject() {
+    public FXNodeGenerator getObject() {
         return object;
     }
 

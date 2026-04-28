@@ -1,11 +1,11 @@
 package io.github.sparqlanything.fxbgp;
 
-public class FXNode {
+public class FXNodeGenerator {
 
     private final FX type;
     private final NodeGenerator nodeGenerator;
 
-    public FXNode(FX type, NodeGenerator nodeGenerator) {
+    public FXNodeGenerator(FX type, NodeGenerator nodeGenerator) {
         this.type = type;
         this.nodeGenerator = nodeGenerator;
     }

@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# ./execute_stream.sh /Users/lgu/workspace/SPARQL-Anything/fxbgp/target/fxbgp-test-executor-1.2.0-SNAPSHOT.jar  /Users/lgu/Desktop/ISWC2026-test/input  /Users/lgu/Desktop/ISWC2026-test/results-2026-04-23
+# ./stream_executor_analysis.sh /Users/lgu/workspace/SPARQL-Anything/fxbgp/target/fxbgp-test-executor-1.2.0-SNAPSHOT.jar  /Users/lgu/Desktop/ISWC2026-test/input_csv_json  /Users/lgu/Desktop/ISWC2026-test/stream-performance-csv-json
 
 source functions.sh
 
@@ -25,16 +25,15 @@ INPUT_FOLDER=$2
 RESULT_FOLDER=$3
 
 MEM=100
-FORMAT="csv"
 EXECUTOR="stream"
 
 UCs=(
-  "H_1 1 3 1 100000" #
+  # "H_1 1 3 1 100000 csv"
+  "H=2_K=1000 2 1 0 100000 json"
 )
 
 for UC in "${UCs[@]}"; do
   for RUN in 1; do
-    echo "$(date '+%Y-%m-%d %H:%M:%S') Execute ${UC} RUN #${RUN}"
-    monitor-query-stream ${JAR} ${MEM} ${INPUT_FOLDER} ${UC} ${FORMAT} ${EXECUTOR} ${RESULT_FOLDER} ${RUN}
+    monitor-query-stream ${JAR} ${MEM} ${INPUT_FOLDER} ${UC} ${EXECUTOR} ${RESULT_FOLDER} ${RUN}
   done
 done

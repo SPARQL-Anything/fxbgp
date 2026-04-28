@@ -141,13 +141,14 @@ public class PerformanceTest {
         if (queriesFolder.exists())
             return;
 
-        FXNode value = new FXNode(FX.SlotString, new NodeGenerator.OrderedValueGenerator(rowType));
-        FXNode container = new FXNode(FX.Container, NodeGenerator.variableGenerator);
-        FXNode slotNumber = new FXNode(FX.SlotNumber, NodeGenerator.slotNumberGenerator);
-        FXNode typeProperty = new FXNode(FX.Type, NodeGenerator.typePropertyGenerator);
-        FXNode root = new FXNode(FX.Root, NodeGenerator.rootGenerator);
+        FXNodeGenerator value = new FXNodeGenerator(FX.SlotString, new NodeGenerator.OrderedValueGenerator(rowType));
+        FXNodeGenerator container = new FXNodeGenerator(FX.Container, NodeGenerator.variableGenerator);
+        FXNodeGenerator slotNumber = new FXNodeGenerator(FX.SlotNumber, NodeGenerator.slotNumberGenerator);
+        FXNodeGenerator slotString = new FXNodeGenerator(FX.SlotString, NodeGenerator.slotStringGenerator);
+        FXNodeGenerator typeProperty = new FXNodeGenerator(FX.Type, NodeGenerator.typePropertyGenerator);
+        FXNodeGenerator root = new FXNodeGenerator(FX.Root, NodeGenerator.rootGenerator);
 
-        BasicPatternGenerator basicPatternGenerator = new BasicPatternGenerator(container, slotNumber, typeProperty, root, value);
+        BasicPatternGenerator basicPatternGenerator = new BasicPatternGenerator(container, slotNumber, slotString, typeProperty, root, value);
 
         int maxNumOfPatterns = rowType.size();
 
@@ -328,20 +329,26 @@ public class PerformanceTest {
         if (!queriesFolder.exists())
             queriesFolder.mkdirs();
 
-        FXNode value = new FXNode(FX.SlotString, new NodeGenerator.OrderedValueGenerator(rowType.get(recordToFind)));
-        FXNode container = new FXNode(FX.Container, NodeGenerator.variableGenerator);
-        FXNode slotNumber = new FXNode(FX.SlotNumber, NodeGenerator.slotNumberGenerator);
-        FXNode typeProperty = new FXNode(FX.Type, NodeGenerator.typePropertyGenerator);
-        FXNode root = new FXNode(FX.Root, NodeGenerator.rootGenerator);
+        FXNodeGenerator value = new FXNodeGenerator(FX.SlotString, new NodeGenerator.OrderedValueGenerator(rowType.get(recordToFind)));
+        FXNodeGenerator container = new FXNodeGenerator(FX.Container, NodeGenerator.variableGenerator);
+        FXNodeGenerator slotNumber = new FXNodeGenerator(FX.SlotNumber, NodeGenerator.slotNumberGenerator);
+        FXNodeGenerator slotString = new FXNodeGenerator(FX.SlotNumber, NodeGenerator.slotStringGenerator);
+        FXNodeGenerator typeProperty = new FXNodeGenerator(FX.Type, NodeGenerator.typePropertyGenerator);
+        FXNodeGenerator root = new FXNodeGenerator(FX.Root, NodeGenerator.rootGenerator);
 
-        BasicPatternGenerator basicPatternGenerator = new BasicPatternGenerator(container, slotNumber, typeProperty, root, value);
+        BasicPatternGenerator basicPatternGenerator = new BasicPatternGenerator(container, slotNumber, slotString, typeProperty, root, value);
 
         for (int numOfPatterns = 1; numOfPatterns <= maxNumOfPatterns; numOfPatterns++) {
             File tpFolder = new File(queriesFolder, "TP_" + numOfPatterns);
             tpFolder.mkdirs();
             for (int numOfVariables = 1; numOfVariables <= numOfPatterns * 2 + 1; numOfVariables++) {
 
-                Set<BasicPattern> bps = basicPatternGenerator.getSxSDistinctNodesWithSlotNumber(numOfPatterns - height + 1, numOfVariables);
+                Set<BasicPattern> bps;
+                if (height % 2 == 0) {
+                    bps = basicPatternGenerator.getSxSDistinctNodesWithSlotString(numOfPatterns - height + 1, numOfVariables);
+                } else {
+                    bps = basicPatternGenerator.getSxSDistinctNodesWithSlotNumber(numOfPatterns - height + 1, numOfVariables);
+                }
 
                 // 0 Variables on predicates
                 Set<BasicPattern> zeroVarsOnPredicates = bps.stream().filter(bp -> testConditionOnNumberOfVariablesInPredicates(bp, n -> n == 0)).collect(Collectors.toSet());
@@ -383,7 +390,7 @@ public class PerformanceTest {
 
         if (i % 2 == 0) {
             // slot number
-            bp.add(Triple.create(currentNode, RDF.li(containerToFind).asNode(), s));
+            bp.add(Triple.create(currentNode, RDF.li(containerToFind + 1).asNode(), s));
         } else {
             bp.add(Triple.create(currentNode, NodeFactory.createURI("http://sparql.xyz/facade-x/data/f" + containerToFind), s));
         }
