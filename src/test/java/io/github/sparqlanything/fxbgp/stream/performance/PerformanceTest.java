@@ -72,19 +72,43 @@ public class PerformanceTest {
         File baseFolder = getBaseFolder();
 
         for (int size : sizes) {
-            int height = (int) Math.ceil(Math.log10(size * NUMBER_OF_COLUMNS));
-            System.out.print("Generating JSON size " + size + " of height " + height + " ...");
-            JSONGenerator.generateJSON(height, NUMBER_OF_COLUMNS, rowTypes, baseFolder.getAbsolutePath() + "/" + size + ".json");
+            int nodes = size * NUMBER_OF_COLUMNS;
+            int height = (int) Math.ceil(Math.log10(nodes));
+            System.out.print("Generating JSON size " + size + " of height " + height + " of branching 10...");
+            JSONGenerator.generateJSON(height, NUMBER_OF_COLUMNS, rowTypes, String.format("%s/%d_h=%d_k=%d.json", baseFolder.getAbsolutePath(), size, height, NUMBER_OF_COLUMNS));
             System.out.println("done!");
+
+            for (int h = 2; h < height; h++) {
+                int k = (int) Math.ceil(Math.pow(nodes, 1 / (double) h));
+                System.out.print("Generating JSON size " + size + " of height " + h + " and branching factor " + k + " ...");
+                JSONGenerator.generateJSON(h, k, extendRowTypes(rowTypes, k), String.format("%s/%d_h=%d_k=%d.json", baseFolder.getAbsolutePath(), size, h, k));
+                System.out.println("done!");
+            }
         }
 
+    }
+
+    private List<String> extend(List<String> r, int max) {
+        List<String> result = new ArrayList<>();
+        while (result.size() < max) {
+            result.addAll(r);
+        }
+        return result.subList(0, max);
+    }
+
+    private List<List<String>> extendRowTypes(List<List<String>> rowTypes, int k) {
+        List<List<String>> result = new ArrayList<>();
+        for (List<String> r : rowTypes) {
+            result.add(extend(r, k));
+        }
+        return result;
     }
 
     private File getBaseFolder() throws URISyntaxException {
         URL baseURL = getClass().getResource(".");
         Assert.assertNotNull(baseURL);
         File result = new File(new File(baseURL.toURI()), PERFORMANCE_TEST_INPUT);
-        if(!result.exists())
+        if (!result.exists())
             result.mkdirs();
         return result;
     }
@@ -92,7 +116,7 @@ public class PerformanceTest {
     public List<List<String>> readRowTypes() throws URISyntaxException, IOException {
         File baseFolder = getBaseFolder();
 
-        if(new File(baseFolder + "/" + ROW_TYPES_CSV).exists()){
+        if (!new File(baseFolder + "/" + ROW_TYPES_CSV).exists()) {
             List<List<String>> rowTypes = createRecordTypes(100, NUMBER_OF_COLUMNS, 1000, 10, 20);
             CSVGenerator.printCSV(rowTypes, baseFolder.getAbsolutePath() + "/" + ROW_TYPES_CSV);
             return rowTypes;
@@ -287,7 +311,7 @@ public class PerformanceTest {
 
 
     @Test
-    public void test2() throws IOException, URISyntaxException {
+    public void generateData() throws IOException, URISyntaxException {
         List<List<String>> rowTypes = readRowTypes();
         prepareCSVInput(rowTypes);
         prepareJSONInput(rowTypes);

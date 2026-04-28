@@ -66,5 +66,6 @@ public class JSONGenerator {
             }
         }
         mapper.writeValue(new File(filename), root);
+        //System.out.println(slots);
     }
 }
