@@ -68,8 +68,9 @@ public class RunExecutionTests {
     public static void main(String[] args) throws IOException {
 
         String testInputBaseFolder = args[0];
+        String format = args[6];
 
-        File queryFolder = new File(testInputBaseFolder + "/queries");
+        File queryFolder = new File(testInputBaseFolder + String.format("/%s_queries", format));
 
         String graphPatternType = args[1];
         int numOfTps = Integer.parseInt(args[2]);
@@ -79,7 +80,6 @@ public class RunExecutionTests {
         OpBGP opBGP = new OpBGP(bp);
 
         int inputSize = Integer.parseInt(args[5]);
-        String format = args[6];
         String location = testInputBaseFolder + "/" + inputSize + "." + format;
         Properties properties = new Properties();
         properties.setProperty(IRIArgument.MEDIA_TYPE.toString(), "text/csv");
@@ -116,7 +116,7 @@ public class RunExecutionTests {
 
         String executionTime = timeout ? "T" : String.valueOf(t1 - t0);
 
-        System.out.printf("%d\t%s\t%d\t%d\t%s\t%d\t%d\t%s\t%s\n", inputSize, graphPatternType, numOfTps, numOfVariables, predicateVariables, numSolutionPatters, numOfBindings.get(), fxExecutor, executionTime);
+        System.out.printf("%d\t%s\t%s\t%d\t%d\t%s\t%d\t%d\t%s\t%s\n", inputSize, format, graphPatternType, numOfTps, numOfVariables, predicateVariables, numSolutionPatters, numOfBindings.get(), fxExecutor, executionTime);
 
         executor.shutdown();
     }
