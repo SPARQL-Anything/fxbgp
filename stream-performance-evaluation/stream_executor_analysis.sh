@@ -24,16 +24,22 @@ JAR=$1
 INPUT_FOLDER=$2
 RESULT_FOLDER=$3
 
-MEM=100
+MEM=50
 EXECUTOR="stream"
+SIZE="100000"
+FORMAT="csv"
 
-UCs=(
-  # "H_1 1 3 1 100000 csv"
-  "H=2_K=1000 2 1 0 100000 json"
-)
-
-for UC in "${UCs[@]}"; do
-  for RUN in 1; do
-    monitor-query-stream ${JAR} ${MEM} ${INPUT_FOLDER} ${UC} ${EXECUTOR} ${RESULT_FOLDER} ${RUN}
-  done
+MAX_TPs=10
+for ((TPs=1; TPs<=MAX_TPs; TPs++)); do
+    inner_limit=$(( TPs * 2 + 1 ))
+    for ((VARs=1; VARs<=inner_limit; VARs++)); do
+      for ((RUN=1; RUN<=3; RUN++)); do
+        UC="H_1 ${TPs} ${VARs} 0 ${SIZE} ${FORMAT}"
+        echo "${UC} ${RUN}"
+        monitor-query-stream ${JAR} ${MEM} ${INPUT_FOLDER} ${UC} ${EXECUTOR} ${RESULT_FOLDER} ${RUN}
+        UC="H_1 ${TPs} ${VARs} 1 ${SIZE} ${FORMAT}"
+        echo "${UC} ${RUN}"
+        monitor-query-stream ${JAR} ${MEM} ${INPUT_FOLDER} ${UC} ${EXECUTOR} ${RESULT_FOLDER} ${RUN}
+      done
+    done
 done

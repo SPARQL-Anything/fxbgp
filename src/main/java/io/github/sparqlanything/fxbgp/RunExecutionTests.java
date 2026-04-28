@@ -96,9 +96,14 @@ public class RunExecutionTests {
         int numOfVariables = Integer.parseInt(args[3]);
         String predicateVariables = args[4];
         BasicPattern bp = getBasicPattern(queryFolder, graphPatternType, numOfTps, numOfVariables, predicateVariables);
+        int inputSize = Integer.parseInt(args[5]);
+        String fxExecutor = args[7];
+        if(bp==null){
+            System.out.printf("%d\t%s\t%s\t%d\t%d\t%s\t%d\t%d\t%s\t%s\n", inputSize, format, graphPatternType, numOfTps, numOfVariables, predicateVariables, 0, 0, fxExecutor, "-");
+            return;
+        }
         OpBGP opBGP = new OpBGP(bp);
 
-        int inputSize = Integer.parseInt(args[5]);
         String patternType = format.equalsIgnoreCase("json") ? "_" + graphPatternType : "";
         String location = testInputBaseFolder + "/" + inputSize + patternType + "." + format;
         Properties properties = new Properties();
@@ -112,7 +117,6 @@ public class RunExecutionTests {
 
         int numSolutionPatters = computeNumberOfFXBGPAnnotations(properties, opBGP);
 
-        String fxExecutor = args[7];
 
         int timeoutLimit = Integer.parseInt(args[8]);
 

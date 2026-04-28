@@ -39,7 +39,7 @@ function monitor-query-stream {
 
   # echo "$INPUT_FOLDER $D $TPs $VARs $PVARS $SIZE $FORMAT $EXECUTOR"
 
-  java "-Xmx${MEM}m" -jar $JAR $INPUT_FOLDER $D $TPs $VARs $PVARS $SIZE $FORMAT $EXECUTOR 360000  2>"$ERR_FILE" >> $TIME_FILE &
+  java "-Xmx${MEM}m" -jar $JAR $INPUT_FOLDER $D $TPs $VARs $PVARS $SIZE $FORMAT $EXECUTOR 360000  2>"$ERR_FILE" >> ${TIME_FILE} &
 
   MPID=$!
 
