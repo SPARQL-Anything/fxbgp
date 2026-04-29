@@ -381,7 +381,7 @@ public class PerformanceTest {
                 Set<BasicPattern> zeroVarsOnPredicates = bps.stream().filter(bp -> testConditionOnNumberOfVariablesInPredicates(bp, n -> n == 0)).collect(Collectors.toSet());
                 if (!zeroVarsOnPredicates.isEmpty()) {
                     BasicPattern zeroVarsOnPredicatesPattern = new ArrayList<>(zeroVarsOnPredicates).get(RANDOM.nextInt(zeroVarsOnPredicates.size()));
-                    addPathToContainer(zeroVarsOnPredicatesPattern, height, branching, recordToFind);
+                    addPathToContainer(zeroVarsOnPredicatesPattern, height, branching, recordToFind, true);
                     writePatternOnFile(zeroVarsOnPredicatesPattern, String.format("%s/V_%d_0.txt", tpFolder.getAbsolutePath(), numOfVariables));
                 }
 
@@ -389,7 +389,7 @@ public class PerformanceTest {
                 Set<BasicPattern> oneVarOnPredicates = bps.stream().filter(bp -> testConditionOnNumberOfVariablesInPredicates(bp, n -> n == 1)).collect(Collectors.toSet());
                 if (!oneVarOnPredicates.isEmpty()) {
                     BasicPattern oneVarOnPredicatesPattern = new ArrayList<>(oneVarOnPredicates).get(RANDOM.nextInt(oneVarOnPredicates.size()));
-                    addPathToContainer(oneVarOnPredicatesPattern, height, branching, recordToFind);
+                    addPathToContainer(oneVarOnPredicatesPattern, height, branching, recordToFind, true);
                     writePatternOnFile(oneVarOnPredicatesPattern, String.format("%s/V_%d_1.txt", tpFolder.getAbsolutePath(), numOfVariables));
                 }
 
@@ -428,13 +428,13 @@ public class PerformanceTest {
             tpFolder.mkdirs();
             for (int numOfVariables = 1; numOfVariables <= numOfPatterns * 2 + 1; numOfVariables++) {
 
-                Set<BasicPattern> bps = basicPatternGenerator.getSxSDistinctNodesWithSlotStringAndType(numOfPatterns - height + 1, numOfVariables,  Triplifier.XYZ_NS + "type" + (height - 1));
+                Set<BasicPattern> bps = basicPatternGenerator.getSxSDistinctNodesWithSlotStringAndType(numOfPatterns - height + 1, numOfVariables, Triplifier.XYZ_NS + "type" + (height - 1));
 
                 // 0 Variables on predicates
                 Set<BasicPattern> zeroVarsOnPredicates = bps.stream().filter(bp -> testConditionOnNumberOfVariablesInPredicates(bp, n -> n == 0)).collect(Collectors.toSet());
                 if (!zeroVarsOnPredicates.isEmpty()) {
                     BasicPattern zeroVarsOnPredicatesPattern = new ArrayList<>(zeroVarsOnPredicates).get(RANDOM.nextInt(zeroVarsOnPredicates.size()));
-                    addPathToContainer(zeroVarsOnPredicatesPattern, height, branching, recordToFind);
+                    addPathToContainer(zeroVarsOnPredicatesPattern, height, branching, recordToFind, false);
                     writePatternOnFile(zeroVarsOnPredicatesPattern, String.format("%s/V_%d_0.txt", tpFolder.getAbsolutePath(), numOfVariables));
                 }
 
@@ -442,7 +442,7 @@ public class PerformanceTest {
                 Set<BasicPattern> oneVarOnPredicates = bps.stream().filter(bp -> testConditionOnNumberOfVariablesInPredicates(bp, n -> n == 1)).collect(Collectors.toSet());
                 if (!oneVarOnPredicates.isEmpty()) {
                     BasicPattern oneVarOnPredicatesPattern = new ArrayList<>(oneVarOnPredicates).get(RANDOM.nextInt(oneVarOnPredicates.size()));
-                    addPathToContainer(oneVarOnPredicatesPattern, height, branching, recordToFind);
+                    addPathToContainer(oneVarOnPredicatesPattern, height, branching, recordToFind, false);
                     writePatternOnFile(oneVarOnPredicatesPattern, String.format("%s/V_%d_1.txt", tpFolder.getAbsolutePath(), numOfVariables));
                 }
 
@@ -452,19 +452,25 @@ public class PerformanceTest {
         }
     }
 
-    public void addPathToContainer(BasicPattern bp, int height, int branching, int containerToFind) {
+    public void addPathToContainer(BasicPattern bp, int height, int branching, int containerToFind, boolean alternateSlotTypes) {
         Node s = bp.get(0).getSubject();
         Node currentNode = Var.alloc("r");
         int i = 0;
         for (; i < height - 2; i++) {
             int slot = RANDOM.nextInt(branching);
             Node nextNode = Var.alloc("h_" + i + 1);
-            if (i % 2 == 0) {
-                // slot number
-                bp.add(Triple.create(currentNode, RDF.li(slot).asNode(), nextNode));
+
+            if (alternateSlotTypes) {
+                if (i % 2 == 0) {
+                    // slot number
+                    bp.add(Triple.create(currentNode, RDF.li(slot).asNode(), nextNode));
+                } else {
+                    bp.add(Triple.create(currentNode, NodeFactory.createURI("http://sparql.xyz/facade-x/data/f" + slot), nextNode));
+                }
             } else {
-                bp.add(Triple.create(currentNode, NodeFactory.createURI("http://sparql.xyz/facade-x/data/f" + slot), nextNode));
+                bp.add(Triple.create(currentNode, RDF.li(slot).asNode(), nextNode));
             }
+
             currentNode = nextNode;
         }
 
