@@ -2,7 +2,6 @@ package io.github.sparqlanything.fxbgp;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.util.concurrent.SimpleTimeLimiter;
 import com.google.common.util.concurrent.TimeLimiter;
 import io.github.sparqlanything.engine.FacadeX;
@@ -12,7 +11,6 @@ import io.github.sparqlanything.fxbgp.stream.NotATreeException;
 import io.github.sparqlanything.model.IRIArgument;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.query.ARQ;
-import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.algebra.op.OpService;
 import org.apache.jena.sparql.core.BasicPattern;
@@ -84,6 +82,12 @@ public class RunExecutionTests {
         return annotations.size();
     }
 
+    private static int computeNumberOfNodesInFXBGPAnnotations(Properties properties, OpBGP opBGP) {
+        AnalyserGrounder ag = new AnalyserGrounder(properties, FXModel.getFXModel());
+        Set<FXBGPAnnotation> annotations = ag.annotate(opBGP, true);
+        return annotations.size();
+    }
+
     public static void main(String[] args) throws IOException {
 
         String testInputBaseFolder = args[0];
@@ -104,7 +108,7 @@ public class RunExecutionTests {
         }
         OpBGP opBGP = new OpBGP(bp);
 
-        String patternType = format.equalsIgnoreCase("json") ? "_" + graphPatternType : "";
+        String patternType = format.equalsIgnoreCase("json") || format.equalsIgnoreCase("xml") ? "_" + graphPatternType : "";
         String location = testInputBaseFolder + "/" + inputSize + patternType + "." + format;
         Properties properties = new Properties();
 
@@ -112,11 +116,14 @@ public class RunExecutionTests {
             properties.setProperty(IRIArgument.MEDIA_TYPE.toString(), "text/csv");
         else if (format.equalsIgnoreCase("json"))
             properties.setProperty(IRIArgument.MEDIA_TYPE.toString(), "application/json");
+        else if (format.equalsIgnoreCase("xml"))
+            properties.setProperty(IRIArgument.MEDIA_TYPE.toString(), "application/xml");
 
         properties.setProperty(IRIArgument.LOCATION.toString(), location);
 
         int numSolutionPatters = computeNumberOfFXBGPAnnotations(properties, opBGP);
 
+        int numOfNodesInTreePatterns = computeNumberOfNodesInFXBGPAnnotations(properties, opBGP);
 
         int timeoutLimit = Integer.parseInt(args[8]);
 
@@ -145,7 +152,7 @@ public class RunExecutionTests {
 
         String executionTime = timeout ? "T" : String.valueOf(t1 - t0);
 
-        System.out.printf("%d\t%s\t%s\t%d\t%d\t%s\t%d\t%d\t%s\t%s\n", inputSize, format, graphPatternType, numOfTps, numOfVariables, predicateVariables, numSolutionPatters, numOfBindings.get(), fxExecutor, executionTime);
+        System.out.printf("%d\t%s\t%s\t%d\t%d\t%s\t%d\t%d\t%d\t%s\t%s\n", inputSize, format, graphPatternType, numOfTps, numOfVariables, predicateVariables, numSolutionPatters, numOfNodesInTreePatterns, numOfBindings.get(), fxExecutor, executionTime);
 
         executor.shutdown();
     }
