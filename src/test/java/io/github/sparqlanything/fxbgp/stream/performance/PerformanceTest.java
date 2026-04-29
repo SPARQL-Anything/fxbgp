@@ -442,7 +442,7 @@ public class PerformanceTest {
 
                 // From numOfVariables (i.e. the number of variables in the target star) we have to subtract:
                 // height - 1 variable needed in the path for the star
-                Set<BasicPattern> bps = basicPatternGenerator.getSxSDistinctNodesWithSlotStringAndType(numOfPatterns - (height - 1), numOfVariables - height + 1, Triplifier.XYZ_NS + "type" + (height - 1));
+                Set<BasicPattern> bps = basicPatternGenerator.getSxSDistinctNodesWithSlotStringAndType(numOfPatterns - (height - 1), numOfVariables - height + 1, "type" + (height - 1));
 
                 // 0 Variables on predicates
                 Set<BasicPattern> zeroVarsOnPredicates = bps.stream().filter(bp -> testConditionOnNumberOfVariablesInPredicates(bp, n -> n == 0)).collect(Collectors.toSet());
