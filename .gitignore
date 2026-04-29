@@ -13,3 +13,4 @@ target/
 .java-version
 /stream-performance-evaluation/run
 /debug.log
+.vscode/settings.json
