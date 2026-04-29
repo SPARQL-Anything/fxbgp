@@ -14,3 +14,4 @@ target/
 /stream-performance-evaluation/run
 /debug.log
 .vscode/settings.json
+.conda/
