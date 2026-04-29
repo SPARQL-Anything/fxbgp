@@ -1,8 +1,10 @@
 package io.github.sparqlanything.fxbgp.stream.performance;
 
 import com.google.common.collect.Sets;
+import io.github.sparqlanything.fxbgp.FX;
 import io.github.sparqlanything.fxbgp.FXNodeGenerator;
 import io.github.sparqlanything.fxbgp.FXTriplePattern;
+import io.github.sparqlanything.fxbgp.NodeGenerator;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.BasicPattern;
@@ -14,23 +16,16 @@ import java.util.stream.IntStream;
 
 public class BasicPatternGenerator {
 
-//    private static final FXNode container = new FXNode(FX.Container, NodeGenerator.variableGenerator);
-//    private static final FXNode slotNumber = new FXNode(FX.SlotNumber, NodeGenerator.slotNumberGenerator);
-//    private static final FXNode typeProperty = new FXNode(FX.Type, NodeGenerator.typePropertyGenerator);
-//    private static final FXNode root = new FXNode(FX.Root, NodeGenerator.rootGenerator);
-//    private static final FXNode slotString = new FXNode(FX.SlotString, new NodeGenerator.xyzPredicateGenerator(Set.of("a")));
-//    private static final FXNode type = new FXNode(FX.SlotString, new NodeGenerator.xyzPredicateGenerator(Set.of("t")));
-//    private static final FXNode value = new FXNode(FX.SlotString, new NodeGenerator.ValueGenerator(Set.of("a")));
+    private final FXNodeGenerator container, slotNumber, typeProperty, root, value, slotString, type;
 
-    private final FXNodeGenerator container, slotNumber, typeProperty, root, value, slotString;
-
-    public BasicPatternGenerator(FXNodeGenerator container, FXNodeGenerator slotNumber, FXNodeGenerator slotString,  FXNodeGenerator typeProperty, FXNodeGenerator root, FXNodeGenerator value) {
+    public BasicPatternGenerator(FXNodeGenerator container, FXNodeGenerator slotNumber, FXNodeGenerator slotString,  FXNodeGenerator typeProperty, FXNodeGenerator root, FXNodeGenerator value, FXNodeGenerator type) {
         this.container = container;
         this.slotNumber = slotNumber;
         this.typeProperty = typeProperty;
         this.root = root;
         this.value = value;
         this.slotString = slotString;
+        this.type = type;
     }
 
 
@@ -96,6 +91,21 @@ public class BasicPatternGenerator {
         Map<FXTriplePattern, Integer> patterns = new HashMap<>();
 
         patterns.put(new FXTriplePattern(container, slotString, value), numberOfPatterns);
+        BasicPattern pattern = generateContainerConcretePattern(patterns);
+        if(pattern.isEmpty())
+            return new HashSet<>();
+
+        return new HashSet<>(insertVariables(pattern, numberOfVariables));
+    }
+
+    public Set<BasicPattern> getSxSDistinctNodesWithSlotStringAndType(int numberOfPatterns, int numberOfVariables, String type) {
+
+        Map<FXTriplePattern, Integer> patterns = new HashMap<>();
+        FXNodeGenerator typeGenerator = new FXNodeGenerator(FX.Type, new NodeGenerator.xyzPredicateGenerator(Set.of(type)));
+
+        patterns.put(new FXTriplePattern(container, slotString, value), numberOfPatterns - 1);
+        patterns.put(new FXTriplePattern(container, typeProperty, typeGenerator), 1);
+
         BasicPattern pattern = generateContainerConcretePattern(patterns);
         if(pattern.isEmpty())
             return new HashSet<>();

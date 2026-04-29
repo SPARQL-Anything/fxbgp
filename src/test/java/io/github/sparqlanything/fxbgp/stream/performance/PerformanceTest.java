@@ -7,6 +7,7 @@ import io.github.sparqlanything.fxbgp.*;
 import io.github.sparqlanything.fxbgp.stream.FXStreamExecutor;
 import io.github.sparqlanything.fxbgp.stream.NotATreeException;
 import io.github.sparqlanything.model.IRIArgument;
+import io.github.sparqlanything.model.Triplifier;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -174,7 +175,7 @@ public class PerformanceTest {
         FXNodeGenerator typeProperty = new FXNodeGenerator(FX.Type, NodeGenerator.typePropertyGenerator);
         FXNodeGenerator root = new FXNodeGenerator(FX.Root, NodeGenerator.rootGenerator);
 
-        BasicPatternGenerator basicPatternGenerator = new BasicPatternGenerator(container, slotNumber, slotString, typeProperty, root, value);
+        BasicPatternGenerator basicPatternGenerator = new BasicPatternGenerator(container, slotNumber, slotString, typeProperty, root, value, null);
 
         int maxNumOfPatterns = rowType.size();
 
@@ -362,7 +363,7 @@ public class PerformanceTest {
         FXNodeGenerator typeProperty = new FXNodeGenerator(FX.Type, NodeGenerator.typePropertyGenerator);
         FXNodeGenerator root = new FXNodeGenerator(FX.Root, NodeGenerator.rootGenerator);
 
-        BasicPatternGenerator basicPatternGenerator = new BasicPatternGenerator(container, slotNumber, slotString, typeProperty, root, value);
+        BasicPatternGenerator basicPatternGenerator = new BasicPatternGenerator(container, slotNumber, slotString, typeProperty, root, value, null);
 
         for (int numOfPatterns = 1; numOfPatterns <= maxNumOfPatterns; numOfPatterns++) {
             File tpFolder = new File(queriesFolder, "TP_" + numOfPatterns);
@@ -375,6 +376,59 @@ public class PerformanceTest {
                 } else {
                     bps = basicPatternGenerator.getSxSDistinctNodesWithSlotNumber(numOfPatterns - height + 1, numOfVariables);
                 }
+
+                // 0 Variables on predicates
+                Set<BasicPattern> zeroVarsOnPredicates = bps.stream().filter(bp -> testConditionOnNumberOfVariablesInPredicates(bp, n -> n == 0)).collect(Collectors.toSet());
+                if (!zeroVarsOnPredicates.isEmpty()) {
+                    BasicPattern zeroVarsOnPredicatesPattern = new ArrayList<>(zeroVarsOnPredicates).get(RANDOM.nextInt(zeroVarsOnPredicates.size()));
+                    addPathToContainer(zeroVarsOnPredicatesPattern, height, branching, recordToFind);
+                    writePatternOnFile(zeroVarsOnPredicatesPattern, String.format("%s/V_%d_0.txt", tpFolder.getAbsolutePath(), numOfVariables));
+                }
+
+                // 1 Variables on predicates
+                Set<BasicPattern> oneVarOnPredicates = bps.stream().filter(bp -> testConditionOnNumberOfVariablesInPredicates(bp, n -> n == 1)).collect(Collectors.toSet());
+                if (!oneVarOnPredicates.isEmpty()) {
+                    BasicPattern oneVarOnPredicatesPattern = new ArrayList<>(oneVarOnPredicates).get(RANDOM.nextInt(oneVarOnPredicates.size()));
+                    addPathToContainer(oneVarOnPredicatesPattern, height, branching, recordToFind);
+                    writePatternOnFile(oneVarOnPredicatesPattern, String.format("%s/V_%d_1.txt", tpFolder.getAbsolutePath(), numOfVariables));
+                }
+
+                // Multiple vars on predicates
+                System.out.printf("TPs %d Vars %s BPs %d (%d, %d)\n", numOfPatterns, numOfVariables, bps.size(), zeroVarsOnPredicates.size(), oneVarOnPredicates.size());
+            }
+        }
+    }
+
+
+    public void prepareXMLQueries(List<List<String>> rowType, int recordToFind, int height, int branching, int maxNumOfPatterns) throws URISyntaxException, IOException {
+
+        File baseFolder = getBaseFolder();
+        File queriesFolder = new File(baseFolder, "xml_queries/H=" + height + "_K=" + branching + "T");
+
+        if (!queriesFolder.exists())
+            queriesFolder.mkdirs();
+
+        Set<String> types = new HashSet<>();
+        for (int i = 0; i < height; i++) {
+            types.add("type".concat(String.valueOf(i)));
+        }
+
+        FXNodeGenerator value = new FXNodeGenerator(FX.SlotString, new NodeGenerator.OrderedValueGenerator(rowType.get(recordToFind)));
+        FXNodeGenerator container = new FXNodeGenerator(FX.Container, NodeGenerator.variableGenerator);
+        FXNodeGenerator slotNumber = new FXNodeGenerator(FX.SlotNumber, NodeGenerator.slotNumberGenerator);
+        FXNodeGenerator slotString = new FXNodeGenerator(FX.SlotNumber, NodeGenerator.slotStringGenerator);
+        FXNodeGenerator typeProperty = new FXNodeGenerator(FX.TypeProperty, NodeGenerator.typePropertyGenerator);
+        FXNodeGenerator type = new FXNodeGenerator(FX.Type, new NodeGenerator.xyzPredicateGenerator(types));
+        FXNodeGenerator root = new FXNodeGenerator(FX.Root, NodeGenerator.rootGenerator);
+
+        BasicPatternGenerator basicPatternGenerator = new BasicPatternGenerator(container, slotNumber, slotString, typeProperty, root, value, type);
+
+        for (int numOfPatterns = 1; numOfPatterns <= maxNumOfPatterns; numOfPatterns++) {
+            File tpFolder = new File(queriesFolder, "TP_" + numOfPatterns);
+            tpFolder.mkdirs();
+            for (int numOfVariables = 1; numOfVariables <= numOfPatterns * 2 + 1; numOfVariables++) {
+
+                Set<BasicPattern> bps = basicPatternGenerator.getSxSDistinctNodesWithSlotStringAndType(numOfPatterns - height + 1, numOfVariables,  Triplifier.XYZ_NS + "type" + (height - 1));
 
                 // 0 Variables on predicates
                 Set<BasicPattern> zeroVarsOnPredicates = bps.stream().filter(bp -> testConditionOnNumberOfVariablesInPredicates(bp, n -> n == 0)).collect(Collectors.toSet());
