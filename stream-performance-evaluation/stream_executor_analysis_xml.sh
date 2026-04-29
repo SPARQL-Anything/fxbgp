@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-#./stream_executor_analysis_json.sh /Users/lgu/workspace/SPARQL-Anything/fxbgp/target/fxbgp-test-executor-1.2.0-SNAPS HOT.jar  /Users/lgu/Desktop/ISWC2026-test/input  /Users/lgu/Desktop/ISWC2026-test/stream-performance-json
+#./stream_executor_analysis_xml.sh /Users/lgu/workspace/SPARQL-Anything/fxbgp/target/fxbgp-test-executor-1.2.0-SNAPSHOT.jar  /Users/lgu/Desktop/ISWC2026-test/input_xml  /Users/lgu/Desktop/ISWC2026-test/stream-performance-xml
 
 source functions.sh
 
@@ -27,7 +27,7 @@ RESULT_FOLDER=$3
 MEM=50
 EXECUTOR="stream"
 SIZE="100000"
-FORMAT="json"
+FORMAT="xml"
 QTs=("H=2_K=1000" "H=3_K=100" "H=4_K=32" "H=5_K=16" "H=6_K=10")
 
 MAX_TPs=10

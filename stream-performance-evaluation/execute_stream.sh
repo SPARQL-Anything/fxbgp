@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# ./execute_stream.sh /Users/lgu/workspace/SPARQL-Anything/fxbgp/target/fxbgp-test-executor-1.2.0-SNAPSHOT.jar  /Users/lgu/Desktop/ISWC2026-test/input  /Users/lgu/Desktop/ISWC2026-test/results-2026-04-23
+# ./execute_stream.sh /Users/lgu/workspace/SPARQL-Anything/fxbgp/target/fxbgp-test-executor-1.2.0-SNAPSHOT.jar  /Users/lgu/Desktop/ISWC2026-test/input_xml  /Users/lgu/Desktop/ISWC2026-test/stream-performance-xml
 
 source functions.sh
 
@@ -24,8 +24,8 @@ JAR=$1
 INPUT_FOLDER=$2
 RESULT_FOLDER=$3
 
-MEM=4096
-FORMAT="csv"
+MEM=50
+FORMAT="xml"
 EXECUTOR="stream"
 
 UCs=(
@@ -54,13 +54,12 @@ UCs=(
   # "H_1 7 8 0 2000000" # OK
   # "H_1 8 9 0 2000000" # OK
   # "H_1 9 10 0 2000000" # OK
-  "H_2 10 12 1 1000000" #
+  "H=2_K=1000T 1 1 0 100000" #
   # "H_2 1 3 1 2000000" # OK
 )
 
+
 for UC in "${UCs[@]}"; do
-  for RUN in 1; do
-    echo "$(date '+%Y-%m-%d %H:%M:%S') Execute ${UC} RUN #${RUN}"
-    monitor-query-stream ${JAR} ${MEM} ${INPUT_FOLDER} ${UC} ${FORMAT} ${EXECUTOR} ${RESULT_FOLDER} ${RUN}
-  done
+  echo "$(date '+%Y-%m-%d %H:%M:%S') Execute ${UC} RUN #${RUN}"
+  monitor-query-stream ${JAR} ${MEM} ${INPUT_FOLDER} ${UC} ${FORMAT} ${EXECUTOR} ${RESULT_FOLDER} ${RUN} 10
 done

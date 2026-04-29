@@ -105,13 +105,13 @@ public class PerformanceTest {
             int nodes = size * NUMBER_OF_COLUMNS;
             int height = (int) Math.ceil(Math.log10(nodes));
             System.out.print("Generating XML size " + size + " of height " + height + " of branching 10...");
-            XMLGenerator.generateXML(height, NUMBER_OF_COLUMNS, rowTypes, String.format("%s/%d_H=%d_K=%d.xml", baseFolder.getAbsolutePath(), size, height, NUMBER_OF_COLUMNS));
+            XMLGenerator.generateXML(height, NUMBER_OF_COLUMNS, rowTypes, String.format("%s/%d_H=%d_K=%dT.xml", baseFolder.getAbsolutePath(), size, height, NUMBER_OF_COLUMNS));
             System.out.println("done!");
 
             for (int h = 2; h < height; h++) {
                 int k = (int) Math.ceil(Math.pow(nodes, 1 / (double) h));
                 System.out.print("Generating XML size " + size + " of height " + h + " and branching factor " + k + " ...");
-                XMLGenerator.generateXML(h, k, extendRowTypes(rowTypes, k), String.format("%s/%d_H=%d_K=%d.xml", baseFolder.getAbsolutePath(), size, h, k));
+                XMLGenerator.generateXML(h, k, extendRowTypes(rowTypes, k), String.format("%s/%d_H=%d_K=%dT.xml", baseFolder.getAbsolutePath(), size, h, k));
                 System.out.println("done!");
             }
         }
@@ -423,12 +423,26 @@ public class PerformanceTest {
 
         BasicPatternGenerator basicPatternGenerator = new BasicPatternGenerator(container, slotNumber, slotString, typeProperty, root, value, type);
 
-        for (int numOfPatterns = 1; numOfPatterns <= maxNumOfPatterns; numOfPatterns++) {
+        // the query needs at least:
+        // - height - 1 TPs for the path to container
+        // - 1 TP for the type
+        // - 1 TP for the star
+        for (int numOfPatterns = height + 1; numOfPatterns <= maxNumOfPatterns; numOfPatterns++) {
+
             File tpFolder = new File(queriesFolder, "TP_" + numOfPatterns);
             tpFolder.mkdirs();
-            for (int numOfVariables = 1; numOfVariables <= numOfPatterns * 2 + 1; numOfVariables++) {
 
-                Set<BasicPattern> bps = basicPatternGenerator.getSxSDistinctNodesWithSlotStringAndType(numOfPatterns - height + 1, numOfVariables, Triplifier.XYZ_NS + "type" + (height - 1));
+            // the query needs at least:
+            // - height - 1 variables for the path to the container
+            // - 1 variable for the subject of the star
+            for (int numOfVariables = height; numOfVariables <= numOfPatterns * 2 + 1; numOfVariables++) {
+
+                // From numOfPatterns we have to subtract:
+                // height - 1 for the star
+
+                // From numOfVariables (i.e. the number of variables in the target star) we have to subtract:
+                // height - 1 variable needed in the path for the star
+                Set<BasicPattern> bps = basicPatternGenerator.getSxSDistinctNodesWithSlotStringAndType(numOfPatterns - (height - 1), numOfVariables - height + 1, Triplifier.XYZ_NS + "type" + (height - 1));
 
                 // 0 Variables on predicates
                 Set<BasicPattern> zeroVarsOnPredicates = bps.stream().filter(bp -> testConditionOnNumberOfVariablesInPredicates(bp, n -> n == 0)).collect(Collectors.toSet());

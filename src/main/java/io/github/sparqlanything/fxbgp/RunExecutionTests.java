@@ -85,10 +85,12 @@ public class RunExecutionTests {
     private static int computeNumberOfNodesInFXBGPAnnotations(Properties properties, OpBGP opBGP) {
         AnalyserGrounder ag = new AnalyserGrounder(properties, FXModel.getFXModel());
         Set<FXBGPAnnotation> annotations = ag.annotate(opBGP, true);
-        return annotations.size();
+        return annotations.iterator().next().nodes().size();
     }
 
     public static void main(String[] args) throws IOException {
+
+        System.setProperty("jdk.xml.elementAttributeLimit", "0");
 
         String testInputBaseFolder = args[0];
         String format = args[6];
@@ -103,7 +105,7 @@ public class RunExecutionTests {
         int inputSize = Integer.parseInt(args[5]);
         String fxExecutor = args[7];
         if(bp==null){
-            System.out.printf("%d\t%s\t%s\t%d\t%d\t%s\t%d\t%d\t%s\t%s\n", inputSize, format, graphPatternType, numOfTps, numOfVariables, predicateVariables, 0, 0, fxExecutor, "-");
+            System.out.printf("%d\t%s\t%s\t%d\t%d\t%s\t%d\t%d\t%d\t%s\t%s\n", inputSize, format, graphPatternType, numOfTps, numOfVariables, predicateVariables, 0, 0,0, fxExecutor, "-");
             return;
         }
         OpBGP opBGP = new OpBGP(bp);
