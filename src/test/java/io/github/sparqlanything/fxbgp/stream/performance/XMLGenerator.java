@@ -1,15 +1,10 @@
 package io.github.sparqlanything.fxbgp.stream.performance;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLOutputFactory;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -39,7 +34,7 @@ public class XMLGenerator {
             List<Element> children = new ArrayList<>();
             for (Element e : nextLevel) {
                 for (int childNumber = 0; childNumber < branchingFactor; childNumber++) {
-                    Element child = doc.createElement("type"+(lev+1));
+                    Element child = doc.createElement("type" + (lev + 1));
                     e.appendChild(child);
                     children.add(child);
                     slots++;
@@ -54,10 +49,10 @@ public class XMLGenerator {
         for (Element e : nextLevel) {
             List<String> container = leafContainers.get(leafContainer % leafContainers.size());
             leafContainer++;
-                for (int i = 0; i < container.size(); i++) {
-                    e.setAttribute("f".concat(String.valueOf(i)), container.get(i));
-                    slots++;
-                }
+            for (int i = 0; i < container.size(); i++) {
+                e.setAttribute("f".concat(String.valueOf(i)), container.get(i));
+                slots++;
+            }
         }
         // System.out.println(slots);
 

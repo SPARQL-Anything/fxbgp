@@ -20,7 +20,19 @@ import org.apache.jena.sparql.engine.QueryIterator;
 import org.apache.jena.sparql.engine.main.OpExecutor;
 import org.apache.jena.sparql.engine.main.QC;
 import org.apache.jena.sys.JenaSystem;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
@@ -60,6 +72,45 @@ public class RunExecutionTests {
         System.out.println(Utils.queryIteratorToString(queryIterator));
     }
 
+
+    private static void executeMaterialisationTestXML(OpBGP op, Properties properties) throws IOException, SAXException, ParserConfigurationException, XPathExpressionException {
+
+        String location =  properties.getProperty(IRIArgument.LOCATION.toString());
+
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document doc = builder.parse(location);
+
+        doc.getDocumentElement().normalize();
+
+        Node n = doc.getDocumentElement().getChildNodes().item(16).getChildNodes().item(0).getChildNodes().item(30);
+
+        System.out.println(((Element)n).getAttribute("f0"));
+        System.out.println(((Element)n).getAttribute("f1"));
+        System.out.println(((Element)n).getAttribute("f2"));
+        System.out.println(location);
+
+        XPath xpath = XPathFactory.newInstance().newXPath();
+
+        NodeList nodes = (NodeList) xpath.evaluate(
+                "//*[@f0='gKUfWDfaEqCsoFjzjQ']",
+                doc,
+                XPathConstants.NODESET
+        );
+
+        for (int i = 0; i < nodes.getLength(); i++) {
+            Node node = nodes.item(i);
+            System.out.println(getXPath(node));
+        }
+
+        JenaSystem.init();
+        QC.setFactory(ARQ.getContext(), FacadeX.ExecutorFactory);
+        ExecutionContext execCxt = ExecutionContext.create(DatasetGraphFactory.create());
+        OpService opService = new OpService(NodeFactory.createURI("x-sparql-anything:location=" +location), op, false);
+        QueryIterator queryIterator = QC.execute(opService, OpExecutor.createRootQueryIterator(execCxt), execCxt);
+        System.out.println(Utils.queryIteratorToString(queryIterator));
+    }
+
     private static BasicPattern getBasicPattern(File queriesBaseFolder, String graphPatternType, int numOfTps, int numOfVariables, String numberOfVariablesOnPredicates) throws IOException {
         File dFolder = new File(queriesBaseFolder, graphPatternType);
         File tpFolder = new File(dFolder, "TP_" + numOfTps);
@@ -86,6 +137,35 @@ public class RunExecutionTests {
         AnalyserGrounder ag = new AnalyserGrounder(properties, FXModel.getFXModel());
         Set<FXBGPAnnotation> annotations = ag.annotate(opBGP, true);
         return annotations.iterator().next().nodes().size();
+    }
+
+    public static String getXPath(Node node) {
+        if (node == null)
+            return null;
+
+        if (node.getNodeType() == Node.DOCUMENT_NODE)
+            return "";
+
+        StringBuilder path = new StringBuilder();
+
+        while (node != null && node.getNodeType() != Node.DOCUMENT_NODE) {
+
+            int index = 1;
+            Node sibling = node.getPreviousSibling();
+
+            while (sibling != null) {
+                if (sibling.getNodeType() == Node.ELEMENT_NODE &&
+                        sibling.getNodeName().equals(node.getNodeName())) {
+                    index++;
+                }
+                sibling = sibling.getPreviousSibling();
+            }
+
+            path.insert(0, "/" + node.getNodeName() + "[" + index + "]");
+            node = node.getParentNode();
+        }
+
+        return path.toString();
     }
 
     public static void main(String[] args) throws IOException {
@@ -131,6 +211,18 @@ public class RunExecutionTests {
 
         ExecutorService executor = Executors.newCachedThreadPool();
         TimeLimiter tl = SimpleTimeLimiter.create(executor);
+
+
+        try {
+            executeMaterialisationTestXML(opBGP, properties);
+        } catch (SAXException e) {
+            throw new RuntimeException(e);
+        } catch (ParserConfigurationException e) {
+            throw new RuntimeException(e);
+        } catch (XPathExpressionException e) {
+            throw new RuntimeException(e);
+        }
+
 
         boolean timeout = false;
         AtomicLong numOfBindings = new AtomicLong(0L);

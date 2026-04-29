@@ -42,7 +42,7 @@ function monitor-query-stream {
   ERR_FILE="$RESULT_FOLDER/ERR_${D}_${TPs}_${VARs}_${PVARS}_${SIZE}_${FORMAT}_${EXECUTOR}${RUN}.tsv"
   MEM_RECORDS="MemoryLimit\tPID\t%cpu\t%mem\tvsz\trss\n"
 
-  echo "$INPUT_FOLDER $D $TPs $VARs $PVARS $SIZE $FORMAT $EXECUTOR $TIMEOUT"
+  # echo "$INPUT_FOLDER $D $TPs $VARs $PVARS $SIZE $FORMAT $EXECUTOR $TIMEOUT"
 
   java "-Xmx${MEM}m" -jar $JAR $INPUT_FOLDER $D $TPs $VARs $PVARS $SIZE $FORMAT $EXECUTOR $TIMEOUT  2>"$ERR_FILE" >> ${TIME_FILE} &
 

@@ -28,10 +28,10 @@ MEM=50
 EXECUTOR="stream"
 SIZE="100000"
 FORMAT="xml"
-QTs=("H=2_K=1000" "H=3_K=100" "H=4_K=32" "H=5_K=16" "H=6_K=10")
+QTs=("H=2_K=1000T" "H=3_K=100T" "H=4_K=32T" "H=5_K=16T" "H=6_K=10T")
 
 MAX_TPs=10
-for ((TPs=1; TPs<=MAX_TPs; TPs++)); do
+for ((TPs=3; TPs<=MAX_TPs; TPs++)); do
     inner_limit=$(( TPs * 2 + 1 ))
     for ((VARs=1; VARs<=inner_limit; VARs++)); do
       for ((RUN=1; RUN<=3; RUN++)); do

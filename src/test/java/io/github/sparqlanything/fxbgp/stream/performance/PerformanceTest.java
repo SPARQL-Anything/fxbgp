@@ -471,8 +471,8 @@ public class PerformanceTest {
         Node currentNode = Var.alloc("r");
         int i = 0;
         for (; i < height - 2; i++) {
-            int slot = RANDOM.nextInt(branching);
-            Node nextNode = Var.alloc("h_" + i + 1);
+            int slot = RANDOM.nextInt(1,branching);
+            Node nextNode = Var.alloc("h_" + (i + 1));
 
             if (alternateSlotTypes) {
                 if (i % 2 == 0) {
@@ -488,7 +488,7 @@ public class PerformanceTest {
             currentNode = nextNode;
         }
 
-        if (i % 2 == 0) {
+        if (i % 2 == 0 || !alternateSlotTypes) {
             // slot number
             bp.add(Triple.create(currentNode, RDF.li(containerToFind + 1).asNode(), s));
         } else {
@@ -513,13 +513,14 @@ public class PerformanceTest {
 
             int nodes = size * NUMBER_OF_COLUMNS;
             int height = (int) Math.ceil(Math.log10(nodes));
-            prepareJSONQueries(rowTypes, recordToFind, height, NUMBER_OF_COLUMNS, NUMBER_OF_COLUMNS);
-            prepareXMLQueries(rowTypes, recordToFind, height, NUMBER_OF_COLUMNS, NUMBER_OF_COLUMNS);
+            prepareJSONQueries(rowTypes, Math.min(NUMBER_OF_COLUMNS - 1 , recordToFind), height, NUMBER_OF_COLUMNS, NUMBER_OF_COLUMNS);
+            prepareXMLQueries(rowTypes, Math.min(NUMBER_OF_COLUMNS - 1, recordToFind), height, NUMBER_OF_COLUMNS, NUMBER_OF_COLUMNS);
 
             for (int h = 2; h < height; h++) {
                 int k = (int) Math.ceil(Math.pow(nodes, 1 / (double) h));
-                prepareJSONQueries(rowTypes, recordToFind, h, k, NUMBER_OF_COLUMNS);
-                prepareXMLQueries(rowTypes, recordToFind, h, k, NUMBER_OF_COLUMNS);
+
+                prepareJSONQueries(rowTypes, Math.min(k - 1, recordToFind), h, k, NUMBER_OF_COLUMNS);
+                prepareXMLQueries(rowTypes, Math.min(k - 1, recordToFind), h, k, NUMBER_OF_COLUMNS);
             }
         }
 
