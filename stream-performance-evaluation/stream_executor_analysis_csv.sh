@@ -30,7 +30,7 @@ SIZE="100000"
 FORMAT="csv"
 
 MAX_TPs=10
-for ((TPs=9; TPs<=MAX_TPs; TPs++)); do
+for ((TPs=1; TPs<=MAX_TPs; TPs++)); do
     inner_limit=$(( TPs * 2 + 1 ))
     for ((VARs=1; VARs<=inner_limit; VARs++)); do
       for ((RUN=1; RUN<=3; RUN++)); do
