@@ -31,18 +31,18 @@ FORMAT="json"
 QTs=("H=2_K=1000" "H=3_K=100" "H=4_K=32" "H=5_K=16" "H=6_K=10")
 
 MAX_TPs=10
-for ((TPs=1; TPs<=MAX_TPs; TPs++)); do
+for ((TPs=9; TPs<=MAX_TPs; TPs++)); do
     inner_limit=$(( TPs * 2 + 1 ))
     for ((VARs=1; VARs<=inner_limit; VARs++)); do
       for ((RUN=1; RUN<=3; RUN++)); do
         for QT in "${QTs[@]}"; do
 
           UC="${QT} ${TPs} ${VARs} 0 ${SIZE} ${FORMAT}"
-          echo "UC ${UC}"
+          echo "UC ${UC} ${RUN}"
           monitor-query-stream ${JAR} ${MEM} ${INPUT_FOLDER} ${UC} ${EXECUTOR} ${RESULT_FOLDER} ${RUN} 5
 
           UC="${QT} ${TPs} ${VARs} 1 ${SIZE} ${FORMAT}"
-          echo "UC ${UC}"
+          echo "UC ${UC} ${RUN}"
           monitor-query-stream ${JAR} ${MEM} ${INPUT_FOLDER} ${UC} ${EXECUTOR} ${RESULT_FOLDER} ${RUN} 5
 
         done
