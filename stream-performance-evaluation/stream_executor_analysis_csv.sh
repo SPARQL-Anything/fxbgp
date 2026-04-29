@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# ./stream_executor_analysis.sh /Users/lgu/workspace/SPARQL-Anything/fxbgp/target/fxbgp-test-executor-1.2.0-SNAPSHOT.jar  /Users/lgu/Desktop/ISWC2026-test/input_csv_json  /Users/lgu/Desktop/ISWC2026-test/stream-performance-csv-json
+# ./stream_executor_analysis_csv.sh /Users/lgu/workspace/SPARQL-Anything/fxbgp/target/fxbgp-test-executor-1.2.0-SNAPSHOT.jar  /Users/lgu/Desktop/ISWC2026-test/input_csv_json  /Users/lgu/Desktop/ISWC2026-test/stream-performance-csv-json
 
 source functions.sh
 
@@ -30,16 +30,16 @@ SIZE="100000"
 FORMAT="csv"
 
 MAX_TPs=10
-for ((TPs=1; TPs<=MAX_TPs; TPs++)); do
+for ((TPs=9; TPs<=MAX_TPs; TPs++)); do
     inner_limit=$(( TPs * 2 + 1 ))
     for ((VARs=1; VARs<=inner_limit; VARs++)); do
       for ((RUN=1; RUN<=3; RUN++)); do
         UC="H_1 ${TPs} ${VARs} 0 ${SIZE} ${FORMAT}"
         echo "${UC} ${RUN}"
-        monitor-query-stream ${JAR} ${MEM} ${INPUT_FOLDER} ${UC} ${EXECUTOR} ${RESULT_FOLDER} ${RUN}
+        monitor-query-stream ${JAR} ${MEM} ${INPUT_FOLDER} ${UC} ${EXECUTOR} ${RESULT_FOLDER} ${RUN} 5
         UC="H_1 ${TPs} ${VARs} 1 ${SIZE} ${FORMAT}"
         echo "${UC} ${RUN}"
-        monitor-query-stream ${JAR} ${MEM} ${INPUT_FOLDER} ${UC} ${EXECUTOR} ${RESULT_FOLDER} ${RUN}
+        monitor-query-stream ${JAR} ${MEM} ${INPUT_FOLDER} ${UC} ${EXECUTOR} ${RESULT_FOLDER} ${RUN} 5
       done
     done
 done
