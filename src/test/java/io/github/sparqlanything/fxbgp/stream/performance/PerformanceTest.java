@@ -81,13 +81,13 @@ public class PerformanceTest {
             int nodes = size * NUMBER_OF_COLUMNS;
             int height = (int) Math.ceil(Math.log10(nodes));
             System.out.print("Generating JSON size " + size + " of height " + height + " of branching 10...");
-            JSONGenerator.generateJSON(height, NUMBER_OF_COLUMNS, rowTypes, String.format("%s/%d_h=%d_k=%d.json", baseFolder.getAbsolutePath(), size, height, NUMBER_OF_COLUMNS));
+            JSONGenerator.generateJSON(height, NUMBER_OF_COLUMNS, rowTypes, String.format("%s/%d_H=%d_K=%d.json", baseFolder.getAbsolutePath(), size, height, NUMBER_OF_COLUMNS));
             System.out.println("done!");
 
             for (int h = 2; h < height; h++) {
                 int k = (int) Math.ceil(Math.pow(nodes, 1 / (double) h));
                 System.out.print("Generating JSON size " + size + " of height " + h + " and branching factor " + k + " ...");
-                JSONGenerator.generateJSON(h, k, extendRowTypes(rowTypes, k), String.format("%s/%d_h=%d_k=%d.json", baseFolder.getAbsolutePath(), size, h, k));
+                JSONGenerator.generateJSON(h, k, extendRowTypes(rowTypes, k), String.format("%s/%d_H=%d_K=%d.json", baseFolder.getAbsolutePath(), size, h, k));
                 System.out.println("done!");
             }
         }
@@ -105,13 +105,13 @@ public class PerformanceTest {
             int nodes = size * NUMBER_OF_COLUMNS;
             int height = (int) Math.ceil(Math.log10(nodes));
             System.out.print("Generating XML size " + size + " of height " + height + " of branching 10...");
-            XMLGenerator.generateXML(height, NUMBER_OF_COLUMNS, rowTypes, String.format("%s/%d_h=%d_k=%d.xml", baseFolder.getAbsolutePath(), size, height, NUMBER_OF_COLUMNS));
+            XMLGenerator.generateXML(height, NUMBER_OF_COLUMNS, rowTypes, String.format("%s/%d_H=%d_K=%d.xml", baseFolder.getAbsolutePath(), size, height, NUMBER_OF_COLUMNS));
             System.out.println("done!");
 
             for (int h = 2; h < height; h++) {
                 int k = (int) Math.ceil(Math.pow(nodes, 1 / (double) h));
                 System.out.print("Generating XML size " + size + " of height " + h + " and branching factor " + k + " ...");
-                XMLGenerator.generateXML(h, k, extendRowTypes(rowTypes, k), String.format("%s/%d_h=%d_k=%d.xml", baseFolder.getAbsolutePath(), size, h, k));
+                XMLGenerator.generateXML(h, k, extendRowTypes(rowTypes, k), String.format("%s/%d_H=%d_K=%d.xml", baseFolder.getAbsolutePath(), size, h, k));
                 System.out.println("done!");
             }
         }
@@ -494,10 +494,12 @@ public class PerformanceTest {
             int nodes = size * NUMBER_OF_COLUMNS;
             int height = (int) Math.ceil(Math.log10(nodes));
             prepareJSONQueries(rowTypes, recordToFind, height, NUMBER_OF_COLUMNS, NUMBER_OF_COLUMNS);
+            prepareXMLQueries(rowTypes, recordToFind, height, NUMBER_OF_COLUMNS, NUMBER_OF_COLUMNS);
 
             for (int h = 2; h < height; h++) {
                 int k = (int) Math.ceil(Math.pow(nodes, 1 / (double) h));
                 prepareJSONQueries(rowTypes, recordToFind, h, k, NUMBER_OF_COLUMNS);
+                prepareXMLQueries(rowTypes, recordToFind, h, k, NUMBER_OF_COLUMNS);
             }
         }
 
