@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-#./stream_executor_analysis_json.sh /Users/lgu/workspace/SPARQL-Anything/fxbgp/target/fxbgp-test-executor-1.2.0-SNAPS HOT.jar  /Users/lgu/Desktop/ISWC2026-test/input  /Users/lgu/Desktop/ISWC2026-test/stream-performance-json
+#./stream_executor_analysis_json.sh /Users/lgu/workspace/SPARQL-Anything/fxbgp/target/fxbgp-test-executor-1.2.0-SNAPSHOT.jar  /Users/lgu/Desktop/ISWC2026-test/input_json2  /Users/lgu/Desktop/ISWC2026-test/stream-performance-json2
 
 source functions.sh
 
