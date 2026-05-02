@@ -213,15 +213,15 @@ public class RunExecutionTests {
         TimeLimiter tl = SimpleTimeLimiter.create(executor);
 
 
-        try {
-            executeMaterialisationTestXML(opBGP, properties);
-        } catch (SAXException e) {
-            throw new RuntimeException(e);
-        } catch (ParserConfigurationException e) {
-            throw new RuntimeException(e);
-        } catch (XPathExpressionException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            executeMaterialisationTestXML(opBGP, properties);
+//        } catch (SAXException e) {
+//            throw new RuntimeException(e);
+//        } catch (ParserConfigurationException e) {
+//            throw new RuntimeException(e);
+//        } catch (XPathExpressionException e) {
+//            throw new RuntimeException(e);
+//        }
 
 
         boolean timeout = false;

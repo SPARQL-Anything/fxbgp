@@ -50,8 +50,12 @@ public class JSONGenerator {
         int leafContainer = 0;
 
         for (JsonNode n : nextLevel) {
+
+            if(leafContainer == leafContainers.size())
+                leafContainer = 0;
             List<String> container = leafContainers.get(leafContainer % leafContainers.size());
             leafContainer++;
+
             if (n instanceof ArrayNode currentNode) {
                 // next level will be ObjectNodes
                 for (String s : container) {
@@ -66,6 +70,7 @@ public class JSONGenerator {
                 }
             }
         }
+
         mapper.writeValue(new File(filename), root);
         // System.out.println(slots);
     }

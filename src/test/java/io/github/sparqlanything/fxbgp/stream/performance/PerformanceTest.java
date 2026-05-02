@@ -513,7 +513,7 @@ public class PerformanceTest {
 
             int nodes = size * NUMBER_OF_COLUMNS;
             int height = (int) Math.ceil(Math.log10(nodes));
-            prepareJSONQueries(rowTypes, Math.min(NUMBER_OF_COLUMNS - 1 , recordToFind), height, NUMBER_OF_COLUMNS, NUMBER_OF_COLUMNS);
+            prepareJSONQueries(rowTypes, Math.min(NUMBER_OF_COLUMNS - 1, recordToFind), height, NUMBER_OF_COLUMNS, NUMBER_OF_COLUMNS);
             prepareXMLQueries(rowTypes, Math.min(NUMBER_OF_COLUMNS - 1, recordToFind), height, NUMBER_OF_COLUMNS, NUMBER_OF_COLUMNS);
 
             for (int h = 2; h < height; h++) {
