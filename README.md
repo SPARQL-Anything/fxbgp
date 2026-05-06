@@ -1,14 +1,17 @@
+# Bounded-Memory Basic Graph Pattern Evaluation over Façade-X Resources (Implementation)
 
-Compile without tests!
+## Compile
+Compile without tests.
 
+```bash
 mvn clean install -DskipTests
+```
+## Generate executable jar
+```
+mvn install -DskipTests -Pgenerate-jar
+```
 
-Or generate runnable jar
+## Usage:
 
-mvn clean compile assembly:single
-
-usage:
-
- java -jar target/fxstream-tester.jar src/test/resources/stream/all.easybgp src/test/resources/stream/test1.csv "csv.headers=true" test1-out.csv
-
+...
 
