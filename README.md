@@ -7,9 +7,11 @@ Compile without tests.
 mvn clean install -DskipTests
 ```
 ## Generate executable jar
-```
+
+```bash
 mvn install -DskipTests -Pgenerate-jar
 ```
+Produces `target/fxbgp-test-executor-1.2.0-SNAPSHOT.jar`
 
 ## Usage:
 
