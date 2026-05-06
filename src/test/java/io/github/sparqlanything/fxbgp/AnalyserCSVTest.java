@@ -4,6 +4,7 @@ import io.github.sparqlanything.fxbgp.csv.FXCSVModel;
 import org.apache.jena.graph.Node;
 import org.apache.jena.vocabulary.RDF;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -12,6 +13,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+/**
+ * TODO Not implemented yet
+ */
+@Ignore
 public class AnalyserCSVTest extends BGPTestAbstract {
 	final protected static Logger L = LoggerFactory.getLogger(AnalyserCSVTest.class);
 

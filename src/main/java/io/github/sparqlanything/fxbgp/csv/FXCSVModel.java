@@ -9,6 +9,9 @@ import io.github.sparqlanything.fxrdb.FXRDB;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 
+/**
+ * TODO Not implemented yet
+ */
 public class FXCSVModel extends FXModel {
     private static FXCSVModel instance = null;
 
