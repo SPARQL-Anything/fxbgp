@@ -346,6 +346,7 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
         }
     }
 
+    protected Set<Map<String,RDFNode>> testSelectStarEqualsResult = null;
     protected void testSelectStarEquals(Triplifier triplifier, Properties properties) {
         DatasetGraph dg1 = getDatasetGraph(triplifier, properties);
         L.debug("Dataset graph size: {}", dg1.getDefaultGraph().size());
@@ -365,6 +366,7 @@ abstract class FXStreamExecutorTest extends BGPTestUtils {
             qs.varNames().forEachRemaining(v->map.put(v, qs.get(v)));
             qs2.add(map);
         });
+        testSelectStarEqualsResult = qs2;
 //        qs2.forEach(System.out::println);
         L.debug("Select equals? {} vs {}", qs1.size(),qs2.size());
         L.debug("Select equals? {}", qs1.equals(qs2));

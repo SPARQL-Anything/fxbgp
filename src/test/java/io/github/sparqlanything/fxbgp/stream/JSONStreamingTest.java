@@ -82,5 +82,6 @@ public class JSONStreamingTest extends FXStreamExecutorTest{
     public void example_json_example() throws IOException {
         prepare(testName.getMethodName());
         testSelectStarEquals(new JSONTriplifier(), properties());
+        //testSelectStarEqualsResult.forEach(System.out::println);
     }
 }
