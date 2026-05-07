@@ -249,14 +249,21 @@ class Matching {
         if (matched.size() == 1) {
             if (cursorCount != 1) {
                 this.unresolvable = true;
-            } else if(component == FX.Root || matched.iterator().next().getNode().isConcrete()) {
-                for(FXNode c : matched) {
-                    List<Node> currentPath = accessor.copyCurrentPath();
-                    long currentHash = accessor.currentFullHash();
-                    setRecord(c, currentPath, currentHash);
+            } else {
+                FXNode only = matched.iterator().next();
+                boolean parentPredicateConcrete =
+                        only.getParent() != null && only.getParent().getNode().isConcrete();
+                if (component == FX.Root
+                        || (only.getNode().isConcrete() && parentPredicateConcrete)) {
+                    // Safe in-place: no sibling can ever match this slot again.
+                    for(FXNode c : matched) {
+                        List<Node> currentPath = accessor.copyCurrentPath();
+                        long currentHash = accessor.currentFullHash();
+                        setRecord(c, currentPath, currentHash);
+                    }
+                }else {
+                    spawned = setAndSpawn(matched);
                 }
-            }else {
-                spawned = setAndSpawn(matched);
             }
         } else if(component == FX.Root){
                 // If component is root, set all matches and do not spawn (there will be no more roots...)
