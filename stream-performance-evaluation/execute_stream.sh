@@ -16,7 +16,7 @@
 # limitations under the License.
 #
 
-# ./execute_stream.sh /Users/lgu/workspace/SPARQL-Anything/fxbgp/target/fxbgp-test-executor-1.2.0-SNAPSHOT.jar  /Users/lgu/Desktop/ISWC2026-test/input_xml  /Users/lgu/Desktop/ISWC2026-test/stream-performance-xml
+# ./execute_stream.sh /Users/lgu/workspace/SPARQL-Anything/fxbgp/target/fxbgp-test-executor-1.2.0-SNAPSHOT.jar  /Users/lgu/Desktop/ISWC2026-test/input_json2  /Users/lgu/Desktop/ISWC2026-test/timeouts
 
 source functions.sh
 
@@ -25,7 +25,7 @@ INPUT_FOLDER=$2
 RESULT_FOLDER=$3
 
 MEM=50
-FORMAT="xml"
+FORMAT="csv"
 EXECUTOR="stream"
 
 UCs=(
@@ -55,12 +55,22 @@ UCs=(
   # "H_1 8 9 0 2000000" # OK
   # "H_1 9 10 0 2000000" # OK
   #"H=2_K=1000T 3 2 0 100000" #
-  "H=3_K=100T 4 6 1 100000" #
+  # "H=3_K=100T 4 6 1 100000" #
   # "H_2 1 3 1 2000000" # OK
+
+  # Analisi dei timeout
+   # "H_1 9 10 1 100000" # T: 447168
+   # "H_1 9 11 1 100000 csv" # T: 
+   # "H_1 10 10 1 100000 csv" # T: 
+   # "H_1 10 10 0 100000 csv" # T: 
+   # "H_1 10 11 1 100000 csv" # T: 
+   # "H_1 10 11 0 100000 csv" # T: 
+   # "H=3_K=100 10 10 1 100000 json" # T: 
+   "H=2_K=1000 10 11 1 100000 json" # T: Da rieseguire
 )
 
 
 for UC in "${UCs[@]}"; do
   echo "$(date '+%Y-%m-%d %H:%M:%S') Execute ${UC} RUN #${RUN}"
-  monitor-query-stream ${JAR} ${MEM} ${INPUT_FOLDER} ${UC} ${FORMAT} ${EXECUTOR} ${RESULT_FOLDER} ${RUN} 10
+  monitor-query-stream ${JAR} ${MEM} ${INPUT_FOLDER} ${UC} ${EXECUTOR} ${RESULT_FOLDER} 1
 done

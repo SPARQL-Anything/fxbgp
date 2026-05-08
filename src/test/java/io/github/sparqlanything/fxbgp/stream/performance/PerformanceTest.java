@@ -7,7 +7,6 @@ import io.github.sparqlanything.fxbgp.*;
 import io.github.sparqlanything.fxbgp.stream.FXStreamExecutor;
 import io.github.sparqlanything.fxbgp.stream.NotATreeException;
 import io.github.sparqlanything.model.IRIArgument;
-import io.github.sparqlanything.model.Triplifier;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -51,11 +50,11 @@ public class PerformanceTest {
     private static final String PERFORMANCE_TEST_INPUT = "performance-test/input";
     private static final String ROW_TYPES_CSV = "rowTypes.csv";
     private static final Random RANDOM = new Random(42);
-    //private final static int[] sizes = new int[]{10_000, 1_000_000, 2_000_000, 3_000_000, 4_000_000, 5_000_000, 10_000_000};
-    private final static int[] sizes = new int[]{100_000};
+    //private final static int[] sizes = new int[]{10_000, 100_000, 500_000, 1_000_000, 2_000_000};
+    //private final static int[] sizes = new int[]{100_000};
     private static final int NUMBER_OF_COLUMNS = 10;
 
-    public void prepareCSVInput(List<List<String>> rowTypes) throws IOException, URISyntaxException {
+    public void prepareCSVInput(List<List<String>> rowTypes, int[] sizes) throws IOException, URISyntaxException {
         File baseFolder = getBaseFolder();
         System.out.println(baseFolder.getAbsolutePath());
         if (!baseFolder.exists()) {
@@ -71,7 +70,7 @@ public class PerformanceTest {
         }
     }
 
-    public void prepareJSONInput(List<List<String>> rowTypes) throws URISyntaxException, IOException {
+    public void prepareJSONInput(List<List<String>> rowTypes, int[] sizes) throws URISyntaxException, IOException {
         // Number of triples CSV = ROWS * COLUMNS + ROWS + 1
         // Number of triples JSON = NUMBER_OF_OBJECTS * NUMBER_OF_SLOTS_OF_OBJECTS + 1
 
@@ -95,7 +94,7 @@ public class PerformanceTest {
     }
 
 
-    public void prepareXMLInput(List<List<String>> rowTypes) throws URISyntaxException, IOException, ParserConfigurationException, TransformerException {
+    public void prepareXMLInput(List<List<String>> rowTypes, int[] sizes) throws URISyntaxException, IOException, ParserConfigurationException, TransformerException {
         // Number of triples CSV = ROWS * COLUMNS + ROWS + 1
         // Number of triples JSON = NUMBER_OF_OBJECTS * NUMBER_OF_SLOTS_OF_OBJECTS + 1
 
@@ -232,52 +231,52 @@ public class PerformanceTest {
     }
 
 
-    @Test
-    public void test1() throws IOException, URISyntaxException {
-        List<List<String>> rowTypes = readRowTypes();
-        prepareCSVInput(rowTypes);
-        prepareCSVQueries(rowTypes.get(RANDOM.nextInt(rowTypes.size())));
-
-        Properties properties = new Properties();
-        properties.setProperty(IRIArgument.MEDIA_TYPE.toString(), "text/csv");
-
-        FXStreamExecutor exec = new FXStreamExecutor();
-
-        JenaSystem.init();
-        QC.setFactory(ARQ.getContext(), FacadeX.ExecutorFactory);
-        ExecutionContext execCxt = ExecutionContext.create(DatasetGraphFactory.create());
-
-        ExecutorService executor = Executors.newCachedThreadPool();
-        TimeLimiter tl = SimpleTimeLimiter.create(executor);
-
-        File baseFolder = getBaseFolder();
-        int maxNumOfPatterns = rowTypes.size();
-        File queriesFolder = new File(baseFolder, "queries");
-
-        System.out.println("Size\t#TPs\t#VARs\t#pVARs\t#TreePatterns\t#StreamSolutions\t#MatSolutions\ttStream\ttMaterialisation\t#SolutionsDiff?");
-
-        //TODO numOfPatterns from 1
-        for (int numOfPatterns = 1; numOfPatterns <= maxNumOfPatterns; numOfPatterns++) {
-            File tpFolder = new File(queriesFolder, "TP_" + numOfPatterns);
-            for (int numOfVariables = 1; numOfVariables <= numOfPatterns * 2 + 1; numOfVariables++) {
-
-                BasicPattern bp0 = getBasicPattern(tpFolder, numOfVariables, "0");
-                BasicPattern bp1 = getBasicPattern(tpFolder, numOfVariables, "1");
-                BasicPattern bpPlus = getBasicPattern(tpFolder, numOfVariables, "+");
-
-                for (int size : sizes) {
-                    String location = baseFolder.getAbsolutePath() + "/" + size + ".csv";
-                    properties.setProperty(IRIArgument.LOCATION.toString(), location);
-
-                    executeStreamVsMaterialisation(size, tl, exec, bp0, properties, execCxt, numOfPatterns, numOfVariables, "0");
-                    executeStreamVsMaterialisation(size, tl, exec, bp1, properties, execCxt, numOfPatterns, numOfVariables, "1");
-                    executeStreamVsMaterialisation(size, tl, exec, bpPlus, properties, execCxt, numOfPatterns, numOfVariables, "+");
-
-                }
-            }
-        }
-
-    }
+//    @Test
+//    public void test1() throws IOException, URISyntaxException {
+//        List<List<String>> rowTypes = readRowTypes();
+//        prepareCSVInput(rowTypes);
+//        prepareCSVQueries(rowTypes.get(RANDOM.nextInt(rowTypes.size())));
+//
+//        Properties properties = new Properties();
+//        properties.setProperty(IRIArgument.MEDIA_TYPE.toString(), "text/csv");
+//
+//        FXStreamExecutor exec = new FXStreamExecutor();
+//
+//        JenaSystem.init();
+//        QC.setFactory(ARQ.getContext(), FacadeX.ExecutorFactory);
+//        ExecutionContext execCxt = ExecutionContext.create(DatasetGraphFactory.create());
+//
+//        ExecutorService executor = Executors.newCachedThreadPool();
+//        TimeLimiter tl = SimpleTimeLimiter.create(executor);
+//
+//        File baseFolder = getBaseFolder();
+//        int maxNumOfPatterns = rowTypes.size();
+//        File queriesFolder = new File(baseFolder, "queries");
+//
+//        System.out.println("Size\t#TPs\t#VARs\t#pVARs\t#TreePatterns\t#StreamSolutions\t#MatSolutions\ttStream\ttMaterialisation\t#SolutionsDiff?");
+//
+//        //TODO numOfPatterns from 1
+//        for (int numOfPatterns = 1; numOfPatterns <= maxNumOfPatterns; numOfPatterns++) {
+//            File tpFolder = new File(queriesFolder, "TP_" + numOfPatterns);
+//            for (int numOfVariables = 1; numOfVariables <= numOfPatterns * 2 + 1; numOfVariables++) {
+//
+//                BasicPattern bp0 = getBasicPattern(tpFolder, numOfVariables, "0");
+//                BasicPattern bp1 = getBasicPattern(tpFolder, numOfVariables, "1");
+//                BasicPattern bpPlus = getBasicPattern(tpFolder, numOfVariables, "+");
+//
+//                for (int size : sizes) {
+//                    String location = baseFolder.getAbsolutePath() + "/" + size + ".csv";
+//                    properties.setProperty(IRIArgument.LOCATION.toString(), location);
+//
+//                    executeStreamVsMaterialisation(size, tl, exec, bp0, properties, execCxt, numOfPatterns, numOfVariables, "0");
+//                    executeStreamVsMaterialisation(size, tl, exec, bp1, properties, execCxt, numOfPatterns, numOfVariables, "1");
+//                    executeStreamVsMaterialisation(size, tl, exec, bpPlus, properties, execCxt, numOfPatterns, numOfVariables, "+");
+//
+//                }
+//            }
+//        }
+//
+//    }
 
     private void executeStreamVsMaterialisation(int size, TimeLimiter tl, FXStreamExecutor exec, BasicPattern bp, Properties properties, ExecutionContext execCxt, int numOfPatterns, int numOfVariables, String numOfPredicateVariables) {
         if (bp == null)
@@ -471,7 +470,7 @@ public class PerformanceTest {
         Node currentNode = Var.alloc("r");
         int i = 0;
         for (; i < height - 2; i++) {
-            int slot = RANDOM.nextInt(1,branching);
+            int slot = RANDOM.nextInt(1, branching);
             Node nextNode = Var.alloc("h_" + (i + 1));
 
             if (alternateSlotTypes) {
@@ -499,12 +498,26 @@ public class PerformanceTest {
 
 
     @Test
+    public void generateDataRQ1() throws IOException, URISyntaxException, ParserConfigurationException, TransformerException {
+        List<List<String>> rowTypes = readRowTypes();
+
+        int[] sizes = new int[]{10_000, 100_000, 500_000, 1_000_000, 2_000_000};
+        prepareCSVInput(rowTypes, sizes);
+
+        int recordToFind = RANDOM.nextInt(rowTypes.size());
+        prepareCSVQueries(rowTypes.get(recordToFind));
+
+    }
+
+
+    @Test
     public void generateData() throws IOException, URISyntaxException, ParserConfigurationException, TransformerException {
         List<List<String>> rowTypes = readRowTypes();
 
-        prepareCSVInput(rowTypes);
-        prepareJSONInput(rowTypes);
-        prepareXMLInput(rowTypes);
+        int[] sizes = new int[]{10_000};
+        prepareCSVInput(rowTypes, sizes);
+        prepareJSONInput(rowTypes, sizes);
+        prepareXMLInput(rowTypes, sizes);
 
         int recordToFind = RANDOM.nextInt(rowTypes.size());
         prepareCSVQueries(rowTypes.get(recordToFind));
