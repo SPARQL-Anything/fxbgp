@@ -1,0 +1,17 @@
+a,b,c
+file:///Users/ed4565/Development/sparql-anything/fxbgp/src/test/resources/stream/test1.csv#,http://www.w3.org/1999/02/22-rdf-syntax-ns#type,http://sparql.xyz/facade-x/ns/root
+file:///Users/ed4565/Development/sparql-anything/fxbgp/src/test/resources/stream/test1.csv#,http://www.w3.org/1999/02/22-rdf-syntax-ns#_1,file:///Users/ed4565/Development/sparql-anything/fxbgp/src/test/resources/stream/test1.csv#row1
+file:///Users/ed4565/Development/sparql-anything/fxbgp/src/test/resources/stream/test1.csv#row1,http://sparql.xyz/facade-x/data/H1,A1
+file:///Users/ed4565/Development/sparql-anything/fxbgp/src/test/resources/stream/test1.csv#row1,http://sparql.xyz/facade-x/data/H2,A2
+file:///Users/ed4565/Development/sparql-anything/fxbgp/src/test/resources/stream/test1.csv#row1,http://sparql.xyz/facade-x/data/H3,A3
+file:///Users/ed4565/Development/sparql-anything/fxbgp/src/test/resources/stream/test1.csv#row1,http://sparql.xyz/facade-x/data/H4,A4
+file:///Users/ed4565/Development/sparql-anything/fxbgp/src/test/resources/stream/test1.csv#,http://www.w3.org/1999/02/22-rdf-syntax-ns#_2,file:///Users/ed4565/Development/sparql-anything/fxbgp/src/test/resources/stream/test1.csv#row2
+file:///Users/ed4565/Development/sparql-anything/fxbgp/src/test/resources/stream/test1.csv#row2,http://sparql.xyz/facade-x/data/H1,B1
+file:///Users/ed4565/Development/sparql-anything/fxbgp/src/test/resources/stream/test1.csv#row2,http://sparql.xyz/facade-x/data/H2,B2
+file:///Users/ed4565/Development/sparql-anything/fxbgp/src/test/resources/stream/test1.csv#row2,http://sparql.xyz/facade-x/data/H3,B3
+file:///Users/ed4565/Development/sparql-anything/fxbgp/src/test/resources/stream/test1.csv#row2,http://sparql.xyz/facade-x/data/H4,B4
+file:///Users/ed4565/Development/sparql-anything/fxbgp/src/test/resources/stream/test1.csv#,http://www.w3.org/1999/02/22-rdf-syntax-ns#_3,file:///Users/ed4565/Development/sparql-anything/fxbgp/src/test/resources/stream/test1.csv#row3
+file:///Users/ed4565/Development/sparql-anything/fxbgp/src/test/resources/stream/test1.csv#row3,http://sparql.xyz/facade-x/data/H1,C1
+file:///Users/ed4565/Development/sparql-anything/fxbgp/src/test/resources/stream/test1.csv#row3,http://sparql.xyz/facade-x/data/H2,C2
+file:///Users/ed4565/Development/sparql-anything/fxbgp/src/test/resources/stream/test1.csv#row3,http://sparql.xyz/facade-x/data/H3,C3
+file:///Users/ed4565/Development/sparql-anything/fxbgp/src/test/resources/stream/test1.csv#row3,http://sparql.xyz/facade-x/data/H4,C4

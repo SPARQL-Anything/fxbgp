@@ -147,6 +147,20 @@ public class RealWorldBMATest extends BGPTestAbstract {
         runAnalysis(singleBGP);
     }
 
+    @Test
+    public void count() {
+        println("## Count queries and BGPs");
+        List<FileBGP> singleBGP = new ArrayList<>();
+        int bgps = 0;
+        int queries = 0;
+        for (FileBGP file : fileData) {
+            bgps += file.getBgps().size();
+            queries += 1;
+        }
+        System.out.println("# BGPs : " + bgps);
+        System.out.println("# Queries : " + queries);
+    }
+
     private void runAnalysis(List<FileBGP> data) {
         int total = 0;
         int countBMA = 0;

@@ -1,0 +1,11 @@
+If matched FXNode is subject, and there is a match ...
+
+If matched FXNode is Container object (actually it is always object, becauwe root never gets checked)
+
+If non-matched FXNode is ValueTypeOrRoot, shift back the unmatched cursor
+
+If the matching cursors are more than one:
+	- If they are the same variable, keep them always together
+	- If they are different variables, spawn:
+		- A matching for each n-wise combinations where 1 < n < len
+		- Remove all discarded cursors

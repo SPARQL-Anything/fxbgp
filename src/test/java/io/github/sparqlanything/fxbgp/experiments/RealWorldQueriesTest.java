@@ -136,6 +136,20 @@ public class RealWorldQueriesTest extends BGPTestAbstract {
     private static File[] files;
 
     @Test
+    public void count() {
+        println("## Count queries and BGPs");
+        List<FileBGP> singleBGP = new ArrayList<>();
+        int bgps = 0;
+        int queries = 0;
+        for (FileBGP file : fileData) {
+            bgps += file.getBgps().size();
+            queries += 1;
+        }
+        System.out.println("# BGPs : " + bgps);
+        System.out.println("# Queries : " + queries);
+    }
+
+    @Test
     public void BottomUp() throws IOException {
         Analyser bottomUp = new AnalyserGrounder(properties, FXM());
         println("");
