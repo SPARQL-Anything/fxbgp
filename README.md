@@ -18,7 +18,8 @@ Produces `target/fxbgp-test-executor-1.2.0-SNAPSHOT.jar`
 To generate the data used in the experiments run 
 
 ```bash
-
+mvn test -Dtest=io.github.sparqlanything.fxbgp.stream.performance#generateDataRQ1
+mvn test -Dtest=io.github.sparqlanything.fxbgp.stream.performance#generateDataRQ2
 ```
 
 
