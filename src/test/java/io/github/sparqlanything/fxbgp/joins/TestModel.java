@@ -1,11 +1,12 @@
 package io.github.sparqlanything.fxbgp.joins;
 
+import io.github.sparqlanything.fxbgp.stream.join.ContainerSelectorImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceContainer;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceType;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceContainerImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceTypeImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.ContainerBinding;
-import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.ContainerSelector;
+import io.github.sparqlanything.fxbgp.stream.join.ContainerSelector;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.TriplePatternContainer;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.*;
 import io.github.sparqlanything.model.IRIArgument;
@@ -125,7 +126,8 @@ public class TestModel {
 
     private DataSourceContainer getDataSourceContainer(Properties properties, boolean isRoot, boolean isBN) {
         String containerId = isRoot ? "" : this.containerId;
-        return new DataSourceContainerImpl(isBN, root, properties, isRoot, containerId);
+        // return new DataSourceContainerImpl(isBN, root, properties, isRoot, containerId);
+        return new DataSourceContainerImpl(containerId,  properties, isRoot, containerId);
     }
 
 

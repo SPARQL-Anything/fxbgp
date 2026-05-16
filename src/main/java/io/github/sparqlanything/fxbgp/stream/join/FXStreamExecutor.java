@@ -24,20 +24,8 @@ public class FXStreamExecutor {
 
         AnalyserGrounder ag = new AnalyserGrounder(properties, FXModel.getFXModel());
         Set<FXBGPAnnotation> annotations = ag.annotate(opBGP, true);
-        final Set<Binding> bindings = ConcurrentHashMap.newKeySet();
-        final Set<FXTreeSolutionBuilder> patterns = new HashSet<>();
-        SharedPathAccessor accessor = new SharedPathAccessor();
-        for (FXBGPAnnotation annotation : annotations) {
-            FXTreePattern tp = FXTreePattern.make(annotation);
-            patterns.add(new FXTreeSolutionBuilder(tp, bindings, accessor));
-        }
 
-        List<Triple> bgpTriples = new ArrayList<>();
-        for (FXBGPAnnotation a : annotations) {
-            a.getOpBGP().getPattern().getList().forEach(bgpTriples::add);
-        }
 
-        //return new FXParserQueryIterator(parser, handler, bindings);
         return null;
     }
 }

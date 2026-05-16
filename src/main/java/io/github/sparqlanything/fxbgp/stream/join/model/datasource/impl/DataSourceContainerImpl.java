@@ -4,6 +4,8 @@ import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceCon
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceSlot;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceSlotFiller;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceType;
+import io.github.sparqlanything.model.IRIArgument;
+import io.github.sparqlanything.model.PropertyUtils;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 
@@ -17,9 +19,17 @@ public class DataSourceContainerImpl extends DataSourceFXElementImpl implements 
     private final String root;
     private final boolean useBlankNodes;
 
-    public DataSourceContainerImpl(boolean useBlankNodes, String root, Properties properties, boolean isRoot, String id) {
+    public DataSourceContainerImpl(String id, Properties properties) {
+        this(id, properties, false, PropertyUtils.getStringProperty(properties, IRIArgument.ROOT));
+    }
+
+    public DataSourceContainerImpl(String id, Properties properties, boolean isRoot) {
+        this(id, properties, isRoot, PropertyUtils.getStringProperty(properties, IRIArgument.ROOT));
+    }
+
+    public DataSourceContainerImpl(String id, Properties properties, boolean isRoot, String root) {
         super(id, properties);
-        this.useBlankNodes = useBlankNodes;
+        this.useBlankNodes = PropertyUtils.getBooleanProperty(properties, IRIArgument.BLANK_NODES);
         this.root = root;
         this.isRoot = isRoot;
     }

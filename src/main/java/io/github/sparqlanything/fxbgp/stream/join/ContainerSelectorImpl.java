@@ -1,11 +1,17 @@
-package io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl;
+package io.github.sparqlanything.fxbgp.stream.join;
 
-import com.google.common.collect.Sets;
+import io.github.sparqlanything.fxbgp.FX;
+import io.github.sparqlanything.fxbgp.FXBGPAnnotation;
+import io.github.sparqlanything.fxbgp.FXNodeAnnotation;
+import io.github.sparqlanything.fxbgp.stream.join.model.ModelException;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceContainer;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceFXRoot;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceType;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceTypeProperty;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.*;
+import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.*;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -98,14 +104,14 @@ public class ContainerSelectorImpl implements ContainerSelector {
         Set<ContainerBinding> matching = new HashSet<>();
         Set<DataSourceType> dataSourceTypes = dataSourceContainer.getTypes();
 
-        for (Map.Entry<TriplePatternTypeProperty, Set<TriplePatternType>> e: triplePatternType.entrySet()){
+        for (Map.Entry<TriplePatternTypeProperty, Set<TriplePatternType>> e : triplePatternType.entrySet()) {
             // check that all types in e.getValue() are types in data source container
-            if(!dataSourceTypes.containsAll(e.getValue())){
+            if (!dataSourceTypes.containsAll(e.getValue())) {
                 match.set(false);
                 break;
             }
 
-            if(e.getKey().getBGPNode().isVariable()){
+            if (e.getKey().getBGPNode().isVariable()) {
             }
             // if so possible variables are matched
         }
@@ -137,4 +143,35 @@ public class ContainerSelectorImpl implements ContainerSelector {
 
         return true;
     }
+
+    public static Collection<ContainerSelector> getSelectors(FXBGPAnnotation bpa, Properties properties) {
+        Map<Node, ContainerSelector> containerSelectors = new HashMap<>();
+
+        for (Triple triple : bpa.getOpBGP().getPattern().getList()) {
+            ContainerSelector containerSelector = containerSelectors.get(triple.getSubject());
+            if (containerSelector == null) {
+                TriplePatternContainerImpl triplePatternContainerImpl = new TriplePatternContainerImpl(triple.getSubject(), properties);
+                containerSelector = new ContainerSelectorImpl(triplePatternContainerImpl);
+                containerSelectors.put(triple.getSubject(), containerSelector);
+            }
+
+            FXNodeAnnotation predicateAnnotation = bpa.getAnnotation(triple.getPredicate());
+            FXNodeAnnotation objectAnnotation = bpa.getAnnotation(triple.getPredicate());
+            if (predicateAnnotation.getTerm() == FX.TypeProperty) {
+                TriplePatternTypeProperty triplePatternTypeProperty = new TriplePatternTypePropertyImpl(triple.getPredicate(), properties);
+                if (objectAnnotation.getTerm() == FX.Root) {
+                    TriplePatternRoot triplePatternRoot = new TriplePatternRootImpl(triple.getObject(), properties);
+                    containerSelector.setRootTriplePattern(triplePatternTypeProperty, triplePatternRoot);
+                } else if (objectAnnotation.getTerm() == FX.Type) {
+                    TriplePatternType triplePatternType = new TriplePatternTypeImpl(triple.getObject(), properties);
+                    containerSelector.addTypeTriplePattern(triplePatternTypeProperty, triplePatternType);
+                } else {
+                    throw new ModelException("Unexpected Type for object in triple " + triple);
+                }
+            }
+        }
+
+        return containerSelectors.values();
+    }
+
 }
