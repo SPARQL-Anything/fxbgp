@@ -1,7 +1,9 @@
 package io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl;
 
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceType;
+import io.github.sparqlanything.model.Triplifier;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 
 import java.util.Properties;
 
@@ -12,8 +14,8 @@ public class DataSourceTypeImpl extends DataSourceFXElementImpl implements DataS
     }
 
     @Override
-    public Node asRDFNode() {
-        throw new RuntimeException();
+    public Node asNode() {
+        return NodeFactory.createURI(Triplifier.XYZ_NS.concat(getSurface()));
     }
 
 }

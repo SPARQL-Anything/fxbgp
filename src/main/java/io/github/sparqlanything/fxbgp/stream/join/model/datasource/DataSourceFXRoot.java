@@ -8,8 +8,9 @@ public interface DataSourceFXRoot extends DataSourceFXElement {
 
     public static final DataSourceFXRoot fxRoot = new DataSourceFXRoot() {
         private Node node = NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT);
+
         @Override
-        public Node asRDFNode() {
+        public Node asNode() {
             return node;
         }
 

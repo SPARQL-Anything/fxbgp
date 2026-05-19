@@ -18,12 +18,11 @@ public class TriplePatternContainerImpl extends TriplePatternNodeImpl implements
 
     @Override
     public boolean matchId(DataSourceContainer dataSourceContainer, ContainerBinding containerBinding) {
-
-        if (super.getBGPNode().isVariable() || dataSourceContainer.getId().matches(surface)) {
+        if (super.asNode().isVariable()) {
             containerBinding.set(this, dataSourceContainer);
             return true;
         }
-        return false;
+        return dataSourceContainer.getId().matches(surface);
 
     }
 

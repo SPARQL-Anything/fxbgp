@@ -7,6 +7,4 @@ import java.util.Properties;
 
 public interface DataSourceFXElement extends FXElement {
 
-    public Node asRDFNode();
-
 }

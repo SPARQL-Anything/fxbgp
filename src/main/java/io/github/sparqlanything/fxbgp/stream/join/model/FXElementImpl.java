@@ -1,6 +1,8 @@
 package io.github.sparqlanything.fxbgp.stream.join.model;
 
+import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceContainerImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceTypeImpl;
+import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.TriplePatternContainerImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.TriplePatternTypeImpl;
 import org.apache.jena.sparql.core.Var;
 
@@ -35,6 +37,7 @@ public abstract class FXElementImpl implements FXElement {
 
     static {
         addMatchingClasses(TriplePatternTypeImpl.class, DataSourceTypeImpl.class);
+        addMatchingClasses(DataSourceContainerImpl.class, TriplePatternContainerImpl.class);
     }
 
     @Override
@@ -42,6 +45,10 @@ public abstract class FXElementImpl implements FXElement {
         // if same class or matching class
         if (!sameClass(o) && !isMatchingClass(o)) {
             return false;
+        }
+
+        if (o instanceof FXElement fxElement && (fxElement.asNode() instanceof Var || this.asNode() instanceof Var)) {
+            return true;
         }
 
         if (o.getClass() == Var.class) {

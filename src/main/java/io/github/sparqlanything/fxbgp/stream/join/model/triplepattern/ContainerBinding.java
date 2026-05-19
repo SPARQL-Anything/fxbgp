@@ -10,8 +10,7 @@ import org.apache.jena.sparql.engine.binding.Binding;
 public interface ContainerBinding {
 
     public void set(TriplePatternNode triplePatternNode, DataSourceFXElement dataSourceFXElement);
-
     public DataSourceFXElement get (TriplePatternNode triplePatternNode);
-
     public Binding asSPARQLBinding();
+    public ContainerBinding copy();
 }

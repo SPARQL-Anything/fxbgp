@@ -9,7 +9,6 @@ import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.TriplePatt
 public interface ContainerSelector {
 
     public ContainerBinding matches(DataSourceContainer container);
-
     public void setRootTriplePattern(TriplePatternTypeProperty rootTypeProperty, TriplePatternRoot triplePatternRoot);
     public void addTypeTriplePattern(TriplePatternTypeProperty typeProperty, TriplePatternType triplePatternType);
 

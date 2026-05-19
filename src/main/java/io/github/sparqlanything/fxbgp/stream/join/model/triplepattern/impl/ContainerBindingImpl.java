@@ -26,10 +26,16 @@ public class ContainerBindingImpl implements ContainerBinding {
     public Binding asSPARQLBinding() {
         BindingBuilder bindingBuilder = Binding.builder();
         bindings.forEach((tpn, dse) -> {
-            if(tpn.getBGPNode() instanceof Var var){
-                bindingBuilder.add(var, dse.asRDFNode());
+            if (tpn.asNode() instanceof Var var) {
+                bindingBuilder.add(var, dse.asNode());
             }
         });
         return bindingBuilder.build();
+    }
+
+    public ContainerBinding copy() {
+        ContainerBindingImpl result = new ContainerBindingImpl();
+        result.bindings.putAll(this.bindings);
+        return result;
     }
 }

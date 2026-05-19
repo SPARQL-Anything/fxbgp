@@ -8,7 +8,7 @@ import java.util.Set;
 
 public class DataSourceContainerCollectorListenerImpl implements DataSourceContainerListener {
 
-    private final Set<DataSourceContainer> collectedContainers = new HashSet<>();
+    protected final Set<DataSourceContainer> collectedContainers = new HashSet<>();
 
     @Override
     public void onDataSourceContainer(DataSourceContainer dataSourceContainer) {

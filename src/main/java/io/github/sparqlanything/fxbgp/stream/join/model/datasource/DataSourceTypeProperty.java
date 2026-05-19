@@ -9,7 +9,7 @@ public interface DataSourceTypeProperty extends DataSourceFXElement {
         private final Node node = RDF.type.asNode();
 
         @Override
-        public Node asRDFNode() {
+        public Node asNode() {
             return node;
         }
 

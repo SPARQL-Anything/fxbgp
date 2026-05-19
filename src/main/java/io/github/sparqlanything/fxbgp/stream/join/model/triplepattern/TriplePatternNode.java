@@ -5,7 +5,4 @@ import org.apache.jena.graph.Node;
 
 public interface TriplePatternNode  extends FXElement {
 
-    public Node getBGPNode();
-
-
 }

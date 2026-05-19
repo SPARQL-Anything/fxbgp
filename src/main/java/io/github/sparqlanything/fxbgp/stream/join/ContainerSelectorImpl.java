@@ -1,5 +1,6 @@
 package io.github.sparqlanything.fxbgp.stream.join;
 
+import com.google.common.collect.Lists;
 import io.github.sparqlanything.fxbgp.FX;
 import io.github.sparqlanything.fxbgp.FXBGPAnnotation;
 import io.github.sparqlanything.fxbgp.FXNodeAnnotation;
@@ -14,7 +15,6 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ContainerSelectorImpl implements ContainerSelector {
 
@@ -26,7 +26,7 @@ public class ContainerSelectorImpl implements ContainerSelector {
     private boolean mustBeRoot = false;
 
     // types
-    private final Map<TriplePatternTypeProperty, Set<TriplePatternType>> triplePatternType = new HashMap<>();
+    private final List<POPattern> triplePatternType = new ArrayList<>();
 
     public ContainerSelectorImpl(TriplePatternContainer triplePatternContainer) {
         this.triplePatternContainer = triplePatternContainer;
@@ -45,10 +45,7 @@ public class ContainerSelectorImpl implements ContainerSelector {
     public void addTypeTriplePattern(TriplePatternTypeProperty typeProperty, TriplePatternType triplePatternType) {
         Objects.requireNonNull(typeProperty);
         Objects.requireNonNull(triplePatternType);
-        Set<TriplePatternType> s = this.triplePatternType.get(typeProperty);
-        if (s == null)
-            s = new HashSet<>();
-        s.add(triplePatternType);
+        this.triplePatternType.add(new POPattern(typeProperty, triplePatternType));
     }
 
     @Override
@@ -65,7 +62,6 @@ public class ContainerSelectorImpl implements ContainerSelector {
 
     private boolean matchTypePropertyTypeTriplePatterns(ContainerBinding containerBinding, DataSourceContainer dataSourceContainer) {
         /*
-
 
         case 1:
         (_, a:TP, t:T) [t] :::
@@ -100,30 +96,45 @@ public class ContainerSelectorImpl implements ContainerSelector {
 
          */
 
-        AtomicBoolean match = new AtomicBoolean(true);
-        Set<ContainerBinding> matching = new HashSet<>();
-        Set<DataSourceType> dataSourceTypes = dataSourceContainer.getTypes();
+        List<List<DataSourceType>> listOfListsOfTypes = new ArrayList<>(this.triplePatternType.size());
+        this.triplePatternType.forEach(po -> listOfListsOfTypes.add(new ArrayList<>(dataSourceContainer.getTypes())));
+        List<List<DataSourceType>> listOfListsOfAssignments = Lists.cartesianProduct(listOfListsOfTypes);
+        // Check assignment
+        for (List<DataSourceType> assignment : listOfListsOfAssignments) {
+            boolean match = true;
+            for (int i = 0; i < assignment.size(); i++) {
+                // check assignment between assignment[i] and this.triplePatternType[i]
+                if (canBeAssignedTo(assignment.get(i), triplePatternType.get(i))) {
+                    if (triplePatternType.get(i).predicate.asNode().isVariable()) {
+                        // assign rdf:type to predicate
+                    }
 
-        for (Map.Entry<TriplePatternTypeProperty, Set<TriplePatternType>> e : triplePatternType.entrySet()) {
-            // check that all types in e.getValue() are types in data source container
-            if (!dataSourceTypes.containsAll(e.getValue())) {
-                match.set(false);
-                break;
-            }
+                    if (triplePatternType.get(i).object.asNode().isVariable()) {
+                        // assign assignment[i] to object
+                    }
 
-            if (e.getKey().getBGPNode().isVariable()) {
+                } else {
+                    match = false;
+                    break;
+                }
             }
-            // if so possible variables are matched
         }
 
+        //TODO
+        return false;
+    }
 
-        return match.get();
+    private boolean canBeAssignedTo(DataSourceType dataSourceType, POPattern poPattern) {
+        return poPattern.object.asNode().isVariable() ||
+                poPattern.object.asNode().isBlank() ||
+                poPattern.object.asNode().isURI() && poPattern.object.equals(dataSourceType);
+
     }
 
 
     private boolean matchTypePropertyTypeTriplePattern(ContainerBinding containerBinding, DataSourceContainer dataSourceContainer, TriplePatternTypeProperty tp, TriplePatternType t) {
         // ?s:C ?p:TP ?o:T
-        if (tp.getBGPNode().isVariable())
+        if (tp.asNode().isVariable())
             containerBinding.set(tp, DataSourceTypeProperty.rdfType);
 
         return false;
@@ -132,13 +143,13 @@ public class ContainerSelectorImpl implements ContainerSelector {
 
     private boolean matchTypePropertyRootTriplePatterns(ContainerBinding containerBinding, DataSourceContainer dataSourceContainer) {
 
-        if ((mustBeRoot && !dataSourceContainer.isRoot()) || (!mustBeRoot && dataSourceContainer.isRoot()))
+        if ((mustBeRoot && !dataSourceContainer.isRoot()))
             return false;
 
-        if (mustBeRoot && rootTypeProperty.getBGPNode().isVariable())
+        if (mustBeRoot && rootTypeProperty.asNode().isVariable())
             containerBinding.set(rootTypeProperty, DataSourceTypeProperty.rdfType);
 
-        if (mustBeRoot && triplePatternRoot.getBGPNode().isVariable())
+        if (mustBeRoot && triplePatternRoot.asNode().isVariable())
             containerBinding.set(triplePatternRoot, DataSourceFXRoot.fxRoot);
 
         return true;
@@ -172,6 +183,18 @@ public class ContainerSelectorImpl implements ContainerSelector {
         }
 
         return containerSelectors.values();
+    }
+
+
+    class POPattern {
+        TriplePatternPredicate predicate;
+        TriplePatternObject object;
+
+        public POPattern(TriplePatternPredicate predicate, TriplePatternObject object) {
+            this.predicate = predicate;
+            this.object = object;
+        }
+
     }
 
 }

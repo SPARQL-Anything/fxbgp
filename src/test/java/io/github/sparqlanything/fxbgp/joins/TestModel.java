@@ -1,14 +1,18 @@
 package io.github.sparqlanything.fxbgp.joins;
 
+import io.github.sparqlanything.fxbgp.stream.join.ContainerSelector;
 import io.github.sparqlanything.fxbgp.stream.join.ContainerSelectorImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceContainer;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceType;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceContainerImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceTypeImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.ContainerBinding;
-import io.github.sparqlanything.fxbgp.stream.join.ContainerSelector;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.TriplePatternContainer;
-import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.*;
+import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.TriplePatternType;
+import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.TriplePatternContainerImpl;
+import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.TriplePatternRootImpl;
+import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.TriplePatternTypeImpl;
+import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.TriplePatternTypePropertyImpl;
 import io.github.sparqlanything.model.IRIArgument;
 import io.github.sparqlanything.model.PropertyUtils;
 import io.github.sparqlanything.model.Triplifier;
@@ -24,15 +28,15 @@ import java.util.Properties;
 
 public class TestModel {
 
-    String root = "https://example.org/root";
-    String containerId = "/abc";
-
-    Properties properties = new Properties();
-
     @Test
     public void testConcreteContainerMatch() {
 
-        DataSourceContainer dataSourceContainer = getDataSourceContainer(properties, false, false);
+        String root = "http://example.org/root/";
+        String containerId = "abc";
+        Properties properties = new Properties();
+        properties.setProperty(IRIArgument.ROOT.toString(), root);
+        properties.setProperty(IRIArgument.BLANK_NODES.toString(), "false");
+        DataSourceContainer dataSourceContainer = new DataSourceContainerImpl(containerId, properties);
 
         // Test if ?c matches with a container with id "/abc"
         Var containerNode = Var.alloc("c");
@@ -42,13 +46,18 @@ public class TestModel {
         Assert.assertNotNull(containerBinding);
 
         Binding binding = containerBinding.asSPARQLBinding();
-        Assert.assertEquals(binding.get(containerNode), NodeFactory.createURI(root + containerId));
+        Assert.assertEquals(NodeFactory.createURI(root + containerId), binding.get(containerNode));
     }
 
     @Test
     public void testBNContainerMatch() {
 
-        DataSourceContainer dataSourceContainer = getDataSourceContainer(properties, false, true);
+        String root = "http://example.org/root/";
+        String containerId = "abc";
+        Properties properties = new Properties();
+        properties.setProperty(IRIArgument.ROOT.toString(), root);
+        properties.setProperty(IRIArgument.BLANK_NODES.toString(), "true");
+        DataSourceContainer dataSourceContainer = new DataSourceContainerImpl(containerId, properties);
 
         Var containerNode = Var.alloc("c");
         TriplePatternContainer triplePatternContainer = new TriplePatternContainerImpl(containerNode, properties);
@@ -64,7 +73,12 @@ public class TestModel {
     public void testRoot() {
         // test match
         // ?c a FX:Root
-        DataSourceContainer dataSourceContainer = getDataSourceContainer(properties, true, false);
+        String root = "http://example.org/root";
+        String containerId = "";
+        Properties properties = new Properties();
+        properties.setProperty(IRIArgument.ROOT.toString(), root);
+        properties.setProperty(IRIArgument.BLANK_NODES.toString(), "false");
+        DataSourceContainer dataSourceContainer = new DataSourceContainerImpl(containerId, properties, true);
 
         Var containerNode = Var.alloc("c");
         TriplePatternContainer triplePatternContainer = new TriplePatternContainerImpl(containerNode, properties);
@@ -84,7 +98,12 @@ public class TestModel {
     public void testRoot2() {
         // test match
         // ?c:Container ?p:TypeProperty fx:Root:FX:Root
-        DataSourceContainer dataSourceContainer = getDataSourceContainer(properties, true, false);
+        String root = "http://example.org/root";
+        String containerId = "";
+        Properties properties = new Properties();
+        properties.setProperty(IRIArgument.ROOT.toString(), root);
+        properties.setProperty(IRIArgument.BLANK_NODES.toString(), "false");
+        DataSourceContainer dataSourceContainer = new DataSourceContainerImpl(containerId, properties, true);
 
         Var containerNode = Var.alloc("c");
         Var predicate = Var.alloc("p");
@@ -105,7 +124,13 @@ public class TestModel {
     public void testRoot3() {
         // test match
         // ?c:Container ?p:TypeProperty ?o:FX:Root
-        DataSourceContainer dataSourceContainer = getDataSourceContainer(properties, true, false);
+        String root = "http://example.org/root";
+        String containerId = "";
+        Properties properties = new Properties();
+        properties.setProperty(IRIArgument.ROOT.toString(), root);
+        properties.setProperty(IRIArgument.BLANK_NODES.toString(), "false");
+        DataSourceContainer dataSourceContainer = new DataSourceContainerImpl(containerId, properties, true);
+
 
         Var containerNode = Var.alloc("c");
         Var predicate = Var.alloc("p");
@@ -124,15 +149,10 @@ public class TestModel {
 
     }
 
-    private DataSourceContainer getDataSourceContainer(Properties properties, boolean isRoot, boolean isBN) {
-        String containerId = isRoot ? "" : this.containerId;
-        // return new DataSourceContainerImpl(isBN, root, properties, isRoot, containerId);
-        return new DataSourceContainerImpl(containerId,  properties, isRoot, containerId);
-    }
-
 
     @Test
     public void testContainsForTypes() {
+        Properties properties = new Properties();
         String ns = PropertyUtils.getStringProperty(properties, IRIArgument.NAMESPACE);
         HashSet<DataSourceType> dataSourceTypes = new HashSet<>();
         DataSourceTypeImpl t1 = new DataSourceTypeImpl("type1", properties);
@@ -140,5 +160,29 @@ public class TestModel {
         dataSourceTypes.add(t1);
         dataSourceTypes.add(t2);
         Assert.assertTrue(dataSourceTypes.contains(new TriplePatternTypeImpl(NodeFactory.createURI(ns + "type1"), properties)));
+    }
+
+    @Test
+    public void testEquals() {
+        Properties properties = new Properties();
+        properties.setProperty(IRIArgument.LOCATION.toString(), "/path/to/location/");
+        properties.setProperty(IRIArgument.BLANK_NODES.toString(), "false");
+        TriplePatternContainerImpl triplePatternContainerVar = new TriplePatternContainerImpl(Var.alloc("c"), properties);
+        DataSourceContainer dataSourceContainer = new DataSourceContainerImpl("abc", properties);
+        Assert.assertTrue(triplePatternContainerVar.equals(dataSourceContainer));
+        Assert.assertTrue(dataSourceContainer.equals(triplePatternContainerVar));
+
+        TriplePatternContainerImpl triplePatternContainerConcrete = new TriplePatternContainerImpl(NodeFactory.createURI("file:///path/to/locationabc"), properties);
+        Assert.assertTrue(triplePatternContainerConcrete.equals(dataSourceContainer));
+        Assert.assertTrue(dataSourceContainer.equals(triplePatternContainerConcrete));
+
+        triplePatternContainerConcrete = new TriplePatternContainerImpl(NodeFactory.createURI("file:///path/to/locationabc2"), properties);
+        Assert.assertFalse(triplePatternContainerConcrete.equals(dataSourceContainer));
+        Assert.assertFalse(dataSourceContainer.equals(triplePatternContainerConcrete));
+
+        TriplePatternType triplePatternType = new TriplePatternTypeImpl(NodeFactory.createURI("file:///path/to/locationabc"), properties);
+        Assert.assertFalse(triplePatternType.equals(dataSourceContainer));
+        Assert.assertFalse(dataSourceContainer.equals(triplePatternType));
+
     }
 }

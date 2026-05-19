@@ -36,10 +36,10 @@ public class TestXMLParser {
         XMLParser xmlParser = new XMLParser(properties, listener);
         xmlParser.parse();
         Set<DataSourceContainer> expected = new HashSet<>();
-        expected.add(new DataSourceContainerImpl("/A/B_1", properties));
-        expected.add(new DataSourceContainerImpl("/A/B_2", properties));
-        expected.add(new DataSourceContainerImpl("/A/B_2/C_1", properties));
-        expected.add(new DataSourceContainerImpl("/A", properties, true));
+        expected.add(new DataSourceContainerImpl("A/B_1", properties));
+        expected.add(new DataSourceContainerImpl("A/B_2", properties));
+        expected.add(new DataSourceContainerImpl("A/B_2/C_1", properties));
+        expected.add(new DataSourceContainerImpl("A", properties, true));
         Assert.assertEquals(expected, listener.getCollectedContainers());
     }
 
@@ -52,12 +52,12 @@ public class TestXMLParser {
         XMLParser xmlParser = new XMLParser(properties, listener);
         xmlParser.parse();
         Set<DataSourceContainer> expected = new HashSet<>();
-        expected.add(new DataSourceContainerImpl("/A/B_1", properties));
-        expected.add(new DataSourceContainerImpl("/A/D_3", properties));
-        expected.add(new DataSourceContainerImpl("/A/B_2", properties));
-        expected.add(new DataSourceContainerImpl("/A/B_2/C_1", properties));
-        expected.add(new DataSourceContainerImpl("/A/B_2/C_2", properties));
-        expected.add(new DataSourceContainerImpl("/A", properties, true));
+        expected.add(new DataSourceContainerImpl("A/B_1", properties));
+        expected.add(new DataSourceContainerImpl("A/D_3", properties));
+        expected.add(new DataSourceContainerImpl("A/B_2", properties));
+        expected.add(new DataSourceContainerImpl("A/B_2/C_1", properties));
+        expected.add(new DataSourceContainerImpl("A/B_2/C_2", properties));
+        expected.add(new DataSourceContainerImpl("A", properties, true));
         Assert.assertEquals(expected.size(), listener.getCollectedContainers().size());
         Assert.assertEquals(expected, listener.getCollectedContainers());
     }
@@ -70,13 +70,13 @@ public class TestXMLParser {
         XMLParser xmlParser = new XMLParser(properties, listener);
         xmlParser.parse();
         Set<DataSourceContainer> expected = new HashSet<>();
-        expected.add(new DataSourceContainerImpl("/A/B_1", properties));
-        expected.add(new DataSourceContainerImpl("/A/D_3", properties));
-        expected.add(new DataSourceContainerImpl("/A/B_2", properties));
-        expected.add(new DataSourceContainerImpl("/A/B_2/C_1", properties));
-        expected.add(new DataSourceContainerImpl("/A/B_2/C_2", properties));
-        expected.add(new DataSourceContainerImpl("/A/B_2/C_2/E_1", properties));
-        expected.add(new DataSourceContainerImpl("/A", properties, true));
+        expected.add(new DataSourceContainerImpl("A/B_1", properties));
+        expected.add(new DataSourceContainerImpl("A/D_3", properties));
+        expected.add(new DataSourceContainerImpl("A/B_2", properties));
+        expected.add(new DataSourceContainerImpl("A/B_2/C_1", properties));
+        expected.add(new DataSourceContainerImpl("A/B_2/C_2", properties));
+        expected.add(new DataSourceContainerImpl("A/B_2/C_2/E_1", properties));
+        expected.add(new DataSourceContainerImpl("A", properties, true));
         Assert.assertEquals(expected.size(), listener.getCollectedContainers().size());
         Assert.assertEquals(expected, listener.getCollectedContainers());
     }

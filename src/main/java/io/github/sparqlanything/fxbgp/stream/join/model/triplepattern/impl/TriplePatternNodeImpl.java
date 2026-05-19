@@ -16,7 +16,7 @@ public abstract class TriplePatternNodeImpl extends FXElementImpl implements Tri
     }
 
     @Override
-    public Node getBGPNode() {
+    public Node asNode() {
         return node;
     }
 

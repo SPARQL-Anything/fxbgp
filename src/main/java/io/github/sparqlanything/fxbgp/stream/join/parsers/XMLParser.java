@@ -26,7 +26,7 @@ public class XMLParser {
     private final XMLEventReader eventReader;
     private final Deque<DataSourceContainer> openContainers = new ArrayDeque<>(100);
     private final Deque<Integer> childrenIds = new ArrayDeque<>(100);
-    private final StringBuilder idBuilder = new StringBuilder("/");
+    private final StringBuilder idBuilder = new StringBuilder();
     private final DataSourceContainerListener listener;
 
     public XMLParser(Properties properties, DataSourceContainerListener listener) {

@@ -6,6 +6,7 @@ import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceSlo
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceType;
 import io.github.sparqlanything.model.IRIArgument;
 import io.github.sparqlanything.model.PropertyUtils;
+import io.github.sparqlanything.model.Triplifier;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 
@@ -20,11 +21,12 @@ public class DataSourceContainerImpl extends DataSourceFXElementImpl implements 
     private final boolean useBlankNodes;
 
     public DataSourceContainerImpl(String id, Properties properties) {
-        this(id, properties, false, PropertyUtils.getStringProperty(properties, IRIArgument.ROOT));
+        this(id, properties, false, Triplifier.getRootArgument(properties));
     }
 
     public DataSourceContainerImpl(String id, Properties properties, boolean isRoot) {
         this(id, properties, isRoot, PropertyUtils.getStringProperty(properties, IRIArgument.ROOT));
+
     }
 
     public DataSourceContainerImpl(String id, Properties properties, boolean isRoot, String root) {
@@ -67,14 +69,12 @@ public class DataSourceContainerImpl extends DataSourceFXElementImpl implements 
         return super.getSurface();
     }
 
-    @Override
-    public Node asRDFNode() {
+    public Node asNode() {
 
         if (useBlankNodes)
             return NodeFactory.createBlankNode(getSurface());
 
         return NodeFactory.createURI(root.concat(getSurface()));
     }
-
 
 }
