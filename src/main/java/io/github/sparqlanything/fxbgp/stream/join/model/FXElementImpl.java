@@ -78,6 +78,9 @@ public abstract class FXElementImpl implements FXElement {
 
     @Override
     public String toString() {
-        return surface;
+        return getClass().getSimpleName() + "{" +
+                "surface='" + surface + '\'' +
+                " node='" + asNode() + '\'' +
+                '}';
     }
 }

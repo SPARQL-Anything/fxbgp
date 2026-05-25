@@ -6,7 +6,7 @@ import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceCon
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceType;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceContainerImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceTypeImpl;
-import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.ContainerBinding;
+import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.ContainerIsomorphism;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.TriplePatternContainer;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.TriplePatternType;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.TriplePatternContainerImpl;
@@ -23,6 +23,7 @@ import org.apache.jena.vocabulary.RDF;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Properties;
 
@@ -42,10 +43,10 @@ public class TestModel {
         Var containerNode = Var.alloc("c");
         TriplePatternContainer triplePatternContainer = new TriplePatternContainerImpl(containerNode, properties);
         ContainerSelector containerSelector = new ContainerSelectorImpl(triplePatternContainer);
-        ContainerBinding containerBinding = containerSelector.matches(dataSourceContainer);
+        Collection<ContainerIsomorphism> containerBinding = containerSelector.matches(dataSourceContainer);
         Assert.assertNotNull(containerBinding);
 
-        Binding binding = containerBinding.asSPARQLBinding();
+        Binding binding = containerBinding.iterator().next().asBinding();
         Assert.assertEquals(NodeFactory.createURI(root + containerId), binding.get(containerNode));
     }
 
@@ -62,10 +63,10 @@ public class TestModel {
         Var containerNode = Var.alloc("c");
         TriplePatternContainer triplePatternContainer = new TriplePatternContainerImpl(containerNode, properties);
         ContainerSelector containerSelector = new ContainerSelectorImpl(triplePatternContainer);
-        ContainerBinding containerBinding = containerSelector.matches(dataSourceContainer);
+        Collection<ContainerIsomorphism> containerBinding = containerSelector.matches(dataSourceContainer);
         Assert.assertNotNull(containerBinding);
 
-        Binding binding = containerBinding.asSPARQLBinding();
+        Binding binding = containerBinding.iterator().next().asBinding();
         Assert.assertEquals(binding.get(containerNode), NodeFactory.createBlankNode(containerId));
     }
 
@@ -85,10 +86,10 @@ public class TestModel {
         ContainerSelector containerSelector = new ContainerSelectorImpl(triplePatternContainer);
         containerSelector.setRootTriplePattern(new TriplePatternTypePropertyImpl(RDF.type.asNode(), properties), new TriplePatternRootImpl(NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT), properties));
 
-        ContainerBinding containerBinding = containerSelector.matches(dataSourceContainer);
+        Collection<ContainerIsomorphism> containerBinding = containerSelector.matches(dataSourceContainer);
         Assert.assertNotNull(containerBinding);
 
-        Binding binding = containerBinding.asSPARQLBinding();
+        Binding binding = containerBinding.iterator().next().asBinding();
         Assert.assertEquals(NodeFactory.createURI(root), binding.get(containerNode));
 
     }
@@ -111,10 +112,10 @@ public class TestModel {
         ContainerSelector containerSelector = new ContainerSelectorImpl(triplePatternContainer);
         containerSelector.setRootTriplePattern(new TriplePatternTypePropertyImpl(predicate, properties), new TriplePatternRootImpl(NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT), properties));
 
-        ContainerBinding containerBinding = containerSelector.matches(dataSourceContainer);
+        Collection<ContainerIsomorphism> containerBinding = containerSelector.matches(dataSourceContainer);
         Assert.assertNotNull(containerBinding);
 
-        Binding binding = containerBinding.asSPARQLBinding();
+        Binding binding = containerBinding.iterator().next().asBinding();
         Assert.assertEquals(NodeFactory.createURI(root), binding.get(containerNode));
         Assert.assertEquals(RDF.type.getURI(), binding.get(predicate).getURI());
 
@@ -139,10 +140,10 @@ public class TestModel {
         ContainerSelector containerSelector = new ContainerSelectorImpl(triplePatternContainer);
         containerSelector.setRootTriplePattern(new TriplePatternTypePropertyImpl(predicate, properties), new TriplePatternRootImpl(o, properties));
 
-        ContainerBinding containerBinding = containerSelector.matches(dataSourceContainer);
+        Collection<ContainerIsomorphism> containerBinding = containerSelector.matches(dataSourceContainer);
         Assert.assertNotNull(containerBinding);
 
-        Binding binding = containerBinding.asSPARQLBinding();
+        Binding binding = containerBinding.iterator().next().asBinding();
         Assert.assertEquals(NodeFactory.createURI(root), binding.get(containerNode));
         Assert.assertEquals(RDF.type.getURI(), binding.get(predicate).getURI());
         Assert.assertEquals(Triplifier.FACADE_X_TYPE_ROOT, binding.get(o).getURI());

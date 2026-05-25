@@ -1,6 +1,5 @@
 package io.github.sparqlanything.fxbgp.joins;
 
-import io.github.sparqlanything.fxbgp.BGPTestUtils;
 import io.github.sparqlanything.fxbgp.stream.join.listeners.impl.DataSourceContainerCollectorListenerImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceContainer;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceContainerImpl;
@@ -12,7 +11,6 @@ import org.junit.Test;
 import org.junit.rules.TestName;
 
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
@@ -22,16 +20,10 @@ public class TestXMLParser {
     @Rule
     public TestName name = new TestName();
 
-    private String getInputFilename(String methodName) throws URISyntaxException {
-        URL url = BGPTestUtils.class.getClassLoader().getResource("./joins/xml/" + methodName + ".xml");
-        Assert.assertNotNull(url);
-        return url.toURI().toString();
-    }
-
     @Test
     public void test1() throws URISyntaxException {
         Properties properties = new Properties();
-        properties.setProperty(IRIArgument.LOCATION.toString(), getInputFilename(name.getMethodName()));
+        properties.setProperty(IRIArgument.LOCATION.toString(), TestUtils.getInputFilename(name.getMethodName()));
         DataSourceContainerCollectorListenerImpl listener = new DataSourceContainerCollectorListenerImpl();
         XMLParser xmlParser = new XMLParser(properties, listener);
         xmlParser.parse();
@@ -47,7 +39,7 @@ public class TestXMLParser {
     @Test
     public void test2() throws URISyntaxException {
         Properties properties = new Properties();
-        properties.setProperty(IRIArgument.LOCATION.toString(), getInputFilename(name.getMethodName()));
+        properties.setProperty(IRIArgument.LOCATION.toString(), TestUtils.getInputFilename(name.getMethodName()));
         DataSourceContainerCollectorListenerImpl listener = new DataSourceContainerCollectorListenerImpl();
         XMLParser xmlParser = new XMLParser(properties, listener);
         xmlParser.parse();
@@ -65,7 +57,7 @@ public class TestXMLParser {
     @Test
     public void test3() throws URISyntaxException {
         Properties properties = new Properties();
-        properties.setProperty(IRIArgument.LOCATION.toString(), getInputFilename(name.getMethodName()));
+        properties.setProperty(IRIArgument.LOCATION.toString(), TestUtils.getInputFilename(name.getMethodName()));
         DataSourceContainerCollectorListenerImpl listener = new DataSourceContainerCollectorListenerImpl();
         XMLParser xmlParser = new XMLParser(properties, listener);
         xmlParser.parse();

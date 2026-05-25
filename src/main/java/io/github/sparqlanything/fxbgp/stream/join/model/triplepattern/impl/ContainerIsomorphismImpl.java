@@ -1,20 +1,24 @@
 package io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl;
 
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceFXElement;
-import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.ContainerBinding;
+import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.ContainerIsomorphism;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.TriplePatternNode;
+import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.engine.binding.Binding;
 import org.apache.jena.sparql.engine.binding.BindingBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
-public class ContainerBindingImpl implements ContainerBinding {
+public class ContainerIsomorphismImpl implements ContainerIsomorphism {
 
     private final Map<TriplePatternNode, DataSourceFXElement> bindings = new HashMap<>();
 
     public void set(TriplePatternNode triplePatternNode, DataSourceFXElement dataSourceFXElement) {
+        Objects.requireNonNull(triplePatternNode);
+        Objects.requireNonNull(dataSourceFXElement);
         bindings.put(triplePatternNode, dataSourceFXElement);
     }
 
@@ -23,7 +27,7 @@ public class ContainerBindingImpl implements ContainerBinding {
     }
 
     @Override
-    public Binding asSPARQLBinding() {
+    public Binding asBinding() {
         BindingBuilder bindingBuilder = Binding.builder();
         bindings.forEach((tpn, dse) -> {
             if (tpn.asNode() instanceof Var var) {
@@ -33,9 +37,23 @@ public class ContainerBindingImpl implements ContainerBinding {
         return bindingBuilder.build();
     }
 
-    public ContainerBinding copy() {
-        ContainerBindingImpl result = new ContainerBindingImpl();
+    public ContainerIsomorphism copy() {
+        ContainerIsomorphismImpl result = new ContainerIsomorphismImpl();
         result.bindings.putAll(this.bindings);
         return result;
+    }
+
+    @Override
+    public Map<Node, Node> asMap() {
+        Map<Node, Node> result = new HashMap<>();
+        bindings.forEach((k, v) -> result.put(k.asNode(), v.asNode()));
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "ContainerBindingImpl{" +
+                "bindings=" + bindings +
+                '}';
     }
 }

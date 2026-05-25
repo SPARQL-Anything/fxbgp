@@ -1,7 +1,5 @@
 package io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl;
 
-import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceContainer;
-import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.ContainerBinding;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.TriplePatternContainer;
 import io.github.sparqlanything.model.Triplifier;
 import org.apache.jena.graph.Node;
@@ -14,16 +12,6 @@ public class TriplePatternContainerImpl extends TriplePatternNodeImpl implements
 
     public TriplePatternContainerImpl(Node node, Properties properties) {
         super(extractSurface(node, properties), node, properties);
-    }
-
-    @Override
-    public boolean matchId(DataSourceContainer dataSourceContainer, ContainerBinding containerBinding) {
-        if (super.asNode().isVariable()) {
-            containerBinding.set(this, dataSourceContainer);
-            return true;
-        }
-        return dataSourceContainer.getId().matches(surface);
-
     }
 
     private static String extractSurface(Node node, Properties properties) {

@@ -4,6 +4,5 @@ import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceCon
 
 public interface TriplePatternContainer extends TriplePatternObject, TriplePatternSubject {
 
-    public boolean matchId(DataSourceContainer dataSourceContainer, ContainerBinding containerBinding);
 
 }
