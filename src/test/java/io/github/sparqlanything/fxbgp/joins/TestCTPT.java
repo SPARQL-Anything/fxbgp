@@ -21,34 +21,6 @@ public class TestCTPT {
     @Rule
     public TestName name = new TestName();
 
-    /*
-
-
-        case 3:
-
-
-        case 4:
-        (_, ?p1:TP, t1:T) (_, ?p2:TP, t2:T) [t1, t2] ::: ?p1 = <rdf:type, ?p2 = rdf:type>
-
-        case 5:
-        (_, ?p1:TP, ?t1:T) (_, ?p2:TP, ?t2:T) [t1, t2] :::
-            <?p1 = rdf:type, ?p2 = rdf:type, ?t1 = t1, ?t2 = ?t1>
-            <?p1 = rdf:type, ?p2 = rdf:type, ?t1 = t2, ?t2 = ?t2>
-            <?p1 = rdf:type, ?p2 = rdf:type, ?t1 = t1, ?t2 = ?t2>
-            <?p1 = rdf:type, ?p2 = rdf:type, ?t1 = t2, ?t2 = ?t1>
-
-
-        case N2:
-        (_, a:TP, t1:T) (_, a:TP, t2:T) [t] ::: X
-
-        case N3:
-        (_, a:TP, t1:T) (_, a:TP, t2:T) [t1] ::: X
-
-        case N4:
-        (_, a:TP, t1:T) (_, a:TP, t2:T) [t1, t] ::: X
-
-         */
-
     static Set<List<FX>> pattern = new HashSet<>();
 
     static {
@@ -78,7 +50,6 @@ public class TestCTPT {
 
 
     // (_, ?p:TP, A1:T) (_, ?p:TP, A2:T) [A1, A2] ::: ?p = rdf:type
-
     @Test
     public void sc_doubleType_doubleType() throws IOException, URISyntaxException {
         Properties properties = new Properties();
@@ -88,5 +59,56 @@ public class TestCTPT {
         dataSourceContainer.addType(new DataSourceTypeImpl("A2", properties));
 
         TestUtils.assertEquals(name.getMethodName(), pattern, true, Set.of(dataSourceContainer), properties);
+    }
+
+
+    // (_, ?p1:TP, A1:T) (_, ?p2:TP, A2:T) [A1, A2] ::: ?p1 = rdf:type, ?p2 = rdf:type
+
+    @Test
+    public void sc_doubleTypeDoublePredicate_doubleTypeDoublePredicate() throws IOException, URISyntaxException {
+        Properties properties = new Properties();
+        properties.setProperty(IRIArgument.ROOT.toString(), "https://example.org/root");
+        DataSourceContainer dataSourceContainer = new DataSourceContainerImpl("A", properties);
+        dataSourceContainer.addType(new DataSourceTypeImpl("A1", properties));
+        dataSourceContainer.addType(new DataSourceTypeImpl("A2", properties));
+
+        TestUtils.assertEquals(name.getMethodName(), pattern, true, Set.of(dataSourceContainer), properties);
+    }
+
+    /*
+    case 5:
+        (_, ?p1:TP, ?t1:T) (_, ?p2:TP, ?t2:T) [t1, t2] :::
+            <?p1 = rdf:type, ?p2 = rdf:type, ?t1 = t1, ?t2 = ?t1>
+            <?p1 = rdf:type, ?p2 = rdf:type, ?t1 = t2, ?t2 = ?t2>
+            <?p1 = rdf:type, ?p2 = rdf:type, ?t1 = t1, ?t2 = ?t2>
+            <?p1 = rdf:type, ?p2 = rdf:type, ?t1 = t2, ?t2 = ?t1>
+     */
+    @Test
+    public void sc_doubleTypeDoublePredicateVar_doubleTypeDoublePredicateVar() throws IOException, URISyntaxException {
+        Properties properties = new Properties();
+        properties.setProperty(IRIArgument.ROOT.toString(), "https://example.org/root");
+        DataSourceContainer dataSourceContainer = new DataSourceContainerImpl("A", properties);
+        dataSourceContainer.addType(new DataSourceTypeImpl("A1", properties));
+        dataSourceContainer.addType(new DataSourceTypeImpl("A2", properties));
+
+        TestUtils.assertEquals(name.getMethodName(), pattern, true, Set.of(dataSourceContainer), properties);
+    }
+
+    // (_, a:TP, A:T) (_, a:TP, t2:T) [A] ::: NO MATCH
+    @Test
+    public void test6_doubleType_noMatch() throws IOException, URISyntaxException {
+        TestUtils.assertEquals(name.getMethodName(), pattern, false);
+    }
+
+    // (_, a:TP, t1:T) (_, a:TP, t2:T) [t1, t] ::: X
+    @Test
+    public void sc_doubleType_noMatch() throws IOException, URISyntaxException {
+        Properties properties = new Properties();
+        properties.setProperty(IRIArgument.ROOT.toString(), "https://example.org/root");
+        DataSourceContainer dataSourceContainer = new DataSourceContainerImpl("A", properties);
+        dataSourceContainer.addType(new DataSourceTypeImpl("A1", properties));
+        dataSourceContainer.addType(new DataSourceTypeImpl("A3", properties));
+
+        TestUtils.assertEquals(name.getMethodName(), pattern, false, Set.of(dataSourceContainer), properties);
     }
 }

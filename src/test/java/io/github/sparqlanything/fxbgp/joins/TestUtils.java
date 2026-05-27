@@ -54,7 +54,8 @@ public class TestUtils {
 
     private static URL getBindingsURL(String methodName) {
         String file = getMethodNamePart(methodName, 2);
-
+        if (file.equals("noMatch"))
+            return null;
         URL url = TestUtils.class.getClassLoader().getResource("./joins/bindings/" + file + ".csv");
         Assert.assertNotNull(url);
         return url;
@@ -69,6 +70,8 @@ public class TestUtils {
 
     public static Set<Map<Node, Node>> getBindings(String methodName) throws URISyntaxException, IOException {
         URL url = getBindingsURL(methodName);
+        if (url == null)
+            return new HashSet<>();
         return readCSVAsBindings(new File(url.toURI()).getAbsolutePath());
     }
 
@@ -204,7 +207,11 @@ public class TestUtils {
         for (ContainerSelector selector : selectors) {
             for (DataSourceContainer dataSourceContainer : sourceContainers) {
                 Collection<ContainerIsomorphism> bindings = selector.matches(dataSourceContainer);
-                if (mustHaveResults) {
+
+                if(!mustHaveResults)
+                    Assert.assertNull(bindings);
+
+                if (mustHaveResults && bindings != null) {
                     Assert.assertNotNull(bindings);
                     isomorphisms.addAll(bindings);
                 }

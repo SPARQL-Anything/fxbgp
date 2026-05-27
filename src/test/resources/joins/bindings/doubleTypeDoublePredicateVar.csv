@@ -1,0 +1,5 @@
+_:s,?p1,?p2,?t1,?t2
+_:A,rdf:type,rdf:type,xyz:A1,xyz:A2
+_:A,rdf:type,rdf:type,xyz:A1,xyz:A1
+_:A,rdf:type,rdf:type,xyz:A2,xyz:A1
+_:A,rdf:type,rdf:type,xyz:A2,xyz:A2
