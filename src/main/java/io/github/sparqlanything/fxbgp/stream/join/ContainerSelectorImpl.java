@@ -105,7 +105,7 @@ public class ContainerSelectorImpl implements ContainerSelector {
     private boolean canBeAssignedTo(DataSourceType dataSourceType, POPattern poPattern) {
         return poPattern.object.asNode().isVariable() ||
                 poPattern.object.asNode().isBlank() ||
-                poPattern.object.asNode().isURI() && poPattern.object.equals(dataSourceType);
+                poPattern.object.asNode().isURI() && poPattern.object.matches(dataSourceType);
 
     }
 
@@ -142,27 +142,26 @@ public class ContainerSelectorImpl implements ContainerSelector {
 
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("{ ");
-        stringBuilder.append("TPC: ");
-        stringBuilder.append(triplePatternContainer);
-        stringBuilder.append(" ; ");
-        stringBuilder.append("RTP: ");
-        stringBuilder.append(rootTypeProperty);
-        stringBuilder.append(" ; ");
-        stringBuilder.append("FXROOT: ");
-        stringBuilder.append(triplePatternRoot);
-        stringBuilder.append(" ; ");
-        stringBuilder.append("Root?: ");
-        stringBuilder.append(mustBeRoot);
-        stringBuilder.append(" ; ");
 
-        stringBuilder.append("CTPT: ");
-        stringBuilder.append(this.triplePatternType);
-        stringBuilder.append(" }");
+        String stringBuilder = "{ " +
+                "TPC: " +
+                triplePatternContainer +
+                " ; " +
+                "RTP: " +
+                rootTypeProperty +
+                " ; " +
+                "FXROOT: " +
+                triplePatternRoot +
+                " ; " +
+                "Root?: " +
+                mustBeRoot +
+                " ; " +
+                "CTPT: " +
+                this.triplePatternType +
+                " }";
 
 
-        return stringBuilder.toString();
+        return stringBuilder;
     }
 
     static class POPattern {

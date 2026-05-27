@@ -1,5 +1,6 @@
 package io.github.sparqlanything.fxbgp.stream.join.model.datasource;
 
+import io.github.sparqlanything.fxbgp.stream.join.model.FXElement;
 import io.github.sparqlanything.model.Triplifier;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -7,11 +8,16 @@ import org.apache.jena.graph.NodeFactory;
 public interface DataSourceFXRoot extends DataSourceFXElement {
 
     public static final DataSourceFXRoot fxRoot = new DataSourceFXRoot() {
-        private Node node = NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT);
+        private static final Node node = NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT);
 
         @Override
         public Node asNode() {
             return node;
+        }
+
+        @Override
+        public boolean matches(FXElement o) {
+            return o.asNode().equals(node);
         }
 
         @Override

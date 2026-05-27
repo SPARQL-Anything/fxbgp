@@ -1,9 +1,6 @@
 package io.github.sparqlanything.fxbgp.joins;
 
-import io.github.sparqlanything.fxbgp.AnalyserGrounder;
-import io.github.sparqlanything.fxbgp.BGPTestUtils;
-import io.github.sparqlanything.fxbgp.FXBGPAnnotation;
-import io.github.sparqlanything.fxbgp.FXModel;
+import io.github.sparqlanything.fxbgp.*;
 import io.github.sparqlanything.fxbgp.stream.join.ContainerSelector;
 import io.github.sparqlanything.fxbgp.stream.join.listeners.impl.DataSourceContainerCollectorListenerImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceContainer;
@@ -15,6 +12,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.core.Var;
@@ -83,6 +81,11 @@ public class TestUtils {
 
     public static Set<ContainerSelector> getContainerSelectors(String methodName, Properties properties) throws
             IOException {
+        return getContainerSelectors(methodName, properties, null);
+    }
+
+    public static Set<ContainerSelector> getContainerSelectors(String methodName, Properties properties, Set<List<FX>> patterns) throws
+            IOException {
         URL url = TestUtils.class.getClassLoader().getResource("./joins/queries/" + methodName + ".easybgp");
         Assert.assertNotNull(url);
         BasicPattern basicPattern = BGPTestUtils.readBGP(url);
@@ -91,10 +94,28 @@ public class TestUtils {
         Set<FXBGPAnnotation> annotations = ag.annotate(opBGP, true);
         Set<ContainerSelector> containerSelectors = new HashSet<>();
         for (FXBGPAnnotation annotation : annotations) {
-            containerSelectors.addAll(ContainerSelector.getSelectors(annotation, properties));
+            if (complyWithPatterns(annotation, patterns)) {
+                containerSelectors.addAll(ContainerSelector.getSelectors(annotation, properties));
+            }
         }
 
         return containerSelectors;
+    }
+
+    private static boolean complyWithPatterns(FXBGPAnnotation annotation, Set<List<FX>> patterns) {
+        if (patterns == null)
+            return true;
+
+        for (Triple t : annotation.getOpBGP().getPattern().getList()) {
+            FX subjectType = annotation.getAnnotation(t.getSubject()).getTerm();
+            FX predicateType = annotation.getAnnotation(t.getPredicate()).getTerm();
+            FX objectType = annotation.getAnnotation(t.getObject()).getTerm();
+
+            if (!patterns.contains(List.of(subjectType, predicateType, objectType)))
+                return false;
+        }
+
+        return true;
     }
 
     private static Node stringToNode(String s) {
@@ -116,8 +137,11 @@ public class TestUtils {
         throw new RuntimeException("Unrecognized format!");
     }
 
-
     public static void assertEquals(String methodName) throws IOException, URISyntaxException {
+        assertEquals(methodName, null);
+    }
+
+    public static void assertEquals(String methodName, Set<List<FX>> triplePatterns) throws IOException, URISyntaxException {
 
         //System.out.println(TestUtils.getBindings(name.getMethodName()));
         Properties properties = new Properties();
@@ -128,7 +152,7 @@ public class TestUtils {
         xmlParser.parse();
         Set<DataSourceContainer> sourceContainers = listener.getCollectedContainers();
 
-        Set<ContainerSelector> selectors = TestUtils.getContainerSelectors(methodName, properties);
+        Set<ContainerSelector> selectors = TestUtils.getContainerSelectors(methodName, properties, triplePatterns);
         Collection<ContainerIsomorphism> isomorphisms = new HashSet<>();
 
         for (ContainerSelector selector : selectors) {

@@ -41,21 +41,17 @@ public abstract class FXElementImpl implements FXElement {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean matches(FXElement fxElement) {
         // if same class or matching class
-        if (!sameClass(o) && !isMatchingClass(o)) {
+        if (!sameClass(fxElement) && !isMatchingClass(fxElement)) {
             return false;
         }
 
-        if (o instanceof FXElement fxElement && (fxElement.asNode() instanceof Var || this.asNode() instanceof Var)) {
+        if (fxElement.asNode() instanceof Var || this.asNode() instanceof Var) {
             return true;
         }
 
-        if (o.getClass() == Var.class) {
-            return true;
-        }
-
-        return getSurface().equals(((FXElement) o).getSurface());
+        return asNode().equals(fxElement.asNode());
     }
 
     private boolean sameClass(Object o) {
@@ -74,6 +70,11 @@ public abstract class FXElementImpl implements FXElement {
     @Override
     public String getSurface() {
         return surface;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof FXElement fxElement && matches(fxElement);
     }
 
     @Override

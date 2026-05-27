@@ -170,20 +170,20 @@ public class TestModel {
         properties.setProperty(IRIArgument.BLANK_NODES.toString(), "false");
         TriplePatternContainerImpl triplePatternContainerVar = new TriplePatternContainerImpl(Var.alloc("c"), properties);
         DataSourceContainer dataSourceContainer = new DataSourceContainerImpl("abc", properties);
-        Assert.assertTrue(triplePatternContainerVar.equals(dataSourceContainer));
-        Assert.assertTrue(dataSourceContainer.equals(triplePatternContainerVar));
+        Assert.assertTrue(triplePatternContainerVar.matches(dataSourceContainer));
+        Assert.assertTrue(dataSourceContainer.matches(triplePatternContainerVar));
 
         TriplePatternContainerImpl triplePatternContainerConcrete = new TriplePatternContainerImpl(NodeFactory.createURI("file:///path/to/locationabc"), properties);
-        Assert.assertTrue(triplePatternContainerConcrete.equals(dataSourceContainer));
-        Assert.assertTrue(dataSourceContainer.equals(triplePatternContainerConcrete));
+        Assert.assertTrue(triplePatternContainerConcrete.matches(dataSourceContainer));
+        Assert.assertTrue(dataSourceContainer.matches(triplePatternContainerConcrete));
 
         triplePatternContainerConcrete = new TriplePatternContainerImpl(NodeFactory.createURI("file:///path/to/locationabc2"), properties);
-        Assert.assertFalse(triplePatternContainerConcrete.equals(dataSourceContainer));
-        Assert.assertFalse(dataSourceContainer.equals(triplePatternContainerConcrete));
+        Assert.assertFalse(triplePatternContainerConcrete.matches(dataSourceContainer));
+        Assert.assertFalse(dataSourceContainer.matches(triplePatternContainerConcrete));
 
         TriplePatternType triplePatternType = new TriplePatternTypeImpl(NodeFactory.createURI("file:///path/to/locationabc"), properties);
-        Assert.assertFalse(triplePatternType.equals(dataSourceContainer));
-        Assert.assertFalse(dataSourceContainer.equals(triplePatternType));
+        Assert.assertFalse(triplePatternType.matches(dataSourceContainer));
+        Assert.assertFalse(dataSourceContainer.matches(triplePatternType));
 
     }
 }

@@ -1,5 +1,6 @@
 package io.github.sparqlanything.fxbgp.stream.join.model.datasource;
 
+import io.github.sparqlanything.fxbgp.stream.join.model.FXElement;
 import org.apache.jena.graph.Node;
 import org.apache.jena.vocabulary.RDF;
 
@@ -11,6 +12,11 @@ public interface DataSourceTypeProperty extends DataSourceFXElement {
         @Override
         public Node asNode() {
             return node;
+        }
+
+        @Override
+        public boolean matches(FXElement o) {
+            return o.asNode().equals(RDF.type.asNode());
         }
 
         @Override
