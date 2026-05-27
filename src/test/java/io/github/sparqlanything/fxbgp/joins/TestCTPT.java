@@ -18,11 +18,6 @@ public class TestCTPT {
 
     /*
 
-        test 1:
-        (_, a:TP, A:T) [A] :::
-
-        test 2:
-        (_, ?p:TP, t:T) [t] ::: ?p = rdf:type
 
         case 3:
         (_, ?p:TP, t1:T) (_, ?p:TP, t2:T) [t1, t2] ::: ?p = rdf:type
@@ -37,8 +32,6 @@ public class TestCTPT {
             <?p1 = rdf:type, ?p2 = rdf:type, ?t1 = t1, ?t2 = ?t2>
             <?p1 = rdf:type, ?p2 = rdf:type, ?t1 = t2, ?t2 = ?t1>
 
-        test 4n:
-        (_, a:TP, t1:T) [t] ::: X
 
         case N2:
         (_, a:TP, t1:T) (_, a:TP, t2:T) [t] ::: X
@@ -57,15 +50,21 @@ public class TestCTPT {
         pattern.add(List.of(FX.Container, FX.TypeProperty, FX.Type));
     }
 
+    // (_, a:TP, A:T) [A] :::
+
     @Test
     public void test4() throws IOException, URISyntaxException {
         TestUtils.assertEquals(name.getMethodName(), pattern);
     }
 
+    // (_, ?p:TP, t:T) [t] ::: ?p = rdf:type
+
     @Test
     public void test5() throws IOException, URISyntaxException {
         TestUtils.assertEquals(name.getMethodName(), pattern);
     }
+
+    // (_, a:TP, t1:T) [t] ::: X
 
     @Test
     public void test4_test4n_test4n() throws IOException, URISyntaxException {

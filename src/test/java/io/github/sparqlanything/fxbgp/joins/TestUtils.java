@@ -169,23 +169,32 @@ public class TestUtils {
     }
 
     public static void assertEquals(String methodName) throws IOException, URISyntaxException {
-        assertEquals(methodName, null);
+        assertEquals(methodName, null, true, null);
     }
 
     public static void assertEquals(String methodName, Set<List<FX>> triplePatterns) throws IOException, URISyntaxException {
-        assertEquals(methodName, triplePatterns, true);
+        assertEquals(methodName, triplePatterns, true, null);
     }
 
     public static void assertEquals(String methodName, Set<List<FX>> triplePatterns, boolean mustHaveResults) throws IOException, URISyntaxException {
+        assertEquals(methodName, triplePatterns, mustHaveResults, null);
+    }
+
+
+    public static void assertEquals(String methodName, Set<List<FX>> triplePatterns, boolean mustHaveResults, Set<DataSourceContainer> syntheticContainers) throws IOException, URISyntaxException {
 
         //System.out.println(TestUtils.getBindings(name.getMethodName()));
         Properties properties = new Properties();
+        Set<DataSourceContainer> sourceContainers = syntheticContainers;
 
-        properties.setProperty(IRIArgument.LOCATION.toString(), TestUtils.getInputFilename(methodName));
-        DataSourceContainerCollectorListenerImpl listener = new DataSourceContainerCollectorListenerImpl();
-        XMLParser xmlParser = new XMLParser(properties, listener);
-        xmlParser.parse();
-        Set<DataSourceContainer> sourceContainers = listener.getCollectedContainers();
+        if (syntheticContainers == null) {
+            properties.setProperty(IRIArgument.LOCATION.toString(), TestUtils.getInputFilename(methodName));
+
+            DataSourceContainerCollectorListenerImpl listener = new DataSourceContainerCollectorListenerImpl();
+            XMLParser xmlParser = new XMLParser(properties, listener);
+            xmlParser.parse();
+            sourceContainers = listener.getCollectedContainers();
+        }
 
         Set<ContainerSelector> selectors = TestUtils.getContainerSelectors(methodName, properties, triplePatterns);
         Collection<ContainerIsomorphism> isomorphisms = new HashSet<>();
@@ -193,7 +202,7 @@ public class TestUtils {
         for (ContainerSelector selector : selectors) {
             for (DataSourceContainer dataSourceContainer : sourceContainers) {
                 Collection<ContainerIsomorphism> bindings = selector.matches(dataSourceContainer);
-                if(mustHaveResults) {
+                if (mustHaveResults) {
                     Assert.assertNotNull(bindings);
                     isomorphisms.addAll(bindings);
                 }
