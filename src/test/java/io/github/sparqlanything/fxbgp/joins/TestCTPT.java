@@ -18,10 +18,10 @@ public class TestCTPT {
 
     /*
 
-        case 1:
+        test 1:
         (_, a:TP, A:T) [A] :::
 
-        case 2:
+        test 2:
         (_, ?p:TP, t:T) [t] ::: ?p = rdf:type
 
         case 3:
@@ -37,7 +37,7 @@ public class TestCTPT {
             <?p1 = rdf:type, ?p2 = rdf:type, ?t1 = t1, ?t2 = ?t2>
             <?p1 = rdf:type, ?p2 = rdf:type, ?t1 = t2, ?t2 = ?t1>
 
-        case N1:
+        test 4n:
         (_, a:TP, t1:T) [t] ::: X
 
         case N2:
@@ -65,5 +65,10 @@ public class TestCTPT {
     @Test
     public void test5() throws IOException, URISyntaxException {
         TestUtils.assertEquals(name.getMethodName(), pattern);
+    }
+
+    @Test
+    public void test4_test4n_test4n() throws IOException, URISyntaxException {
+        TestUtils.assertEquals(name.getMethodName(), pattern, false);
     }
 }

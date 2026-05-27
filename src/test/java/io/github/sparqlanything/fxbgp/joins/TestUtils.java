@@ -29,18 +29,49 @@ import java.util.*;
 
 public class TestUtils {
 
-    public static String getInputFilename(String methodName) throws URISyntaxException {
-        URL url = BGPTestUtils.class.getClassLoader().getResource("./joins/xml/" + methodName + ".xml");
+    private static URL getFileInputURL(String methodName) {
+        String file = getMethodNamePart(methodName, 0);
+
+        URL url = BGPTestUtils.class.getClassLoader().getResource("./joins/xml/" + file + ".xml");
         Assert.assertNotNull(url);
+        return url;
+    }
+
+    private static String getMethodNamePart(String methodName, int x) {
+        String file = methodName;
+        if (methodName.contains("_")) {
+            file = methodName.split("_")[x];
+        }
+        return file;
+    }
+
+    private static URL getQueryURL(String methodName) {
+        String file = getMethodNamePart(methodName, 1);
+        URL url = TestUtils.class.getClassLoader().getResource("./joins/queries/" + file + ".easybgp");
+        Assert.assertNotNull(url);
+        return url;
+    }
+
+    private static URL getBindingsURL(String methodName) {
+        String file = getMethodNamePart(methodName, 2);
+
+        URL url = TestUtils.class.getClassLoader().getResource("./joins/bindings/" + file + ".csv");
+        Assert.assertNotNull(url);
+        return url;
+    }
+
+
+    public static String getInputFilename(String methodName) throws URISyntaxException {
+        URL url = getFileInputURL(methodName);
         return url.toURI().toString();
     }
 
 
     public static Set<Map<Node, Node>> getBindings(String methodName) throws URISyntaxException, IOException {
-        URL url = TestUtils.class.getClassLoader().getResource("./joins/bindings/" + methodName + ".csv");
-        Assert.assertNotNull(url);
+        URL url = getBindingsURL(methodName);
         return readCSVAsBindings(new File(url.toURI()).getAbsolutePath());
     }
+
 
     private static List<Map<String, String>> readCSV(String filePath) throws IOException {
         try (Reader reader = new FileReader(filePath);
@@ -86,8 +117,7 @@ public class TestUtils {
 
     public static Set<ContainerSelector> getContainerSelectors(String methodName, Properties properties, Set<List<FX>> patterns) throws
             IOException {
-        URL url = TestUtils.class.getClassLoader().getResource("./joins/queries/" + methodName + ".easybgp");
-        Assert.assertNotNull(url);
+        URL url = getQueryURL(methodName);
         BasicPattern basicPattern = BGPTestUtils.readBGP(url);
         OpBGP opBGP = new OpBGP(basicPattern);
         AnalyserGrounder ag = new AnalyserGrounder(properties, FXModel.getFXModel());
@@ -101,6 +131,7 @@ public class TestUtils {
 
         return containerSelectors;
     }
+
 
     private static boolean complyWithPatterns(FXBGPAnnotation annotation, Set<List<FX>> patterns) {
         if (patterns == null)
@@ -142,6 +173,10 @@ public class TestUtils {
     }
 
     public static void assertEquals(String methodName, Set<List<FX>> triplePatterns) throws IOException, URISyntaxException {
+        assertEquals(methodName, triplePatterns, true);
+    }
+
+    public static void assertEquals(String methodName, Set<List<FX>> triplePatterns, boolean mustHaveResults) throws IOException, URISyntaxException {
 
         //System.out.println(TestUtils.getBindings(name.getMethodName()));
         Properties properties = new Properties();
@@ -158,8 +193,10 @@ public class TestUtils {
         for (ContainerSelector selector : selectors) {
             for (DataSourceContainer dataSourceContainer : sourceContainers) {
                 Collection<ContainerIsomorphism> bindings = selector.matches(dataSourceContainer);
-                Assert.assertNotNull(bindings);
-                isomorphisms.addAll(bindings);
+                if(mustHaveResults) {
+                    Assert.assertNotNull(bindings);
+                    isomorphisms.addAll(bindings);
+                }
             }
         }
 
