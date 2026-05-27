@@ -169,25 +169,25 @@ public class TestUtils {
     }
 
     public static void assertEquals(String methodName) throws IOException, URISyntaxException {
-        assertEquals(methodName, null, true, null);
+        assertEquals(methodName, null, true, null, null);
     }
 
     public static void assertEquals(String methodName, Set<List<FX>> triplePatterns) throws IOException, URISyntaxException {
-        assertEquals(methodName, triplePatterns, true, null);
+        assertEquals(methodName, triplePatterns, true, null, null);
     }
 
     public static void assertEquals(String methodName, Set<List<FX>> triplePatterns, boolean mustHaveResults) throws IOException, URISyntaxException {
-        assertEquals(methodName, triplePatterns, mustHaveResults, null);
+        assertEquals(methodName, triplePatterns, mustHaveResults, null, null);
     }
 
 
-    public static void assertEquals(String methodName, Set<List<FX>> triplePatterns, boolean mustHaveResults, Set<DataSourceContainer> syntheticContainers) throws IOException, URISyntaxException {
+    public static void assertEquals(String methodName, Set<List<FX>> triplePatterns, boolean mustHaveResults, Set<DataSourceContainer> syntheticContainers, Properties propertiesSyntheticContainers) throws IOException, URISyntaxException {
 
-        //System.out.println(TestUtils.getBindings(name.getMethodName()));
-        Properties properties = new Properties();
+        Properties properties = propertiesSyntheticContainers;
         Set<DataSourceContainer> sourceContainers = syntheticContainers;
 
         if (syntheticContainers == null) {
+            properties = new Properties();
             properties.setProperty(IRIArgument.LOCATION.toString(), TestUtils.getInputFilename(methodName));
 
             DataSourceContainerCollectorListenerImpl listener = new DataSourceContainerCollectorListenerImpl();
@@ -197,6 +197,8 @@ public class TestUtils {
         }
 
         Set<ContainerSelector> selectors = TestUtils.getContainerSelectors(methodName, properties, triplePatterns);
+        Assert.assertFalse(selectors.isEmpty());
+
         Collection<ContainerIsomorphism> isomorphisms = new HashSet<>();
 
         for (ContainerSelector selector : selectors) {

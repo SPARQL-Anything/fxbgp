@@ -77,18 +77,23 @@ public class ContainerSelectorImpl implements ContainerSelector {
             boolean match = true;
             for (int i = 0; i < assignment.size(); i++) {
                 // check assignment between assignment[i] and this.triplePatternType[i]
-                if (canBeAssignedTo(assignment.get(i), triplePatternType.get(i))) {
-                    for (ContainerIsomorphism containerBinding : bindings) {
-                        ContainerIsomorphism containerBindingCopy = containerBinding.copy();
+                if (!canBeAssignedTo(assignment.get(i), triplePatternType.get(i))) {
+                    match = false;
+                    break;
+                }
+            }
+            if (match) {
+                for (ContainerIsomorphism containerBinding : bindings) {
+
+                    ContainerIsomorphism containerBindingCopy = containerBinding.copy();
+                    bindingsToBeAdded.add(containerBindingCopy);
+
+                    for (int i = 0; i < assignment.size(); i++) {
                         // assign rdf:type to predicate
                         containerBindingCopy.set(triplePatternType.get(i).predicate, DataSourceTypeProperty.rdfType);
                         // assign assignment[i] to object
                         containerBindingCopy.set(triplePatternType.get(i).object, assignment.get(i));
-                        bindingsToBeAdded.add(containerBindingCopy);
                     }
-                } else {
-                    match = false;
-                    break;
                 }
             }
         }
@@ -97,7 +102,6 @@ public class ContainerSelectorImpl implements ContainerSelector {
             bindings.clear();
             bindings.addAll(bindingsToBeAdded);
         }
-
 
         return !bindingsToBeAdded.isEmpty();
     }
@@ -143,7 +147,7 @@ public class ContainerSelectorImpl implements ContainerSelector {
     @Override
     public String toString() {
 
-        String stringBuilder = "{ " +
+        return "{ " +
                 "TPC: " +
                 triplePatternContainer +
                 " ; " +
@@ -159,9 +163,6 @@ public class ContainerSelectorImpl implements ContainerSelector {
                 "CTPT: " +
                 this.triplePatternType +
                 " }";
-
-
-        return stringBuilder;
     }
 
     static class POPattern {
