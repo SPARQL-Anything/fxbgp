@@ -47,7 +47,7 @@ public class TestContainerSelector {
         properties.setProperty(IRIArgument.LOCATION.toString(), getInputFilename(name.getMethodName()));
         Node s = NodeFactory.createVariable("s");
         TriplePatternContainer triplePatternContainer = new TriplePatternContainerImpl(s, properties);
-        ContainerSelector containerSelector = new ContainerSelectorImpl(triplePatternContainer);
+        ContainerSelector containerSelector = new ContainerSelectorImpl.Builder(triplePatternContainer).build();
         DataSourceContainerCollectorSelectorListenerImpl listener = new DataSourceContainerCollectorSelectorListenerImpl(containerSelector);
         XMLParser xmlParser = new XMLParser(properties, listener);
         xmlParser.parse();
@@ -64,7 +64,6 @@ public class TestContainerSelector {
         if (subjectConcrete)
             s = NodeFactory.createURI(Triplifier.getRootArgument(properties) + "A");
         TriplePatternContainer triplePatternContainer = new TriplePatternContainerImpl(s, properties);
-        ContainerSelector containerSelector = new ContainerSelectorImpl(triplePatternContainer);
         Node p = NodeFactory.createVariable("p");
         if (predicateConcrete)
             p = RDF.type.asNode();
@@ -73,8 +72,7 @@ public class TestContainerSelector {
         if (objectConcrete)
             o = NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT);
         TriplePatternRoot triplePatternRoot = new TriplePatternRootImpl(o, properties);
-        containerSelector.setRootTriplePattern(triplePatternTypeProperty, triplePatternRoot);
-        return containerSelector;
+        return new ContainerSelectorImpl.Builder(triplePatternContainer).setRootTriplePattern(triplePatternTypeProperty, triplePatternRoot).build();
     }
 
     @Test

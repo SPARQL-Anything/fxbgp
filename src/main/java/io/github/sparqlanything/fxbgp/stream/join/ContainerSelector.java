@@ -16,22 +16,19 @@ import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.Tripl
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 public interface ContainerSelector {
 
     static Collection<ContainerSelector> getSelectors(FXBGPAnnotation bpa, Properties properties) {
-        Map<Node, ContainerSelector> containerSelectors = new HashMap<>();
+        Map<Node, ContainerSelectorImpl.Builder> containerSelectorBuilders = new HashMap<>();
 
         for (Triple triple : bpa.getOpBGP().getPattern().getList()) {
-            ContainerSelector containerSelector = containerSelectors.get(triple.getSubject());
+            ContainerSelectorImpl.Builder containerSelector = containerSelectorBuilders.get(triple.getSubject());
             if (containerSelector == null) {
                 TriplePatternContainerImpl triplePatternContainerImpl = new TriplePatternContainerImpl(triple.getSubject(), properties);
-                containerSelector = new ContainerSelectorImpl(triplePatternContainerImpl);
-                containerSelectors.put(triple.getSubject(), containerSelector);
+                containerSelector = new ContainerSelectorImpl.Builder(triplePatternContainerImpl);
+                containerSelectorBuilders.put(triple.getSubject(), containerSelector);
             }
 
             FXNodeAnnotation predicateAnnotation = bpa.getAnnotation(triple.getPredicate());
@@ -50,13 +47,12 @@ public interface ContainerSelector {
             }
         }
 
-        return containerSelectors.values();
+        Collection<ContainerSelector> result = new HashSet<>();
+        containerSelectorBuilders.values().forEach(builder -> result.add(builder.build()));
+        return result;
     }
 
+
     public Collection<ContainerIsomorphism> matches(DataSourceContainer container);
-
-    public void setRootTriplePattern(TriplePatternTypeProperty rootTypeProperty, TriplePatternRoot triplePatternRoot);
-
-    public void addTypeTriplePattern(TriplePatternTypeProperty typeProperty, TriplePatternType triplePatternType);
 
 }

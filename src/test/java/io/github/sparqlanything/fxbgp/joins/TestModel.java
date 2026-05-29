@@ -42,7 +42,7 @@ public class TestModel {
         // Test if ?c matches with a container with id "/abc"
         Var containerNode = Var.alloc("c");
         TriplePatternContainer triplePatternContainer = new TriplePatternContainerImpl(containerNode, properties);
-        ContainerSelector containerSelector = new ContainerSelectorImpl(triplePatternContainer);
+        ContainerSelector containerSelector = new ContainerSelectorImpl.Builder(triplePatternContainer).build();
         Collection<ContainerIsomorphism> containerBinding = containerSelector.matches(dataSourceContainer);
         Assert.assertNotNull(containerBinding);
 
@@ -62,7 +62,7 @@ public class TestModel {
 
         Var containerNode = Var.alloc("c");
         TriplePatternContainer triplePatternContainer = new TriplePatternContainerImpl(containerNode, properties);
-        ContainerSelector containerSelector = new ContainerSelectorImpl(triplePatternContainer);
+        ContainerSelector containerSelector = new ContainerSelectorImpl.Builder(triplePatternContainer).build();
         Collection<ContainerIsomorphism> containerBinding = containerSelector.matches(dataSourceContainer);
         Assert.assertNotNull(containerBinding);
 
@@ -83,8 +83,9 @@ public class TestModel {
 
         Var containerNode = Var.alloc("c");
         TriplePatternContainer triplePatternContainer = new TriplePatternContainerImpl(containerNode, properties);
-        ContainerSelector containerSelector = new ContainerSelectorImpl(triplePatternContainer);
-        containerSelector.setRootTriplePattern(new TriplePatternTypePropertyImpl(RDF.type.asNode(), properties), new TriplePatternRootImpl(NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT), properties));
+        ContainerSelector containerSelector = new ContainerSelectorImpl.Builder(triplePatternContainer).
+                setRootTriplePattern(new TriplePatternTypePropertyImpl(RDF.type.asNode(), properties), new TriplePatternRootImpl(NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT), properties)).
+                build();
 
         Collection<ContainerIsomorphism> containerBinding = containerSelector.matches(dataSourceContainer);
         Assert.assertNotNull(containerBinding);
@@ -109,8 +110,9 @@ public class TestModel {
         Var containerNode = Var.alloc("c");
         Var predicate = Var.alloc("p");
         TriplePatternContainer triplePatternContainer = new TriplePatternContainerImpl(containerNode, properties);
-        ContainerSelector containerSelector = new ContainerSelectorImpl(triplePatternContainer);
-        containerSelector.setRootTriplePattern(new TriplePatternTypePropertyImpl(predicate, properties), new TriplePatternRootImpl(NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT), properties));
+        ContainerSelector containerSelector = new ContainerSelectorImpl.Builder(triplePatternContainer)
+                .setRootTriplePattern(new TriplePatternTypePropertyImpl(predicate, properties), new TriplePatternRootImpl(NodeFactory.createURI(Triplifier.FACADE_X_TYPE_ROOT), properties))
+                .build();
 
         Collection<ContainerIsomorphism> containerBinding = containerSelector.matches(dataSourceContainer);
         Assert.assertNotNull(containerBinding);
@@ -137,8 +139,9 @@ public class TestModel {
         Var predicate = Var.alloc("p");
         Var o = Var.alloc("o");
         TriplePatternContainer triplePatternContainer = new TriplePatternContainerImpl(containerNode, properties);
-        ContainerSelector containerSelector = new ContainerSelectorImpl(triplePatternContainer);
-        containerSelector.setRootTriplePattern(new TriplePatternTypePropertyImpl(predicate, properties), new TriplePatternRootImpl(o, properties));
+        ContainerSelector containerSelector = new ContainerSelectorImpl.Builder(triplePatternContainer)
+                .setRootTriplePattern(new TriplePatternTypePropertyImpl(predicate, properties), new TriplePatternRootImpl(o, properties))
+                .build();
 
         Collection<ContainerIsomorphism> containerBinding = containerSelector.matches(dataSourceContainer);
         Assert.assertNotNull(containerBinding);
