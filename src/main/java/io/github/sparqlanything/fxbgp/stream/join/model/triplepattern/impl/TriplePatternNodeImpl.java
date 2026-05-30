@@ -15,6 +15,10 @@ public abstract class TriplePatternNodeImpl extends FXElementImpl implements Tri
         this.node = node;
     }
 
+    public TriplePatternNodeImpl(Node node, Properties properties) {
+        this(node.toString(), node, properties);
+    }
+
     @Override
     public Node asNode() {
         return node;

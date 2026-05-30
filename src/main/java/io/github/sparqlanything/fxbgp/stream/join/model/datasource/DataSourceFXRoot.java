@@ -25,5 +25,10 @@ public interface DataSourceFXRoot extends DataSourceFXElement {
             return Triplifier.FACADE_X_TYPE_ROOT;
         }
 
+        @Override
+        public int compareTo(FXElement e) {
+            return getSurface().compareTo(e.getSurface());
+        }
+
     } ;
 }

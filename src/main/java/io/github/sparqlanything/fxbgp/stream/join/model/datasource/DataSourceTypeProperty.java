@@ -23,5 +23,10 @@ public interface DataSourceTypeProperty extends DataSourceFXElement {
         public String getSurface() {
             return node.getURI();
         }
+
+        @Override
+        public int compareTo(FXElement e) {
+            return getSurface().compareTo(e.getSurface());
+        }
     };
 }

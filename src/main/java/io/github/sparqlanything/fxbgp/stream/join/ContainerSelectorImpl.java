@@ -1,12 +1,11 @@
 package io.github.sparqlanything.fxbgp.stream.join;
 
 import com.google.common.collect.Lists;
-import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceContainer;
-import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceFXRoot;
-import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceType;
-import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceTypeProperty;
+import io.github.sparqlanything.fxbgp.stream.join.model.ContainerIsomorphism;
+import io.github.sparqlanything.fxbgp.stream.join.model.ContainerIsomorphismImpl;
+import io.github.sparqlanything.fxbgp.stream.join.model.datasource.*;
+import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceSlotNumberImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.*;
-import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.ContainerIsomorphismImpl;
 
 import java.util.*;
 
@@ -20,8 +19,9 @@ public class ContainerSelectorImpl implements ContainerSelector {
     private boolean mustBeRoot = false;
 
     // types
-    private final List<POPattern> triplePatternType = new ArrayList<>();
-    private final List<POPattern> slotNumberPatterns = new ArrayList<>();
+    private final List<POPattern<TriplePatternTypeProperty, TriplePatternType>> triplePatternType = new ArrayList<>();
+    private final List<POPattern<TriplePatternSlotNumber, TriplePatternValueOrContainer>> concreteSlotNumberPatterns = new ArrayList<>();
+    private final List<POPattern<TriplePatternSlotNumber, TriplePatternValueOrContainer>> variableSlotNumberPatterns = new ArrayList<>();
 
     private ContainerSelectorImpl(TriplePatternContainer triplePatternContainer) {
         this.triplePatternContainer = triplePatternContainer;
@@ -47,25 +47,29 @@ public class ContainerSelectorImpl implements ContainerSelector {
         public Builder addTypeTriplePattern(TriplePatternTypeProperty typeProperty, TriplePatternType triplePatternType) {
             Objects.requireNonNull(typeProperty);
             Objects.requireNonNull(triplePatternType);
-            containerSelector.triplePatternType.add(new POPattern(typeProperty, triplePatternType));
+            containerSelector.triplePatternType.add(new POPattern<>(typeProperty, triplePatternType));
             return this;
         }
 
         public Builder addSlotNumberTriplePattern(TriplePatternSlotNumber slotNumber, TriplePatternValueOrContainer triplePatternValueOrContainer) {
             Objects.requireNonNull(slotNumber);
             Objects.requireNonNull(triplePatternValueOrContainer);
-            containerSelector.slotNumberPatterns.add(new POPattern(slotNumber, triplePatternValueOrContainer));
+            if (slotNumber.asNode().isURI()) {
+                containerSelector.concreteSlotNumberPatterns.add(new POPattern<>(slotNumber, triplePatternValueOrContainer));
+            } else {
+                containerSelector.variableSlotNumberPatterns.add(new POPattern<>(slotNumber, triplePatternValueOrContainer));
+            }
             return this;
         }
 
         public ContainerSelector build() {
             // sort patterns by slot number
-            containerSelector.slotNumberPatterns.sort(new Comparator<POPattern>() {
-                @Override
-                public int compare(POPattern o1, POPattern o2) {
-                    return o1.predicate.getSurface().compareTo(o2.predicate.getSurface());
-                }
-            });
+//            containerSelector.concreteSlotNumberPatterns.sort(new Comparator<>() {
+//                @Override
+//                public int compare(POPattern o1, POPattern o2) {
+//                    return o1.predicate.compareTo(o2.predicate);
+//                }
+//            });
             return containerSelector;
         }
 
@@ -81,13 +85,15 @@ public class ContainerSelectorImpl implements ContainerSelector {
         // single binding
         if (!(matchId(dataSourceContainer, containerBinding)
                 && matchTypePropertyRootTriplePatterns(containerBinding, dataSourceContainer)))
-
             return null;
 
         // multiple binding
         Set<ContainerIsomorphism> bindings = new HashSet<>();
         bindings.add(containerBinding);
         if (!matchTypePropertyTypeTriplePatterns(dataSourceContainer, bindings))
+            return null;
+
+        if (!matchSlotNumberPattern(dataSourceContainer, bindings))
             return null;
 
         return bindings;
@@ -117,14 +123,15 @@ public class ContainerSelectorImpl implements ContainerSelector {
                 for (ContainerIsomorphism containerBinding : bindings) {
 
                     ContainerIsomorphism containerBindingCopy = containerBinding.copy();
-                    bindingsToBeAdded.add(containerBindingCopy);
-
-                    for (int i = 0; i < assignment.size(); i++) {
+                    boolean toDiscard = false;
+                    for (int i = 0; i < assignment.size() && !toDiscard; i++) {
                         // assign rdf:type to predicate
-                        containerBindingCopy.set(triplePatternType.get(i).predicate, DataSourceTypeProperty.rdfType);
+                        toDiscard = !containerBindingCopy.set(triplePatternType.get(i).predicate, DataSourceTypeProperty.rdfType);
                         // assign assignment[i] to object
-                        containerBindingCopy.set(triplePatternType.get(i).object, assignment.get(i));
+                        toDiscard = !containerBindingCopy.set(triplePatternType.get(i).object, assignment.get(i)) || toDiscard;
                     }
+                    if (!toDiscard)
+                        bindingsToBeAdded.add(containerBindingCopy);
                 }
             }
         }
@@ -140,53 +147,94 @@ public class ContainerSelectorImpl implements ContainerSelector {
 
     private boolean matchSlotNumberPattern(DataSourceContainer dataSourceContainer, Set<ContainerIsomorphism> bindings) {
 
-        if (this.slotNumberPatterns.isEmpty())
+        if (this.concreteSlotNumberPatterns.isEmpty())
             return true;
 
-        List<List<DataSourceType>> listOfListsOfTypes = new ArrayList<>(this.slotNumberPatterns.size());
-        this.triplePatternType.forEach(po -> listOfListsOfTypes.add(new ArrayList<>(dataSourceContainer.getTypes())));
-        List<List<DataSourceType>> listOfListsOfAssignments = Lists.cartesianProduct(listOfListsOfTypes);
+
+        return matchSlotNumberConcrete(dataSourceContainer, bindings);
+    }
+
+    private boolean matchSlotNumberConcrete(DataSourceContainer dataSourceContainer, Set<ContainerIsomorphism> containerIsomorphisms) {
+
+        if (this.concreteSlotNumberPatterns.isEmpty())
+            return true;
+
+        // Check all the TPs (Container, SlotNumber, Object) with slot number URI match with the datasource slot numbers
+        Map<DataSourceSlotNumber, DataSourceValueOrContainer> datasourceSlotNumber = dataSourceContainer.getSlotNumber();
+        boolean match = true;
+        Map<TriplePatternNode, DataSourceFXElement> bindingsToAdd = new HashMap<>();
+        for (POPattern<TriplePatternSlotNumber, TriplePatternValueOrContainer> concreteSlotNumberPattern : this.concreteSlotNumberPatterns) {
+            DataSourceValueOrContainer dataSourceValueOrContainer = datasourceSlotNumber.get(concreteSlotNumberPattern.predicate);
+            if (!canBeAssignedTo(dataSourceValueOrContainer, concreteSlotNumberPattern)) {
+                match = false;
+                break;
+            }
+            bindingsToAdd.put(concreteSlotNumberPattern.predicate, new DataSourceSlotNumberImpl(concreteSlotNumberPattern.predicate.getNumber(), concreteSlotNumberPattern.predicate.getProperties()));
+            bindingsToAdd.put(concreteSlotNumberPattern.object, dataSourceValueOrContainer);
+        }
+
+        if (!match)
+            return false;
+
+        // Add bindings for all the TPs (Container, SlotNumber, Object)
+        for (ContainerIsomorphism containerIsomorphism : containerIsomorphisms) {
+            containerIsomorphism.putAll(bindingsToAdd);
+        }
+
+        return true;
+    }
+
+    private boolean matchSlotNumberVariable(DataSourceContainer dataSourceContainer, Set<ContainerIsomorphism> containerIsomorphisms) {
+
+        if (this.variableSlotNumberPatterns.isEmpty())
+            return true;
+
+        List<List<Map.Entry<DataSourceSlotNumber, DataSourceValueOrContainer>>> listOfListsOfSlotFillers = new ArrayList<>(this.variableSlotNumberPatterns.size());
+        this.variableSlotNumberPatterns.forEach(po -> listOfListsOfSlotFillers.add(new ArrayList<>(dataSourceContainer.getSlotNumber().entrySet())));
+        List<List<Map.Entry<DataSourceSlotNumber, DataSourceValueOrContainer>>> listOfListsOfAssignments = Lists.cartesianProduct(listOfListsOfSlotFillers);
         Set<ContainerIsomorphism> bindingsToBeAdded = new HashSet<>();
 
-        // Check assignment
-        for (List<DataSourceType> assignment : listOfListsOfAssignments) {
-            boolean match = true;
-            for (int i = 0; i < assignment.size(); i++) {
+        for (List<Map.Entry<DataSourceSlotNumber, DataSourceValueOrContainer>> assignments : listOfListsOfAssignments) {
+            boolean assignmentMatches = true;
+            for (int i = 0; i < assignments.size(); i++) {
                 // check assignment between assignment[i] and this.triplePatternType[i]
-                if (!canBeAssignedTo(assignment.get(i), triplePatternType.get(i))) {
-                    match = false;
+                if (!canBeAssignedTo(assignments.get(i).getValue(), this.variableSlotNumberPatterns.get(i))) {
+                    assignmentMatches = false;
                     break;
                 }
             }
-            if (match) {
-                for (ContainerIsomorphism containerBinding : bindings) {
+            if (assignmentMatches) {
+                for (ContainerIsomorphism containerIsomorphism : containerIsomorphisms) {
+                    ContainerIsomorphism containerBindingCopy = containerIsomorphism.copy();
+                    boolean toDiscard = false;
 
-                    ContainerIsomorphism containerBindingCopy = containerBinding.copy();
-                    bindingsToBeAdded.add(containerBindingCopy);
-
-                    for (int i = 0; i < assignment.size(); i++) {
-                        // assign rdf:type to predicate
-                        containerBindingCopy.set(triplePatternType.get(i).predicate, DataSourceTypeProperty.rdfType);
+                    // Assign variables
+                    for (int i = 0; i < assignments.size() && !toDiscard; i++) {
+                        // assign to the slot number
+                        toDiscard = !containerBindingCopy.set(variableSlotNumberPatterns.get(i).predicate, assignments.get(i).getKey());
                         // assign assignment[i] to object
-                        containerBindingCopy.set(triplePatternType.get(i).object, assignment.get(i));
+                        toDiscard = !containerBindingCopy.set(variableSlotNumberPatterns.get(i).object, assignments.get(i).getValue()) || toDiscard;
                     }
+
+                    if (!toDiscard)
+                        bindingsToBeAdded.add(containerBindingCopy);
                 }
             }
         }
 
         if (!bindingsToBeAdded.isEmpty()) {
-            bindings.clear();
-            bindings.addAll(bindingsToBeAdded);
+            containerIsomorphisms.clear();
+            containerIsomorphisms.addAll(bindingsToBeAdded);
         }
 
-        return !bindingsToBeAdded.isEmpty();
+        return true;
     }
 
 
-    private boolean canBeAssignedTo(DataSourceType dataSourceType, POPattern poPattern) {
+    private boolean canBeAssignedTo(DataSourceFXElement object, POPattern<? extends TriplePatternPredicate, ? extends TriplePatternObject> poPattern) {
         return poPattern.object.asNode().isVariable() ||
                 poPattern.object.asNode().isBlank() ||
-                poPattern.object.asNode().isURI() && poPattern.object.matches(dataSourceType);
+                poPattern.object.matches(object);
 
     }
 
@@ -242,11 +290,11 @@ public class ContainerSelectorImpl implements ContainerSelector {
                 " }";
     }
 
-    static class POPattern {
-        TriplePatternPredicate predicate;
-        TriplePatternObject object;
+    static class POPattern<P extends TriplePatternPredicate, O extends TriplePatternObject> {
+        P predicate;
+        O object;
 
-        public POPattern(TriplePatternPredicate predicate, TriplePatternObject object) {
+        public POPattern(P predicate, O object) {
             this.predicate = predicate;
             this.object = object;
         }

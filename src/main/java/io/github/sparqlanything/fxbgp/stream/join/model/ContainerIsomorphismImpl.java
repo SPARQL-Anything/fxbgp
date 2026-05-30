@@ -1,7 +1,6 @@
-package io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl;
+package io.github.sparqlanything.fxbgp.stream.join.model;
 
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceFXElement;
-import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.ContainerIsomorphism;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.TriplePatternNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.sparql.core.Var;
@@ -16,10 +15,20 @@ public class ContainerIsomorphismImpl implements ContainerIsomorphism {
 
     private final Map<TriplePatternNode, DataSourceFXElement> bindings = new HashMap<>();
 
-    public void set(TriplePatternNode triplePatternNode, DataSourceFXElement dataSourceFXElement) {
+    public boolean set(TriplePatternNode triplePatternNode, DataSourceFXElement dataSourceFXElement) {
         Objects.requireNonNull(triplePatternNode);
         Objects.requireNonNull(dataSourceFXElement);
-        bindings.put(triplePatternNode, dataSourceFXElement);
+        DataSourceFXElement element = bindings.get(triplePatternNode);
+        if (element == null) {
+            bindings.put(triplePatternNode, dataSourceFXElement);
+            return true;
+        }
+        return element.equals(dataSourceFXElement);
+    }
+
+    public void putAll(Map<TriplePatternNode, DataSourceFXElement> bindings) {
+        Objects.requireNonNull(bindings);
+        this.bindings.putAll(bindings);
     }
 
     public DataSourceFXElement get(TriplePatternNode triplePatternNode) {

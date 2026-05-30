@@ -4,7 +4,7 @@ import io.github.sparqlanything.fxbgp.*;
 import io.github.sparqlanything.fxbgp.stream.join.ContainerSelector;
 import io.github.sparqlanything.fxbgp.stream.join.listeners.impl.DataSourceContainerCollectorListenerImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceContainer;
-import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.ContainerIsomorphism;
+import io.github.sparqlanything.fxbgp.stream.join.model.ContainerIsomorphism;
 import io.github.sparqlanything.fxbgp.stream.join.parsers.XMLParser;
 import io.github.sparqlanything.model.IRIArgument;
 import io.github.sparqlanything.model.Triplifier;

@@ -1,9 +1,6 @@
 package io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl;
 
-import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceContainer;
-import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceSlot;
-import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceSlotFiller;
-import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceType;
+import io.github.sparqlanything.fxbgp.stream.join.model.datasource.*;
 import io.github.sparqlanything.model.IRIArgument;
 import io.github.sparqlanything.model.PropertyUtils;
 import io.github.sparqlanything.model.Triplifier;
@@ -14,7 +11,8 @@ import java.util.*;
 
 public class DataSourceContainerImpl extends DataSourceFXElementImpl implements DataSourceContainer {
 
-    private final Map<DataSourceSlot, DataSourceSlotFiller> slotMap = new HashMap<>();
+    private final Map<DataSourceSlotNumber, DataSourceValueOrContainer> slotNumber = new HashMap<>();
+    private final Map<DataSourceSlotString, DataSourceValueOrContainer> slotString = new HashMap<>();
     private final Set<DataSourceType> types = new HashSet<>();
     private boolean isRoot;
     private final String root;
@@ -36,15 +34,26 @@ public class DataSourceContainerImpl extends DataSourceFXElementImpl implements 
         this.isRoot = isRoot;
     }
 
-    public Map<DataSourceSlot, DataSourceSlotFiller> getSlotMap() {
-        return slotMap;
+    public Map<DataSourceSlotNumber, DataSourceValueOrContainer> getSlotNumber() {
+        return slotNumber;
+    }
+
+    public Map<DataSourceSlotString, DataSourceValueOrContainer> getSlotString() {
+        return slotString;
     }
 
     @Override
-    public void addSlot(DataSourceSlot slot, DataSourceSlotFiller dataSourceSlotFiller) {
+    public void addSlot(DataSourceSlotNumber slot, DataSourceValueOrContainer dataSourceSlotFiller) {
         Objects.requireNonNull(slot);
         Objects.requireNonNull(dataSourceSlotFiller);
-        slotMap.put(slot, dataSourceSlotFiller);
+        slotNumber.put(slot, dataSourceSlotFiller);
+    }
+
+    @Override
+    public void addSlot(DataSourceSlotString slot, DataSourceValueOrContainer dataSourceSlotFiller) {
+        Objects.requireNonNull(slot);
+        Objects.requireNonNull(dataSourceSlotFiller);
+        slotString.put(slot, dataSourceSlotFiller);
     }
 
 

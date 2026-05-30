@@ -1,7 +1,11 @@
 package io.github.sparqlanything.fxbgp.stream.join.model;
 
+import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceSlotNumber;
+import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceSlotString;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceContainerImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceTypeImpl;
+import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.TriplePatternSlotNumber;
+import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.TriplePatternSlotString;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.TriplePatternContainerImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.TriplePatternTypeImpl;
 import org.apache.jena.sparql.core.Var;
@@ -37,7 +41,9 @@ public abstract class FXElementImpl implements FXElement {
 
     static {
         addMatchingClasses(TriplePatternTypeImpl.class, DataSourceTypeImpl.class);
-        addMatchingClasses(DataSourceContainerImpl.class, TriplePatternContainerImpl.class);
+        addMatchingClasses(TriplePatternContainerImpl.class, DataSourceContainerImpl.class);
+        addMatchingClasses(TriplePatternSlotNumber.class, DataSourceSlotNumber.class);
+        addMatchingClasses(TriplePatternSlotString.class, DataSourceSlotString.class);
     }
 
     @Override
@@ -47,7 +53,7 @@ public abstract class FXElementImpl implements FXElement {
             return false;
         }
 
-        if (fxElement.asNode() instanceof Var || this.asNode() instanceof Var) {
+        if (fxElement.asNode() instanceof Var v1 || this.asNode() instanceof Var) {
             return true;
         }
 
@@ -83,5 +89,14 @@ public abstract class FXElementImpl implements FXElement {
                 "surface='" + surface + '\'' +
                 " node='" + asNode() + '\'' +
                 '}';
+    }
+
+    @Override
+    public int compareTo(FXElement e) {
+        return e.getSurface().compareTo(getSurface());
+    }
+
+    public Properties getProperties() {
+        return properties;
     }
 }

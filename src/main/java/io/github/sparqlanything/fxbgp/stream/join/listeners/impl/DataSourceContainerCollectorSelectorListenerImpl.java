@@ -2,7 +2,7 @@ package io.github.sparqlanything.fxbgp.stream.join.listeners.impl;
 
 import io.github.sparqlanything.fxbgp.stream.join.ContainerSelector;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceContainer;
-import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.ContainerIsomorphism;
+import io.github.sparqlanything.fxbgp.stream.join.model.ContainerIsomorphism;
 
 import java.util.Collection;
 import java.util.Objects;

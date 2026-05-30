@@ -6,7 +6,7 @@ import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceCon
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceType;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceContainerImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceTypeImpl;
-import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.ContainerIsomorphism;
+import io.github.sparqlanything.fxbgp.stream.join.model.ContainerIsomorphism;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.TriplePatternContainer;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.TriplePatternType;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.TriplePatternContainerImpl;
