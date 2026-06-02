@@ -44,14 +44,14 @@ public class TestCTPT {
     // (_, a:TP, t1:T) [t] ::: X
 
     @Test
-    public void test4_test4n_test4n() throws IOException, URISyntaxException {
+    public void test4_test4n_test4n_xml() throws IOException, URISyntaxException {
         TestUtils.assertEquals(name.getMethodName(), pattern, false);
     }
 
 
     // (_, ?p:TP, A1:T) (_, ?p:TP, A2:T) [A1, A2] ::: ?p = rdf:type
     @Test
-    public void sc_doubleType_doubleType() throws IOException, URISyntaxException {
+    public void sc_doubleType_doubleType_sc() throws IOException, URISyntaxException {
         Properties properties = new Properties();
         properties.setProperty(IRIArgument.ROOT.toString(), "https://example.org/root");
         DataSourceContainer dataSourceContainer = new DataSourceContainerImpl("A", properties);
@@ -65,7 +65,7 @@ public class TestCTPT {
     // (_, ?p1:TP, A1:T) (_, ?p2:TP, A2:T) [A1, A2] ::: ?p1 = rdf:type, ?p2 = rdf:type
 
     @Test
-    public void sc_doubleTypeDoublePredicate_doubleTypeDoublePredicate() throws IOException, URISyntaxException {
+    public void sc_doubleTypeDoublePredicate_doubleTypeDoublePredicate_sc() throws IOException, URISyntaxException {
         Properties properties = new Properties();
         properties.setProperty(IRIArgument.ROOT.toString(), "https://example.org/root");
         DataSourceContainer dataSourceContainer = new DataSourceContainerImpl("A", properties);
@@ -84,7 +84,7 @@ public class TestCTPT {
             <?p1 = rdf:type, ?p2 = rdf:type, ?t1 = t2, ?t2 = ?t1>
      */
     @Test
-    public void sc_doubleTypeDoublePredicateVar_doubleTypeDoublePredicateVar() throws IOException, URISyntaxException {
+    public void sc_doubleTypeDoublePredicateVar_doubleTypeDoublePredicateVar_sc() throws IOException, URISyntaxException {
         Properties properties = new Properties();
         properties.setProperty(IRIArgument.ROOT.toString(), "https://example.org/root");
         DataSourceContainer dataSourceContainer = new DataSourceContainerImpl("A", properties);
@@ -96,13 +96,13 @@ public class TestCTPT {
 
     // (_, a:TP, A:T) (_, a:TP, t2:T) [A] ::: NO MATCH
     @Test
-    public void test6_doubleType_noMatch() throws IOException, URISyntaxException {
+    public void test6_doubleType_noMatch_xml() throws IOException, URISyntaxException {
         TestUtils.assertEquals(name.getMethodName(), pattern, false);
     }
 
     // (_, a:TP, t1:T) (_, a:TP, t2:T) [t1, t] ::: X
     @Test
-    public void sc_doubleType_noMatch() throws IOException, URISyntaxException {
+    public void sc_doubleType_noMatch_sc() throws IOException, URISyntaxException {
         Properties properties = new Properties();
         properties.setProperty(IRIArgument.ROOT.toString(), "https://example.org/root");
         DataSourceContainer dataSourceContainer = new DataSourceContainerImpl("A", properties);

@@ -19,7 +19,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Properties;
 
-public class XMLParser {
+public class XMLParser implements StreamParser {
 
     private final Properties properties;
     private final String dataSource;

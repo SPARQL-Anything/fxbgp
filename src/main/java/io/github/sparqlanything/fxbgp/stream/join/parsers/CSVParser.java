@@ -4,6 +4,9 @@ import io.github.sparqlanything.csv.CSVTriplifier;
 import io.github.sparqlanything.fxbgp.stream.join.listeners.DataSourceContainerListener;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceContainer;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceContainerImpl;
+import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceSlotNumberImpl;
+import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceSlotStringImpl;
+import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceValueImpl;
 import io.github.sparqlanything.model.PropertyUtils;
 import io.github.sparqlanything.model.SPARQLAnythingConstants;
 import io.github.sparqlanything.model.Triplifier;
@@ -25,7 +28,7 @@ import java.util.Properties;
 
 import static io.github.sparqlanything.csv.CSVTriplifier.PROPERTY_HEADER_ROW;
 
-public class CSVParser {
+public class CSVParser implements StreamParser {
 
     private static final Logger L = LoggerFactory.getLogger(CSVParser.class);
     private final Properties properties;
@@ -33,11 +36,13 @@ public class CSVParser {
     private final LinkedHashMap<Integer, String> headersMap;
     private final Iterator<CSVRecord> recordIterator;
     private final String dataSourceId;
+    private final boolean useHeaders;
 
     public CSVParser(Properties properties, DataSourceContainerListener dataSourceEventListener) {
         this.properties = properties;
         this.dataSourceEventListener = dataSourceEventListener;
         this.dataSourceId = SPARQLAnythingConstants.DATA_SOURCE_ID;
+        this.useHeaders = PropertyUtils.getBooleanProperty(properties, CSVTriplifier.PROPERTY_HEADERS);
         try {
             InputStream is = Triplifier.getInputStream(properties);
             CSVFormat format = CSVTriplifier.buildFormat(properties);
@@ -45,7 +50,7 @@ public class CSVParser {
             InputStreamReader closableReader = new InputStreamReader(BOMInputStream.builder().setInputStream(is).get(), charset);
             Iterable<CSVRecord> records = format.parse(closableReader);
             this.recordIterator = records.iterator();
-            headersMap = makeHeadersMapFromOpenIterator(recordIterator, properties, format, charset);
+            this.headersMap = makeHeadersMapFromOpenIterator(format, charset);
         } catch (TriplifierHTTPException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -53,40 +58,54 @@ public class CSVParser {
 
     public void parse() {
 
-        int recordId = 1;
         DataSourceContainer rootContainer = new DataSourceContainerImpl("", properties, true);
 
-        while (recordIterator.hasNext()) {
+        for (int recordId = 1; recordIterator.hasNext(); recordId++) {
+            String rowContainerId = "row_".concat(String.valueOf(recordId));
+            DataSourceContainer rowContainer = new DataSourceContainerImpl(rowContainerId, properties);
+            CSVRecord record = recordIterator.next();
+            Iterator<String> cellIterator = record.iterator();
+            for (int cellId = 1; cellIterator.hasNext(); cellId++) {
+                String value = cellIterator.next();
+                if (useHeaders) {
+                    rowContainer.addSlot(new DataSourceSlotStringImpl(headersMap.get(cellId), properties), new DataSourceValueImpl(value, properties));
+                } else {
+                    rowContainer.addSlot(new DataSourceSlotNumberImpl(cellId, properties), new DataSourceValueImpl(value, properties));
+                }
+            }
+            dataSourceEventListener.onDataSourceContainer(rowContainer);
 
+            // row container only Id
+            DataSourceContainer rowContainerOnlyId = new DataSourceContainerImpl(rowContainerId, properties);
+            rootContainer.addSlot(new DataSourceSlotNumberImpl(recordId, properties), rowContainerOnlyId);
         }
 
     }
 
 
-    public static LinkedHashMap<Integer, String> makeHeadersMapFromOpenIterator(Iterator<CSVRecord> recordIterator, Properties properties, CSVFormat format, Charset charset) throws TriplifierHTTPException, IOException {
+    public LinkedHashMap<Integer, String> makeHeadersMapFromOpenIterator(CSVFormat format, Charset charset) throws TriplifierHTTPException, IOException {
         int headersRow = PropertyUtils.getIntegerProperty(properties, PROPERTY_HEADER_ROW);
         Iterator<CSVRecord> iterator = recordIterator;
         if (headersRow > 0) {
             Reader in = new InputStreamReader(BOMInputStream.builder().setInputStream(Triplifier.getInputStream(properties)).get(), charset);
             Iterable<CSVRecord> records = format.parse(in);
             iterator = records.iterator();
-            LinkedHashMap<Integer, String> headers_map = makeHeadersMapFromOpenIterator(properties, headersRow, iterator);
+            LinkedHashMap<Integer, String> headers_map = makeHeadersMapFromOpenIterator(headersRow, iterator);
             in.close();
             return headers_map;
         }
-        return makeHeadersMapFromOpenIterator(properties, headersRow, iterator);
+        return makeHeadersMapFromOpenIterator(headersRow, iterator);
     }
 
-    private static LinkedHashMap<Integer, String> makeHeadersMapFromOpenIterator(Properties properties, int headersRow, Iterator<CSVRecord> iterator) {
+    private LinkedHashMap<Integer, String> makeHeadersMapFromOpenIterator(int headersRow, Iterator<CSVRecord> iterator) {
         int rowNumber = 1;
         LinkedHashMap<Integer, String> headers_map = new LinkedHashMap<>();
-        if (PropertyUtils.getBooleanProperty(properties, CSVTriplifier.PROPERTY_HEADERS) && iterator.hasNext()) {
+        if (useHeaders && iterator.hasNext()) {
             while (rowNumber != headersRow && iterator.hasNext()) {
                 rowNumber++;
                 iterator.next();
             }
             CSVRecord record = iterator.next();
-            L.trace(" > is headers");
             Iterator<String> columns = record.iterator();
             int colid = 0;
             while (columns.hasNext()) {
@@ -94,7 +113,7 @@ public class CSVParser {
                 String colstring = columns.next();
                 String colname = colstring.strip();
 
-                if (colname.length() == 0) {
+                if (colname.isEmpty()) {
                     continue;
                 }
 
@@ -103,7 +122,6 @@ public class CSVParser {
                     c++;
                     colname += "_".concat(String.valueOf(c));
                 }
-                L.trace("adding colname >{}<", colname);
                 headers_map.put(colid, colname);
             }
         }

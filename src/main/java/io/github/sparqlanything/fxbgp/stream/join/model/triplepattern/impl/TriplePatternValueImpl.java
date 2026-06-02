@@ -9,9 +9,6 @@ public class TriplePatternValueImpl extends TriplePatternNodeImpl implements Tri
 
     public TriplePatternValueImpl(Node node, Properties properties) {
         super(node, properties);
-        node.sameTermAs(node);
     }
-
-
 
 }

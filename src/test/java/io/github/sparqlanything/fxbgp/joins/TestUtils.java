@@ -3,8 +3,10 @@ package io.github.sparqlanything.fxbgp.joins;
 import io.github.sparqlanything.fxbgp.*;
 import io.github.sparqlanything.fxbgp.stream.join.ContainerSelector;
 import io.github.sparqlanything.fxbgp.stream.join.listeners.impl.DataSourceContainerCollectorListenerImpl;
-import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceContainer;
 import io.github.sparqlanything.fxbgp.stream.join.model.ContainerIsomorphism;
+import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceContainer;
+import io.github.sparqlanything.fxbgp.stream.join.parsers.CSVParser;
+import io.github.sparqlanything.fxbgp.stream.join.parsers.StreamParser;
 import io.github.sparqlanything.fxbgp.stream.join.parsers.XMLParser;
 import io.github.sparqlanything.model.IRIArgument;
 import io.github.sparqlanything.model.Triplifier;
@@ -31,8 +33,8 @@ public class TestUtils {
 
     private static URL getFileInputURL(String methodName) {
         String file = getMethodNamePart(methodName, 0);
-
-        URL url = BGPTestUtils.class.getClassLoader().getResource("./joins/xml/" + file + ".xml");
+        String format = getMethodNamePart(methodName, 3);
+        URL url = BGPTestUtils.class.getClassLoader().getResource("./joins/" + format + "/" + file + "." + format);
         Assert.assertNotNull(url);
         return url;
     }
@@ -41,6 +43,8 @@ public class TestUtils {
         String file = methodName;
         if (methodName.contains("_")) {
             file = methodName.split("_")[x];
+        } else if (x == 3) {
+            return "xml";
         }
         return file;
     }
@@ -153,9 +157,7 @@ public class TestUtils {
     }
 
     private static Node stringToNode(String s) {
-        if (s.startsWith("\"")) {
-            return NodeFactory.createLiteralString(s.substring(1, s.length() - 1));
-        } else if (s.startsWith("<")) {
+        if (s.startsWith("<")) {
             return NodeFactory.createURI(s.substring(1, s.length() - 1));
         } else if (s.startsWith("_:")) {
             return NodeFactory.createBlankNode(s.substring(2));
@@ -167,39 +169,51 @@ public class TestUtils {
             return NodeFactory.createURI(Triplifier.XYZ_NS + s.substring(4));
         } else if (s.startsWith("fx:")) {
             return NodeFactory.createURI(Triplifier.FACADE_X_CONST_NAMESPACE_IRI + s.substring(3));
+        } else {
+            return NodeFactory.createLiteralString(s);
         }
-        throw new RuntimeException("Unrecognized format!");
     }
 
     public static void assertEquals(String methodName) throws IOException, URISyntaxException {
-        assertEquals(methodName, null, true, null, null);
+        assertEquals(methodName, null, true);
     }
 
     public static void assertEquals(String methodName, Set<List<FX>> triplePatterns) throws IOException, URISyntaxException {
-        assertEquals(methodName, triplePatterns, true, null, null);
+        assertEquals(methodName, triplePatterns, true);
+    }
+
+    public static void assertEquals(String methodName, Set<List<FX>> triplePatterns, boolean mustHaveResults, Set<DataSourceContainer> syntheticContainers, Properties propertiesSyntheticContainers) throws IOException, URISyntaxException {
+        Set<ContainerSelector> selectors = TestUtils.getContainerSelectors(methodName, propertiesSyntheticContainers, triplePatterns);
+        assertEquals(methodName, mustHaveResults, selectors, syntheticContainers);
+
     }
 
     public static void assertEquals(String methodName, Set<List<FX>> triplePatterns, boolean mustHaveResults) throws IOException, URISyntaxException {
-        assertEquals(methodName, triplePatterns, mustHaveResults, null, null);
-    }
+        Properties properties = new Properties();
+        properties.setProperty(IRIArgument.LOCATION.toString(), TestUtils.getInputFilename(methodName));
 
+        DataSourceContainerCollectorListenerImpl listener = new DataSourceContainerCollectorListenerImpl();
 
-    public static void assertEquals(String methodName, Set<List<FX>> triplePatterns, boolean mustHaveResults, Set<DataSourceContainer> syntheticContainers, Properties propertiesSyntheticContainers) throws IOException, URISyntaxException {
+        String format = getMethodNamePart(methodName, 3);
+        StreamParser parser;
 
-        Properties properties = propertiesSyntheticContainers;
-        Set<DataSourceContainer> sourceContainers = syntheticContainers;
+        if (format.equals("xml")) {
+            parser = new XMLParser(properties, listener);
+        } else if (format.equals("csv")) {
+            parser = new CSVParser(properties, listener);
+        } else {
+            throw new UnsupportedOperationException("Unsupported format " + format);
 
-        if (syntheticContainers == null) {
-            properties = new Properties();
-            properties.setProperty(IRIArgument.LOCATION.toString(), TestUtils.getInputFilename(methodName));
-
-            DataSourceContainerCollectorListenerImpl listener = new DataSourceContainerCollectorListenerImpl();
-            XMLParser xmlParser = new XMLParser(properties, listener);
-            xmlParser.parse();
-            sourceContainers = listener.getCollectedContainers();
         }
+        parser.parse();
+        Set<DataSourceContainer> sourceContainers = listener.getCollectedContainers();
 
         Set<ContainerSelector> selectors = TestUtils.getContainerSelectors(methodName, properties, triplePatterns);
+
+        assertEquals(methodName, mustHaveResults, selectors, sourceContainers);
+    }
+
+    private static void assertEquals(String methodName, boolean mustHaveResults, Set<ContainerSelector> selectors, Set<DataSourceContainer> sourceContainers) throws URISyntaxException, IOException {
         Assert.assertFalse(selectors.isEmpty());
 
         Collection<ContainerIsomorphism> isomorphisms = new HashSet<>();
@@ -208,7 +222,7 @@ public class TestUtils {
             for (DataSourceContainer dataSourceContainer : sourceContainers) {
                 Collection<ContainerIsomorphism> bindings = selector.matches(dataSourceContainer);
 
-                if(!mustHaveResults)
+                if (!mustHaveResults)
                     Assert.assertNull(bindings);
 
                 if (mustHaveResults && bindings != null) {
@@ -225,7 +239,6 @@ public class TestUtils {
         }
 
         Assert.assertEquals(expectedBindings, actualBindings);
-
     }
 
 

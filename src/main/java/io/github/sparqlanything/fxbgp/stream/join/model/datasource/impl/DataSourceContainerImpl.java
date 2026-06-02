@@ -11,7 +11,8 @@ import java.util.*;
 
 public class DataSourceContainerImpl extends DataSourceFXElementImpl implements DataSourceContainer {
 
-    private final Map<DataSourceSlotNumber, DataSourceValueOrContainer> slotNumber = new HashMap<>();
+    private final Map<Integer, DataSourceValueOrContainer> slotNumberValues = new HashMap<>();
+    private final Map<Integer, DataSourceSlotNumber> slotNumbers = new HashMap<>();
     private final Map<DataSourceSlotString, DataSourceValueOrContainer> slotString = new HashMap<>();
     private final Set<DataSourceType> types = new HashSet<>();
     private boolean isRoot;
@@ -34,8 +35,8 @@ public class DataSourceContainerImpl extends DataSourceFXElementImpl implements 
         this.isRoot = isRoot;
     }
 
-    public Map<DataSourceSlotNumber, DataSourceValueOrContainer> getSlotNumber() {
-        return slotNumber;
+    public Map<Integer, DataSourceValueOrContainer> getSlotNumberValues() {
+        return slotNumberValues;
     }
 
     public Map<DataSourceSlotString, DataSourceValueOrContainer> getSlotString() {
@@ -46,7 +47,8 @@ public class DataSourceContainerImpl extends DataSourceFXElementImpl implements 
     public void addSlot(DataSourceSlotNumber slot, DataSourceValueOrContainer dataSourceSlotFiller) {
         Objects.requireNonNull(slot);
         Objects.requireNonNull(dataSourceSlotFiller);
-        slotNumber.put(slot, dataSourceSlotFiller);
+        slotNumberValues.put(slot.getNumber(), dataSourceSlotFiller);
+        slotNumbers.put(slot.getNumber(), slot);
     }
 
     @Override
@@ -86,4 +88,7 @@ public class DataSourceContainerImpl extends DataSourceFXElementImpl implements 
         return NodeFactory.createURI(root.concat(getSurface()));
     }
 
+    public Map<Integer, DataSourceSlotNumber> getSlotNumbers() {
+        return slotNumbers;
+    }
 }

@@ -6,7 +6,7 @@ import java.util.Set;
 public interface DataSourceContainer extends DataSourceValueOrContainer {
 
 
-    public Map<DataSourceSlotNumber, DataSourceValueOrContainer> getSlotNumber();
+    public Map<Integer, DataSourceValueOrContainer> getSlotNumberValues();
 
     public Map<DataSourceSlotString, DataSourceValueOrContainer> getSlotString();
 
@@ -23,4 +23,6 @@ public interface DataSourceContainer extends DataSourceValueOrContainer {
     public void setRoot(boolean root);
 
     public void addType(DataSourceType type);
+
+    public Map<Integer, DataSourceSlotNumber> getSlotNumbers();
 }

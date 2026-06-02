@@ -1,23 +1,23 @@
 package io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl;
 
-import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceType;
+import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceSlotNumber;
+import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceSlotString;
 import io.github.sparqlanything.model.IRIArgument;
 import io.github.sparqlanything.model.PropertyUtils;
-import io.github.sparqlanything.model.Triplifier;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 
 import java.util.Properties;
 
-public class DataSourceTypeImpl extends DataSourceFXElementImpl implements DataSourceType {
+public class DataSourceSlotStringImpl extends DataSourceFXElementImpl implements DataSourceSlotString {
 
-    public DataSourceTypeImpl(String surface, Properties properties) {
-        super(surface, properties);
+
+    public DataSourceSlotStringImpl(String slotName, Properties properties) {
+        super(slotName, properties);
     }
 
     @Override
     public Node asNode() {
         return NodeFactory.createURI(PropertyUtils.getStringProperty(properties, IRIArgument.NAMESPACE).concat(getSurface()));
     }
-
 }

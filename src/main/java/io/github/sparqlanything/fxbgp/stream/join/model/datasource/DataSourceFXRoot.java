@@ -5,6 +5,8 @@ import io.github.sparqlanything.model.Triplifier;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 
+import java.util.Properties;
+
 public interface DataSourceFXRoot extends DataSourceFXElement {
 
     public static final DataSourceFXRoot fxRoot = new DataSourceFXRoot() {
@@ -29,6 +31,12 @@ public interface DataSourceFXRoot extends DataSourceFXElement {
         public int compareTo(FXElement e) {
             return getSurface().compareTo(e.getSurface());
         }
+
+        @Override
+        public Properties getProperties() {
+            throw new UnsupportedOperationException();
+        }
+
 
     } ;
 }

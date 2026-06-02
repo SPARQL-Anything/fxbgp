@@ -93,7 +93,10 @@ public class ContainerSelectorImpl implements ContainerSelector {
         if (!matchTypePropertyTypeTriplePatterns(dataSourceContainer, bindings))
             return null;
 
-        if (!matchSlotNumberPattern(dataSourceContainer, bindings))
+        if (!matchSlotNumberConcrete(dataSourceContainer, bindings))
+            return null;
+
+        if (!matchSlotNumberVariable(dataSourceContainer, bindings))
             return null;
 
         return bindings;
@@ -145,27 +148,18 @@ public class ContainerSelectorImpl implements ContainerSelector {
     }
 
 
-    private boolean matchSlotNumberPattern(DataSourceContainer dataSourceContainer, Set<ContainerIsomorphism> bindings) {
-
-        if (this.concreteSlotNumberPatterns.isEmpty())
-            return true;
-
-
-        return matchSlotNumberConcrete(dataSourceContainer, bindings);
-    }
-
     private boolean matchSlotNumberConcrete(DataSourceContainer dataSourceContainer, Set<ContainerIsomorphism> containerIsomorphisms) {
 
         if (this.concreteSlotNumberPatterns.isEmpty())
             return true;
 
         // Check all the TPs (Container, SlotNumber, Object) with slot number URI match with the datasource slot numbers
-        Map<DataSourceSlotNumber, DataSourceValueOrContainer> datasourceSlotNumber = dataSourceContainer.getSlotNumber();
+        Map<Integer, DataSourceValueOrContainer> datasourceSlotNumber = dataSourceContainer.getSlotNumberValues();
         boolean match = true;
         Map<TriplePatternNode, DataSourceFXElement> bindingsToAdd = new HashMap<>();
         for (POPattern<TriplePatternSlotNumber, TriplePatternValueOrContainer> concreteSlotNumberPattern : this.concreteSlotNumberPatterns) {
-            DataSourceValueOrContainer dataSourceValueOrContainer = datasourceSlotNumber.get(concreteSlotNumberPattern.predicate);
-            if (!canBeAssignedTo(dataSourceValueOrContainer, concreteSlotNumberPattern)) {
+            DataSourceValueOrContainer dataSourceValueOrContainer = datasourceSlotNumber.get(concreteSlotNumberPattern.predicate.getNumber());
+            if (dataSourceValueOrContainer == null || !canBeAssignedTo(dataSourceValueOrContainer, concreteSlotNumberPattern)) {
                 match = false;
                 break;
             }
@@ -189,12 +183,13 @@ public class ContainerSelectorImpl implements ContainerSelector {
         if (this.variableSlotNumberPatterns.isEmpty())
             return true;
 
-        List<List<Map.Entry<DataSourceSlotNumber, DataSourceValueOrContainer>>> listOfListsOfSlotFillers = new ArrayList<>(this.variableSlotNumberPatterns.size());
-        this.variableSlotNumberPatterns.forEach(po -> listOfListsOfSlotFillers.add(new ArrayList<>(dataSourceContainer.getSlotNumber().entrySet())));
-        List<List<Map.Entry<DataSourceSlotNumber, DataSourceValueOrContainer>>> listOfListsOfAssignments = Lists.cartesianProduct(listOfListsOfSlotFillers);
+        List<List<Map.Entry<Integer, DataSourceValueOrContainer>>> listOfListsOfSlotFillers = new ArrayList<>(this.variableSlotNumberPatterns.size());
+        this.variableSlotNumberPatterns.forEach(po -> listOfListsOfSlotFillers.add(new ArrayList<>(dataSourceContainer.getSlotNumberValues().entrySet())));
+        List<List<Map.Entry<Integer, DataSourceValueOrContainer>>> listOfListsOfAssignments = Lists.cartesianProduct(listOfListsOfSlotFillers);
         Set<ContainerIsomorphism> bindingsToBeAdded = new HashSet<>();
+        Map<Integer, DataSourceSlotNumber> slotNumbers = dataSourceContainer.getSlotNumbers();
 
-        for (List<Map.Entry<DataSourceSlotNumber, DataSourceValueOrContainer>> assignments : listOfListsOfAssignments) {
+        for (List<Map.Entry<Integer, DataSourceValueOrContainer>> assignments : listOfListsOfAssignments) {
             boolean assignmentMatches = true;
             for (int i = 0; i < assignments.size(); i++) {
                 // check assignment between assignment[i] and this.triplePatternType[i]
@@ -211,7 +206,7 @@ public class ContainerSelectorImpl implements ContainerSelector {
                     // Assign variables
                     for (int i = 0; i < assignments.size() && !toDiscard; i++) {
                         // assign to the slot number
-                        toDiscard = !containerBindingCopy.set(variableSlotNumberPatterns.get(i).predicate, assignments.get(i).getKey());
+                        toDiscard = !containerBindingCopy.set(variableSlotNumberPatterns.get(i).predicate, slotNumbers.get(assignments.get(i).getKey()));
                         // assign assignment[i] to object
                         toDiscard = !containerBindingCopy.set(variableSlotNumberPatterns.get(i).object, assignments.get(i).getValue()) || toDiscard;
                     }

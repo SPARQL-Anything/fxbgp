@@ -3,15 +3,20 @@ package io.github.sparqlanything.fxbgp.stream.join.model;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceSlotNumber;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceSlotString;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceContainerImpl;
+import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceSlotNumberImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceTypeImpl;
+import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceValueImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.TriplePatternSlotNumber;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.TriplePatternSlotString;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.TriplePatternContainerImpl;
+import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.TriplePatternSlotNumberImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.TriplePatternTypeImpl;
+import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.TriplePatternValueImpl;
 import org.apache.jena.sparql.core.Var;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 
 public abstract class FXElementImpl implements FXElement {
@@ -42,18 +47,18 @@ public abstract class FXElementImpl implements FXElement {
     static {
         addMatchingClasses(TriplePatternTypeImpl.class, DataSourceTypeImpl.class);
         addMatchingClasses(TriplePatternContainerImpl.class, DataSourceContainerImpl.class);
-        addMatchingClasses(TriplePatternSlotNumber.class, DataSourceSlotNumber.class);
-        addMatchingClasses(TriplePatternSlotString.class, DataSourceSlotString.class);
+        addMatchingClasses(TriplePatternSlotNumberImpl.class, DataSourceSlotNumberImpl.class);
+        addMatchingClasses(TriplePatternValueImpl.class, DataSourceValueImpl.class);
     }
 
     @Override
     public boolean matches(FXElement fxElement) {
         // if same class or matching class
-        if (!sameClass(fxElement) && !isMatchingClass(fxElement)) {
+        if (!sameClass(fxElement) && !isMatchingClass(fxElement))
             return false;
-        }
 
-        if (fxElement.asNode() instanceof Var v1 || this.asNode() instanceof Var) {
+
+        if (fxElement.asNode() instanceof Var || this.asNode() instanceof Var) {
             return true;
         }
 
@@ -69,18 +74,15 @@ public abstract class FXElementImpl implements FXElement {
     }
 
     @Override
-    public int hashCode() {
-        return getSurface().hashCode();
-    }
-
-    @Override
     public String getSurface() {
         return surface;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        return obj instanceof FXElement fxElement && matches(fxElement);
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof FXElement)) return false;
+        return matches((FXElement) o);
     }
 
     @Override
@@ -98,5 +100,10 @@ public abstract class FXElementImpl implements FXElement {
 
     public Properties getProperties() {
         return properties;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(getSurface());
     }
 }

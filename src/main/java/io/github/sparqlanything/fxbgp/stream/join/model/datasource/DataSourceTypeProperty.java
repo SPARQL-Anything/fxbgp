@@ -4,6 +4,8 @@ import io.github.sparqlanything.fxbgp.stream.join.model.FXElement;
 import org.apache.jena.graph.Node;
 import org.apache.jena.vocabulary.RDF;
 
+import java.util.Properties;
+
 public interface DataSourceTypeProperty extends DataSourceFXElement {
 
     public static final DataSourceTypeProperty rdfType = new DataSourceTypeProperty() {
@@ -27,6 +29,11 @@ public interface DataSourceTypeProperty extends DataSourceFXElement {
         @Override
         public int compareTo(FXElement e) {
             return getSurface().compareTo(e.getSurface());
+        }
+
+        @Override
+        public Properties getProperties() {
+            throw new UnsupportedOperationException();
         }
     };
 }

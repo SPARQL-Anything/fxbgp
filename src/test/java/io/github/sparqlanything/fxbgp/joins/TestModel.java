@@ -2,17 +2,19 @@ package io.github.sparqlanything.fxbgp.joins;
 
 import io.github.sparqlanything.fxbgp.stream.join.ContainerSelector;
 import io.github.sparqlanything.fxbgp.stream.join.ContainerSelectorImpl;
+import io.github.sparqlanything.fxbgp.stream.join.model.FXElement;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceContainer;
+import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceSlotNumber;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceType;
+import io.github.sparqlanything.fxbgp.stream.join.model.datasource.DataSourceValueOrContainer;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceContainerImpl;
+import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceSlotNumberImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceTypeImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.ContainerIsomorphism;
+import io.github.sparqlanything.fxbgp.stream.join.model.datasource.impl.DataSourceValueImpl;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.TriplePatternContainer;
 import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.TriplePatternType;
-import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.TriplePatternContainerImpl;
-import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.TriplePatternRootImpl;
-import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.TriplePatternTypeImpl;
-import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.TriplePatternTypePropertyImpl;
+import io.github.sparqlanything.fxbgp.stream.join.model.triplepattern.impl.*;
 import io.github.sparqlanything.model.IRIArgument;
 import io.github.sparqlanything.model.PropertyUtils;
 import io.github.sparqlanything.model.Triplifier;
@@ -23,11 +25,19 @@ import org.apache.jena.vocabulary.RDF;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Properties;
+import java.util.*;
 
 public class TestModel {
+
+    @Test
+    public void testMap(){
+        Map<DataSourceSlotNumber, DataSourceValueOrContainer> map = new HashMap<>();
+        map.put(new DataSourceSlotNumberImpl(1, new Properties()), new DataSourceValueImpl("abc", new Properties()) );
+        map.put(new DataSourceSlotNumberImpl(2, new Properties()), new DataSourceValueImpl("abc", new Properties()) );
+
+        DataSourceValueOrContainer v = map.get(new TriplePatternSlotNumberImpl(RDF.li(1).asNode(), new Properties()));
+        System.out.println(v);
+    }
 
     @Test
     public void testConcreteContainerMatch() {
@@ -158,7 +168,7 @@ public class TestModel {
     public void testContainsForTypes() {
         Properties properties = new Properties();
         String ns = PropertyUtils.getStringProperty(properties, IRIArgument.NAMESPACE);
-        HashSet<DataSourceType> dataSourceTypes = new HashSet<>();
+        HashSet<FXElement> dataSourceTypes = new HashSet<>();
         DataSourceTypeImpl t1 = new DataSourceTypeImpl("type1", properties);
         DataSourceTypeImpl t2 = new DataSourceTypeImpl("type2", properties);
         dataSourceTypes.add(t1);
