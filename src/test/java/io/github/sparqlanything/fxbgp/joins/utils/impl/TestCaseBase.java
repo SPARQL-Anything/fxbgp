@@ -36,6 +36,8 @@ public abstract class TestCaseBase implements TestCase {
 
     protected abstract String getBindingsFilepath();
 
+    protected abstract String getPatternsFilepath();
+
     protected abstract String getFormat();
 
     protected DataSourceContainerCollectorListenerImpl listener = new DataSourceContainerCollectorListenerImpl();
@@ -73,6 +75,13 @@ public abstract class TestCaseBase implements TestCase {
     }
 
 
+    protected URL getPatternsURL() {
+        URL url = TestUtils.class.getClassLoader().getResource(getPatternsFilepath());
+        Assert.assertNotNull(url);
+        return url;
+    }
+
+
     public Set<Map<Node, Node>> getBindings() {
         URL url = getBindingsURL();
 
@@ -97,7 +106,6 @@ public abstract class TestCaseBase implements TestCase {
                 Map<Node, Node> binding = new HashMap<>();
                 for (String header : headers) {
                     binding.put(stringToNode(header), stringToNode(record.get(header)));
-
                 }
                 rows.add(binding);
             }
@@ -159,8 +167,9 @@ public abstract class TestCaseBase implements TestCase {
         AnalyserGrounder ag = new AnalyserGrounder(getProperties(), FXModel.getFXModel());
         Set<FXBGPAnnotation> annotations = ag.annotate(opBGP, true);
         Set<ContainerSelector> containerSelectors = new HashSet<>();
+        Set<List<FX>> patterns = getPatterns();
         for (FXBGPAnnotation annotation : annotations) {
-            if (complyWithPatterns(annotation, getPatterns())) {
+            if (complyWithPatterns(annotation, patterns)) {
                 containerSelectors.addAll(ContainerSelector.getSelectors(annotation, getProperties()));
             }
         }
@@ -183,4 +192,42 @@ public abstract class TestCaseBase implements TestCase {
 
         return true;
     }
+
+    Set<List<FX>> readTestedPatterns() {
+        Set<List<FX>> patterns = new HashSet<>();
+        try (Reader reader = new FileReader(new File(getPatternsURL().toURI()));
+             org.apache.commons.csv.CSVParser parser = CSVFormat.DEFAULT
+                     .parse(reader)) {
+            for (CSVRecord record : parser) {
+                List<FX> pattern = new ArrayList<>(3);
+                record.iterator().forEachRemaining(cell -> pattern.add(stringToFX(cell)));
+                patterns.add(pattern);
+            }
+            return patterns;
+        } catch (IOException | URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private FX stringToFX(String cell) {
+        if (cell.equals("C"))
+            return FX.Container;
+        else if (cell.equals("SN"))
+            return FX.SlotNumber;
+        else if (cell.equals("V"))
+            return FX.Value;
+        else if (cell.equals("SS"))
+            return FX.SlotString;
+        else if (cell.equals("TP"))
+            return FX.TypeProperty;
+        else if (cell.equals("T"))
+            return FX.Type;
+        else if (cell.equals("R"))
+            return FX.Root;
+        else
+            throw new RuntimeException("Unexpected FX type " + cell);
+
+    }
+
+
 }
