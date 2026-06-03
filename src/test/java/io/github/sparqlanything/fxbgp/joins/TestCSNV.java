@@ -8,9 +8,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-
 public class TestCSNV {
 
     @Rule
@@ -32,6 +29,12 @@ public class TestCSNV {
 
     @Test
     public void csv_00003() {
+        TestCase testCase = new CSVTestCase(name.getMethodName());
+        executor.assertEquals(testCase);
+    }
+
+    @Test
+    public void csv_00004() {
         TestCase testCase = new CSVTestCase(name.getMethodName());
         executor.assertEquals(testCase);
     }

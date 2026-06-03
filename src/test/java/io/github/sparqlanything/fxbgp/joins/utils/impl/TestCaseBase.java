@@ -169,9 +169,8 @@ public abstract class TestCaseBase implements TestCase {
         Set<ContainerSelector> containerSelectors = new HashSet<>();
         Set<List<FX>> patterns = getPatterns();
         for (FXBGPAnnotation annotation : annotations) {
-            if (complyWithPatterns(annotation, patterns)) {
+            if ((patterns.isEmpty() || complyWithPatterns(annotation, patterns)))
                 containerSelectors.addAll(ContainerSelector.getSelectors(annotation, getProperties()));
-            }
         }
 
         return containerSelectors;
