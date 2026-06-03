@@ -44,6 +44,10 @@ public class XMLParser implements StreamParser {
         }
     }
 
+    public DataSourceContainerListener getDataSourceContainerListener() {
+        return listener;
+    }
+
     private String getCurrentLevelId(String localPart, int currentChild) {
         if (currentChild > 1) {
             // remove last part
