@@ -1,5 +1,6 @@
 package io.github.sparqlanything.fxbgp.joins.utils.impl;
 
+import com.google.common.collect.Sets;
 import io.github.sparqlanything.fxbgp.joins.utils.TestCase;
 import io.github.sparqlanything.fxbgp.joins.utils.TestCaseExecutor;
 import io.github.sparqlanything.fxbgp.stream.join.ContainerSelector;
@@ -48,7 +49,19 @@ public class TestCaseExecutorImpl implements TestCaseExecutor {
             actualBindings.add(containerIsomorphism.asMap());
         }
 
-        Assert.assertEquals(expectedBindings, actualBindings);
+        StringBuilder message = new StringBuilder();
+        message.append("=====================\nExpected \\ Actual\n\n");
+
+        Sets.difference(expectedBindings, actualBindings).forEach(s -> message.append(s.toString()).append("\n"));
+
+        message.append("=====================\nActual \\ Expected\n\n");
+
+        Sets.difference(actualBindings, expectedBindings).forEach(s -> message.append(s.toString()).append("\n"));
+
+        message.append("=====================");
+
+        Assert.assertEquals(message.toString(), expectedBindings, actualBindings);
+
     }
 
 

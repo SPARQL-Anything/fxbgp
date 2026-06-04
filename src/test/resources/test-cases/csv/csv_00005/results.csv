@@ -1,0 +1,7 @@
+?s,?p,?o
+_:row_1,rdf:_1,a
+_:row_1,rdf:_2,b
+_:row_1,rdf:_3,c
+_:row_2,rdf:_1,d
+_:row_2,rdf:_2,e
+_:row_2,rdf:_3,f

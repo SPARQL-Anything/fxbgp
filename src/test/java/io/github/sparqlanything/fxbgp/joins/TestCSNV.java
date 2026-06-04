@@ -39,5 +39,17 @@ public class TestCSNV {
         executor.assertEquals(testCase);
     }
 
+    @Test
+    public void csv_00005() {
+        TestCase testCase = new CSVTestCase(name.getMethodName());
+        executor.assertEquals(testCase);
+    }
+
+    @Test
+    public void csv_00006() {
+        TestCase testCase = new CSVTestCase(name.getMethodName());
+        executor.assertEquals(testCase);
+    }
+
 
 }
