@@ -59,4 +59,8 @@ public class CSVTestCase extends TestCaseBase implements TestCase {
             throw new RuntimeException(e);
         }
     }
+
+    public String getTestCaseName() {
+        return testCaseName;
+    }
 }

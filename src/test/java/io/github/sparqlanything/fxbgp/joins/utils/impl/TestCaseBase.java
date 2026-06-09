@@ -11,9 +11,11 @@ import io.github.sparqlanything.fxbgp.stream.join.parsers.XMLParser;
 import io.github.sparqlanything.model.Triplifier;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.IOUtils;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.core.Var;
@@ -26,6 +28,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.*;
 
 public abstract class TestCaseBase implements TestCase {
@@ -209,24 +212,51 @@ public abstract class TestCaseBase implements TestCase {
     }
 
     private FX stringToFX(String cell) {
-        if (cell.equals("C"))
-            return FX.Container;
-        else if (cell.equals("SN"))
-            return FX.SlotNumber;
-        else if (cell.equals("V"))
-            return FX.Value;
-        else if (cell.equals("SS"))
-            return FX.SlotString;
-        else if (cell.equals("TP"))
-            return FX.TypeProperty;
-        else if (cell.equals("T"))
-            return FX.Type;
-        else if (cell.equals("R"))
-            return FX.Root;
-        else
-            throw new RuntimeException("Unexpected FX type " + cell);
+        return switch (cell) {
+            case "C" -> FX.Container;
+            case "SN" -> FX.SlotNumber;
+            case "V" -> FX.Value;
+            case "SS" -> FX.SlotString;
+            case "TP" -> FX.TypeProperty;
+            case "T" -> FX.Type;
+            case "R" -> FX.Root;
+            default -> throw new RuntimeException("Unexpected FX type " + cell);
+        };
 
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getTestCaseName());
+        sb.append(" ");
+        BasicPattern bp = getBasicPattern();
+        sb.append(" [");
+        sb.append(bp.toString().replaceAll("\n", " "));
+        sb.append("] ");
+        try {
+            sb.append(" [");
+            sb.append(IOUtils.toString(getFileInputURL(), Charset.defaultCharset()).replaceAll("\n", "|"));
+            sb.append("] ");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
+        if (getBindings().isEmpty())
+            sb.append(" No results ");
+
+        for (Map<Node, Node> binding : getBindings()) {
+            sb.append(" [");
+            binding.forEach((k, v) -> {
+                sb.append("(");
+                sb.append(k.toString(PrefixMapping.Extended));
+                sb.append(" -> ");
+                sb.append(v.toString(PrefixMapping.Extended));
+                sb.append(")");
+            });
+            sb.append("] ");
+        }
+
+        return sb.toString();
+    }
 }

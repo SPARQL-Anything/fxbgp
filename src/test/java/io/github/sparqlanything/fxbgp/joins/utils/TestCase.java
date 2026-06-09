@@ -28,4 +28,5 @@ public interface TestCase {
 
     Set<List<FX>> getPatterns();
 
+    String getTestCaseName();
 }
