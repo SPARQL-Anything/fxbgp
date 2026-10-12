@@ -83,6 +83,7 @@ public class CSVParser implements StreamParser {
             DataSourceContainer rowContainerOnlyId = new DataSourceContainerImpl(rowContainerId, properties);
             rootContainer.addSlot(new DataSourceSlotNumberImpl(recordId, properties), rowContainerOnlyId);
         }
+        dataSourceEventListener.onDataSourceContainer(rootContainer);
 
     }
 

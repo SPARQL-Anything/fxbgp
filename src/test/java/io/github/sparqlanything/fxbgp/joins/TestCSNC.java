@@ -1,30 +1,26 @@
 package io.github.sparqlanything.fxbgp.joins;
 
-import io.github.sparqlanything.fxbgp.FX;
+import io.github.sparqlanything.fxbgp.joins.utils.TestCase;
+import io.github.sparqlanything.fxbgp.joins.utils.TestCaseExecutor;
+import io.github.sparqlanything.fxbgp.joins.utils.impl.CSVTestCase;
+import io.github.sparqlanything.fxbgp.joins.utils.impl.TestCaseExecutorImpl;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 public class TestCSNC {
+
     @Rule
     public TestName name = new TestName();
 
-
-    static Set<List<FX>> pattern = new HashSet<>();
-
-    static {
-        pattern.add(List.of(FX.Container, FX.SlotNumber, FX.Container));
-    }
-
-    // (_, a:TP, A:T) [A] :::
+    TestCaseExecutor executor = new TestCaseExecutorImpl();
 
     @Test
-    public void test4() throws IOException, URISyntaxException {
+    public void csv_00011() {
+        // csv_00011  [(?s ?p ?o)]  [a,b,c]  [_:,rdf:_1,_:row_1]
+        TestCase testCase = new CSVTestCase(name.getMethodName());
+        // System.out.println(testCase);
+        executor.assertEquals(testCase);
     }
+
 }
