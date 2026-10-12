@@ -212,18 +212,6 @@ public class RunExecutionTests {
         ExecutorService executor = Executors.newCachedThreadPool();
         TimeLimiter tl = SimpleTimeLimiter.create(executor);
 
-
-//        try {
-//            executeMaterialisationTestXML(opBGP, properties);
-//        } catch (SAXException e) {
-//            throw new RuntimeException(e);
-//        } catch (ParserConfigurationException e) {
-//            throw new RuntimeException(e);
-//        } catch (XPathExpressionException e) {
-//            throw new RuntimeException(e);
-//        }
-
-
         boolean timeout = false;
         AtomicLong numOfBindings = new AtomicLong(0L);
         long t0 = System.currentTimeMillis();
