@@ -214,15 +214,15 @@ public class XMLStreamParser implements FXStreamParser{
                         throw new RuntimeException(e);
                     }
                     if (event.isCharacters()) {
-                        charBuilder.append(event.asCharacters().getData().trim());
+                        charBuilder.append(event.asCharacters().getData());
                     } else {
                         break;
                     }
                 }
 
-                String chars = charBuilder.toString().trim();
+                String chars = charBuilder.toString();
                 this.moveToNext = false; // We already moved to the next one
-                if (chars.length() == 0) {
+                if (chars.trim().isEmpty()) {
                     this.sendSlotNumberForCharacters = false;
                     // Ignore event (we already moved to next event)
                     return hasNextEvent();
