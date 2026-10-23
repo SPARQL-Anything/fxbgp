@@ -26,7 +26,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <revision>1.2.0</revision>
 	</properties>
-    <version>${revision}</version>
+    <version>${revision}.stream</version>
 	<artifactId>sparql-anything-fxbgp</artifactId>
 
     <repositories>
