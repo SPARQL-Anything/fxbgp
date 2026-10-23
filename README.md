@@ -1,4 +1,4 @@
-# Bounded-Memory Basic Graph Pattern Evaluation over Façade-X Resources (Implementation)
+# Bounded-Memory Basic Graph Pattern Evaluation over Tree-Shaped Data (Implementation)
 
 ## Compile
 Compile without tests.
