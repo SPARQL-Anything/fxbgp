@@ -148,13 +148,14 @@ class Matching {
 
     private void removeFromMap(FXNode patternNode) {
         //dirty();
-        if (patternNode.getNode().isVariable()) {
-            for (FXNode k : nodesMap.get(patternNode.getNode())) {
-                recordMap.remove(k);
-            }
-        } else {
-            recordMap.remove(patternNode);
-        }
+//        if (patternNode.getNode().isVariable()) {
+//            for (FXNode k : nodesMap.get(patternNode.getNode())) {
+//                recordMap.remove(k);
+//            }
+//        } else {
+//            recordMap.remove(patternNode);
+//        }
+        recordMap.remove(patternNode);
     }
 
     // -----------------------------------------------------------------------
@@ -350,10 +351,12 @@ class Matching {
             for (Map.Entry<FXNode, PathRecord> entry : recordMap.entrySet()) {
                 Node matchingNode = entry.getKey().getNode();
                 if (matchingNode.isConcrete()) continue;
-                long entryHash = entry.getValue().hash;
+//                long entryHash = entry.getValue().hash;
+                Node entryTerm = entry.getValue().getNode();
                 for (FXNode fxn : nodesMap.get(matchingNode)) {
                     PathRecord fxnRecord = recordMap.get(fxn);
-                    if (fxnRecord == null || fxnRecord.hash != entryHash) {
+//                    if (fxnRecord == null || fxnRecord.hash != entryHash) {
+                    if (fxnRecord != null && !fxnRecord.getNode().equals(entryTerm)) {
                         this.unresolvable = true;
                         break;
                     }

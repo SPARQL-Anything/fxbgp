@@ -1,0 +1,3 @@
+?x <http://sparql.xyz/facade-x/data/name> ?n
+?x <http://sparql.xyz/facade-x/data/stars> ?l
+?l ?i ?n

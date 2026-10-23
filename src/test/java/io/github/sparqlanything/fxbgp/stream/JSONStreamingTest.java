@@ -84,4 +84,24 @@ public class JSONStreamingTest extends FXStreamExecutorTest{
         testSelectStarEquals(new JSONTriplifier(), properties());
         //testSelectStarEqualsResult.forEach(System.out::println);
     }
+
+    /**
+     * Skipping example of Section 5: ?n is matched to "B" by the slot name, then
+     * ?i must skip rdf:_1 (value "A" differs from ?n) and match rdf:_2.
+     * Exactly one solution: ?i = rdf:_2, ?n = "B".
+     */
+    @Test
+    public void skipjoin_json_skipjoin() throws IOException, NotATreeException {
+        prepare(testName.getMethodName());
+        for (boolean filtering : new boolean[]{true, false}) {
+            Set<Binding> it = set(executor.exec(getOpBGP(), properties(true, false, filtering)));
+            show(it.iterator());
+            Assert.assertEquals("events-filtering=" + filtering, 1, it.size());
+            Binding b = it.iterator().next();
+            Assert.assertEquals(NodeFactory.createURI("http://www.w3.org/1999/02/22-rdf-syntax-ns#_2"),
+                    b.get(org.apache.jena.sparql.core.Var.alloc("i")));
+            Assert.assertEquals(NodeFactory.createLiteralString("B"),
+                    b.get(org.apache.jena.sparql.core.Var.alloc("n")));
+        }
+    }
 }
